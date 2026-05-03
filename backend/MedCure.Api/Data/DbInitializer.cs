@@ -14,9 +14,12 @@ public static class DbInitializer
         var rng = new Random(42);
 
         // ── Tenants ───────────────────────────────────────────────
-        var mercy = new Tenant { Name = "Mercy Health",          Location = "Cincinnati, OH",  Tier = "Main",        Initial = "M", ColorHex = "#0e1116" };
-        var north = new Tenant { Name = "Northcare Pediatrics",  Location = "Indianapolis, IN", Tier = "Consultant",  Initial = "N", ColorHex = "#1a8a48" };
-        db.Tenants.AddRange(mercy, north);
+        var mercy    = new Tenant { Name = "Mercy Health",          Location = "Cincinnati, OH",       Tier = "Main",       Initial = "M", ColorHex = "#0e1116" };
+        var north    = new Tenant { Name = "Northcare Pediatrics",  Location = "Indianapolis, IN",     Tier = "Consultant", Initial = "N", ColorHex = "#1a8a48" };
+        var aurora   = new Tenant { Name = "Aurora Outpatient",     Location = "Columbus, OH",         Tier = "Affiliate",  Initial = "A", ColorHex = "#3a86ff" };
+        var riverside= new Tenant { Name = "Riverside Trauma",      Location = "Dayton, OH",           Tier = "Main",       Initial = "R", ColorHex = "#ff4d6b" };
+        var stOlives = new Tenant { Name = "St. Olive's",           Location = "Louisville, KY",       Tier = "Affiliate",  Initial = "S", ColorHex = "#ffb84d" };
+        db.Tenants.AddRange(mercy, north, aurora, riverside, stOlives);
         await db.SaveChangesAsync();
 
         // ── Users ─────────────────────────────────────────────────
@@ -33,12 +36,57 @@ public static class DbInitializer
             AvatarUrl = "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=120&h=120&fit=crop&crop=faces",
             TwoFactorEnabled = false
         };
-        db.Users.Add(demo);
+        var drPatel = new User
+        {
+            Email = "patel@medcure.health",
+            PasswordHash = PasswordHasher.Hash("demo123!"),
+            FullName = "Priya Patel",
+            Title = "MD",
+            Specialty = "Cardiology",
+            Npi = "9876543210",
+            LicenseState = "OH",
+            Dea = "BP9876543",
+            AvatarUrl = "https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=120&h=120&fit=crop&crop=faces",
+            TwoFactorEnabled = true
+        };
+        var drChen = new User
+        {
+            Email = "chen@medcure.health",
+            PasswordHash = PasswordHasher.Hash("demo123!"),
+            FullName = "Wei Chen",
+            Title = "MD",
+            Specialty = "Nephrology",
+            Npi = "1357924680",
+            LicenseState = "IN",
+            Dea = "BC1357924",
+            AvatarUrl = "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=120&h=120&fit=crop&crop=faces",
+            TwoFactorEnabled = false
+        };
+        var nurseJones = new User
+        {
+            Email = "jones.rn@medcure.health",
+            PasswordHash = PasswordHasher.Hash("demo123!"),
+            FullName = "Tamara Jones",
+            Title = "RN",
+            Specialty = "Critical Care",
+            Npi = "2468013579",
+            LicenseState = "OH",
+            Dea = "",
+            AvatarUrl = "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=120&h=120&fit=crop&crop=faces",
+            TwoFactorEnabled = false
+        };
+        db.Users.AddRange(demo, drPatel, drChen, nurseJones);
         await db.SaveChangesAsync();
 
         db.UserTenants.AddRange(
-            new UserTenant { UserId = demo.Id, TenantId = mercy.Id, Role = "MD",  PatientsCount = 12, InboxCount = 8, OnCallHours = 4 },
-            new UserTenant { UserId = demo.Id, TenantId = north.Id, Role = "Consultant", PatientsCount = 3, InboxCount = 2 }
+            new UserTenant { UserId = demo.Id,       TenantId = mercy.Id,     Role = "MD",          PatientsCount = 12, InboxCount = 8,  OnCallHours = 4 },
+            new UserTenant { UserId = demo.Id,       TenantId = north.Id,     Role = "Consultant",  PatientsCount = 3,  InboxCount = 2 },
+            new UserTenant { UserId = demo.Id,       TenantId = aurora.Id,    Role = "MD",          PatientsCount = 5,  InboxCount = 3,  OnCallHours = 2 },
+            new UserTenant { UserId = drPatel.Id,    TenantId = mercy.Id,     Role = "MD",          PatientsCount = 18, InboxCount = 5,  OnCallHours = 8 },
+            new UserTenant { UserId = drPatel.Id,    TenantId = riverside.Id, Role = "Consultant",  PatientsCount = 4,  InboxCount = 1 },
+            new UserTenant { UserId = drChen.Id,     TenantId = mercy.Id,     Role = "MD",          PatientsCount = 9,  InboxCount = 3,  OnCallHours = 0 },
+            new UserTenant { UserId = drChen.Id,     TenantId = stOlives.Id,  Role = "Consultant",  PatientsCount = 2,  InboxCount = 0 },
+            new UserTenant { UserId = nurseJones.Id, TenantId = mercy.Id,     Role = "RN",          PatientsCount = 6,  InboxCount = 4,  OnCallHours = 12 }
         );
         await db.SaveChangesAsync();
 
@@ -48,24 +96,33 @@ public static class DbInitializer
             new Ward { TenantId = mercy.Id, Name = "ICU",         Code = "ICU", BedCount = 16, AvgLos = 6.1, NurseRatio = "1:2" },
             new Ward { TenantId = mercy.Id, Name = "Telemetry",   Code = "TEL", BedCount = 24, AvgLos = 3.4, NurseRatio = "1:4" },
             new Ward { TenantId = mercy.Id, Name = "Pediatrics",  Code = "PED", BedCount = 18, AvgLos = 2.8, NurseRatio = "1:4" },
+            new Ward { TenantId = mercy.Id, Name = "Oncology",    Code = "ONC", BedCount = 20, AvgLos = 7.3, NurseRatio = "1:4" },
+            new Ward { TenantId = mercy.Id, Name = "PACU",        Code = "PAC", BedCount = 12, AvgLos = 0.5, NurseRatio = "1:2" },
+            new Ward { TenantId = mercy.Id, Name = "Step-Down",   Code = "SDN", BedCount = 22, AvgLos = 2.9, NurseRatio = "1:3" },
+        };
+        var riversideWards = new[] {
+            new Ward { TenantId = riverside.Id, Name = "Trauma Bay",   Code = "TBY", BedCount = 8,  AvgLos = 1.2, NurseRatio = "1:2" },
+            new Ward { TenantId = riverside.Id, Name = "Trauma ICU",   Code = "TIC", BedCount = 14, AvgLos = 5.8, NurseRatio = "1:2" },
+            new Ward { TenantId = riverside.Id, Name = "Trauma Step",  Code = "TST", BedCount = 18, AvgLos = 3.1, NurseRatio = "1:3" },
         };
         db.Wards.AddRange(wards);
+        db.Wards.AddRange(riversideWards);
         await db.SaveChangesAsync();
 
-        foreach (var w in wards)
+        foreach (var w in wards.Concat(riversideWards))
             for (int i = 1; i <= w.BedCount; i++)
-                db.Beds.Add(new Bed { TenantId = mercy.Id, WardId = w.Id, BedNumber = $"{w.Code}-{i:00}", Status = "empty" });
+                db.Beds.Add(new Bed { TenantId = w.TenantId, WardId = w.Id, BedNumber = $"{w.Code}-{i:00}", Status = "empty" });
         await db.SaveChangesAsync();
 
         // ── Patients ──────────────────────────────────────────────
-        var firstNames = new[] { "Albert","Olivia","Liam","Emma","Noah","Ava","Ethan","Sofia","Mason","Isabella","Lucas","Mia","Logan","Charlotte","Elijah","Amelia","James","Harper","Benjamin","Evelyn","Adison","Henry","Abigail","Daniel","Emily","Jackson","Elizabeth","Sebastian","Mila","Aiden","Ella","Matthew","Avery","Samuel","Sofia","David","Camila","Joseph","Aria","Carter" };
-        var lastNames  = new[] { "Smith","Johnson","Williams","Brown","Jones","Garcia","Miller","Davis","Rodriguez","Martinez","Hernandez","Lopez","Gonzalez","Wilson","Anderson","Thomas","Taylor","Moore","Jackson","Martin","Lee","Perez","Thompson","White","Harris","Sanchez","Clark","Ramirez","Lewis","Robinson" };
-        var attendings = new[] { "Dr. Drobo","Dr. Patel","Dr. Chen","Dr. Reyes","Dr. Okafor","Dr. Singh","Dr. Cohen","Dr. Müller" };
-        var rns        = new[] { "RN Carter","RN Wilson","RN Lopez","RN Singh","RN Greene","RN Brooks" };
+        var firstNames = new[] { "Albert","Olivia","Liam","Emma","Noah","Ava","Ethan","Sofia","Mason","Isabella","Lucas","Mia","Logan","Charlotte","Elijah","Amelia","James","Harper","Benjamin","Evelyn","Adison","Henry","Abigail","Daniel","Emily","Jackson","Elizabeth","Sebastian","Mila","Aiden","Ella","Matthew","Avery","Samuel","Sofia","David","Camila","Joseph","Aria","Carter","Grace","Zoe","Lily","Chloe","Penelope","Riley","Layla","Nora","Hannah","Scarlett","Violet","Aurora","Hazel","Stella","Paisley","Savannah","Addison","Brooklyn","Ellie","Willow" };
+        var lastNames  = new[] { "Smith","Johnson","Williams","Brown","Jones","Garcia","Miller","Davis","Rodriguez","Martinez","Hernandez","Lopez","Gonzalez","Wilson","Anderson","Thomas","Taylor","Moore","Jackson","Martin","Lee","Perez","Thompson","White","Harris","Sanchez","Clark","Ramirez","Lewis","Robinson","Walker","Young","Allen","King","Wright","Scott","Torres","Nguyen","Hill","Flores" };
+        var attendings = new[] { "Dr. Drobo","Dr. Patel","Dr. Chen","Dr. Reyes","Dr. Okafor","Dr. Singh","Dr. Cohen","Dr. Müller","Dr. Kim","Dr. Nakamura","Dr. Osei","Dr. Fernandez" };
+        var rns        = new[] { "RN Carter","RN Wilson","RN Lopez","RN Singh","RN Greene","RN Brooks","RN Tamara Jones","RN Park","RN Nguyen","RN Torres" };
         var statuses   = new[] { "good","good","good","good","warn","warn","bad" };
 
         var patients = new List<Patient>();
-        for (int i = 0; i < 80; i++)
+        for (int i = 0; i < 120; i++)
         {
             var w = wards[rng.Next(wards.Length)];
             var p = new Patient
@@ -95,9 +152,52 @@ public static class DbInitializer
         db.Patients.AddRange(patients);
         await db.SaveChangesAsync();
 
+        // ── Assign beds to patients ───────────────────────────────
+        var allBeds = await db.Beds.Where(b => b.TenantId == mercy.Id).ToListAsync();
+        var bedStatuses = new[] { "occ","occ","occ","occ","empty","empty","cleaning","held","discharge","iso","boarding" };
+        foreach (var bed in allBeds)
+        {
+            bed.Status = bedStatuses[rng.Next(bedStatuses.Length)];
+            if (bed.Status == "occ" || bed.Status == "iso" || bed.Status == "boarding")
+            {
+                var p = patients[rng.Next(patients.Count)];
+                bed.PatientId = p.Id;
+            }
+        }
+        await db.SaveChangesAsync();
+
+        // ── Encounters ────────────────────────────────────────────
+        var encounterTypes = new[] { "Inpatient","Inpatient","Inpatient","ED","Clinic","OR" };
+        var dispositions   = new[] { "","Admit","Discharge","Observe","Transfer","ICU upgrade" };
+        var ccs = new[] { "Chest pain","SOB","Abdominal pain","Headache","Fall","Lac to scalp","Fever","RLQ pain","Back pain","Sepsis r/o","AMS","Syncope","Palpitations","Edema","Hemoptysis","Nausea/vomiting","Dysuria","Hip pain","Shoulder pain","Weakness" };
+        var encounters = new List<Encounter>();
+        foreach (var p in patients)
+        {
+            int eCount = rng.Next(1, 4);
+            for (int e = 0; e < eCount; e++)
+            {
+                var type = encounterTypes[rng.Next(encounterTypes.Length)];
+                var start = DateTime.UtcNow.AddDays(-rng.Next(0, 180));
+                var ended = e < eCount - 1; // most encounters are closed except the latest
+                encounters.Add(new Encounter
+                {
+                    TenantId = mercy.Id,
+                    PatientId = p.Id,
+                    Type = type,
+                    StartAt = start,
+                    EndAt = ended ? start.AddDays(rng.Next(1, 12)) : null,
+                    ChiefComplaint = ccs[rng.Next(ccs.Length)],
+                    EsiLevel = type == "ED" ? rng.Next(1, 6) : null,
+                    Disposition = ended ? dispositions[rng.Next(dispositions.Length)] : ""
+                });
+            }
+        }
+        db.Encounters.AddRange(encounters);
+        await db.SaveChangesAsync();
+
         // ── Allergies + Problems + Vitals ────────────────────────
-        var allergens = new[] { ("Penicillin","hives","moderate"), ("Sulfa","rash","mild"), ("Latex","contact dermatitis","mild"), ("Peanut","anaphylaxis","severe"), ("Iodine contrast","urticaria","moderate") };
-        var problems  = new[] { ("Type 2 Diabetes","E11.9"), ("Essential Hypertension","I10"), ("Coronary Artery Disease","I25.10"), ("CKD Stage 3","N18.30"), ("COPD","J44.9"), ("Atrial Fibrillation","I48.91"), ("Pneumonia","J18.9"), ("Sepsis","A41.9") };
+        var allergens = new[] { ("Penicillin","hives","moderate"), ("Sulfa","rash","mild"), ("Latex","contact dermatitis","mild"), ("Peanut","anaphylaxis","severe"), ("Iodine contrast","urticaria","moderate"), ("Codeine","nausea","mild"), ("Aspirin","bronchospasm","severe"), ("NSAIDs","GI bleeding","moderate"), ("Cephalosporin","rash","mild"), ("Morphine","pruritus","mild") };
+        var problems  = new[] { ("Type 2 Diabetes","E11.9"), ("Essential Hypertension","I10"), ("Coronary Artery Disease","I25.10"), ("CKD Stage 3","N18.30"), ("COPD","J44.9"), ("Atrial Fibrillation","I48.91"), ("Pneumonia","J18.9"), ("Sepsis","A41.9"), ("Heart Failure","I50.9"), ("Acute MI","I21.9"), ("Stroke","I63.9"), ("DVT","I82.401"), ("PE","I26.09"), ("AKI","N17.9"), ("UTI","N39.0"), ("Cellulitis","L03.90"), ("GERD","K21.0"), ("Hypothyroidism","E03.9"), ("Anemia","D64.9"), ("Cirrhosis","K74.60") };
         foreach (var p in patients)
         {
             int aCount = rng.Next(0, 3);
@@ -270,7 +370,7 @@ public static class DbInitializer
             ("LFT","AST","U/L","8–48", 8, 48),
             ("Coag","INR","","0.8–1.2", 0.8, 1.2),
         };
-        for (int i = 0; i < 320; i++)
+        for (int i = 0; i < 480; i++)
         {
             var pat = patients[rng.Next(patients.Count)];
             var t = labs[rng.Next(labs.Length)];
