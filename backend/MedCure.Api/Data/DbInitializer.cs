@@ -169,7 +169,7 @@ public static class DbInitializer
         // ── Encounters ────────────────────────────────────────────
         var encounterTypes = new[] { "Inpatient","Inpatient","Inpatient","ED","Clinic","OR" };
         var dispositions   = new[] { "","Admit","Discharge","Observe","Transfer","ICU upgrade" };
-        var ccs = new[] { "Chest pain","SOB","Abdominal pain","Headache","Fall","Lac to scalp","Fever","RLQ pain","Back pain","Sepsis r/o","AMS","Syncope","Palpitations","Edema","Hemoptysis","Nausea/vomiting","Dysuria","Hip pain","Shoulder pain","Weakness" };
+        var encounterCcs = new[] { "Chest pain","SOB","Abdominal pain","Headache","Fall","Lac to scalp","Fever","RLQ pain","Back pain","Sepsis r/o","AMS","Syncope","Palpitations","Edema","Hemoptysis","Nausea/vomiting","Dysuria","Hip pain","Shoulder pain","Weakness" };
         var encounters = new List<Encounter>();
         foreach (var p in patients)
         {
@@ -186,7 +186,7 @@ public static class DbInitializer
                     Type = type,
                     StartAt = start,
                     EndAt = ended ? start.AddDays(rng.Next(1, 12)) : null,
-                    ChiefComplaint = ccs[rng.Next(ccs.Length)],
+                    ChiefComplaint = encounterCcs[rng.Next(encounterCcs.Length)],
                     EsiLevel = type == "ED" ? rng.Next(1, 6) : null,
                     Disposition = ended ? dispositions[rng.Next(dispositions.Length)] : ""
                 });
@@ -547,6 +547,361 @@ public static class DbInitializer
                 Notes = "Bedside report given · MRSA precautions noted"
             });
         }
+        // ── Lab & Nursing orders ──────────────────────────────────
+        var labPanels = new[] {
+            ("CBC","Complete Blood Count"), ("BMP","Basic Metabolic Panel"), ("CMP","Comprehensive Metabolic"),
+            ("LFT","Liver Function Tests"), ("Coag","Coagulation Panel"), ("ABG","Arterial Blood Gas"),
+            ("UA","Urinalysis"), ("Blood Cx","Blood Culture x2"), ("Urine Cx","Urine Culture"),
+            ("Troponin","High-sens Troponin I"), ("BNP","Brain Natriuretic Peptide"), ("HbA1c","Hemoglobin A1c"),
+            ("Lipids","Lipid Panel"), ("TSH","Thyroid Stimulating Hormone")
+        };
+        for (int i = 0; i < 110; i++)
+        {
+            var pat = patients[rng.Next(patients.Count)];
+            var lab = labPanels[rng.Next(labPanels.Length)];
+            db.Orders.Add(new Order
+            {
+                TenantId = mercy.Id, PatientId = pat.Id,
+                OrderType = "Lab",
+                Name = lab.Item2, Dose = "—", Route = "—", Frequency = "—",
+                Indication = problems[rng.Next(problems.Length)].Item1,
+                Priority = prios[rng.Next(prios.Length)],
+                Status = orderStatuses[rng.Next(orderStatuses.Length)],
+                OrderedByName = attendings[rng.Next(attendings.Length)],
+                SignedAt = DateTime.UtcNow.AddHours(-rng.Next(1, 72))
+            });
+        }
+
+        var nursingOrders = new[] {
+            "Vital signs q4h", "Daily weight", "I&O strict", "Fall precautions", "Aspiration precautions",
+            "Continuous pulse oximetry", "Telemetry monitoring", "Foley catheter care", "Wound care daily",
+            "Turn q2h", "DVT prophylaxis", "Neuro checks q2h", "Blood glucose ACHS", "O2 titrate to SpO2 ≥94%"
+        };
+        for (int i = 0; i < 80; i++)
+        {
+            var pat = patients[rng.Next(patients.Count)];
+            db.Orders.Add(new Order
+            {
+                TenantId = mercy.Id, PatientId = pat.Id,
+                OrderType = "Nursing",
+                Name = nursingOrders[rng.Next(nursingOrders.Length)],
+                Dose = "—", Route = "—", Frequency = "Ongoing",
+                Indication = "",
+                Priority = "Routine",
+                Status = new[] { "signed","verified","verified" }[rng.Next(3)],
+                OrderedByName = attendings[rng.Next(attendings.Length)],
+                SignedAt = DateTime.UtcNow.AddHours(-rng.Next(1, 96))
+            });
+        }
+
+        var dietOrders = new[] {
+            "Regular diet", "Cardiac diet (low sodium)", "Diabetic diet", "NPO after midnight",
+            "Clear liquids", "Low-fat diet", "Renal diet", "High-protein supplements BID"
+        };
+        for (int i = 0; i < 50; i++)
+        {
+            var pat = patients[rng.Next(patients.Count)];
+            db.Orders.Add(new Order
+            {
+                TenantId = mercy.Id, PatientId = pat.Id,
+                OrderType = "Diet",
+                Name = dietOrders[rng.Next(dietOrders.Length)],
+                Dose = "—", Route = "Oral", Frequency = "Daily",
+                Indication = "",
+                Priority = "Routine",
+                Status = "verified",
+                OrderedByName = attendings[rng.Next(attendings.Length)],
+                SignedAt = DateTime.UtcNow.AddHours(-rng.Next(1, 72))
+            });
+        }
+        await db.SaveChangesAsync();
+
+        // ── Medication Administrations (eMAR) ─────────────────────
+        var savedMedOrders = await db.Orders
+            .Where(o => o.TenantId == mercy.Id && o.OrderType == "Medication" && o.Status != "draft")
+            .ToListAsync();
+        var marStatuses = new[] { "given","given","given","given","late","held","refused","scheduled" };
+        foreach (var order in savedMedOrders)
+        {
+            // seed ~3 administrations per active medication order
+            for (int a = 0; a < rng.Next(1, 5); a++)
+            {
+                var scheduled = DateTime.UtcNow.AddHours(-a * 8 - rng.Next(0, 4));
+                var status = marStatuses[rng.Next(marStatuses.Length)];
+                db.MedAdmins.Add(new MedicationAdministration
+                {
+                    TenantId = mercy.Id,
+                    OrderId = order.Id,
+                    PatientId = order.PatientId,
+                    ScheduledAt = scheduled,
+                    AdministeredAt = status == "given" ? scheduled.AddMinutes(rng.Next(-15, 30)) : null,
+                    Status = status,
+                    AdministeredBy = rns[rng.Next(rns.Length)],
+                    ScanVerified = status == "given" && rng.Next(3) > 0,
+                    Notes = status == "held" ? "Patient refused oral medications" : status == "refused" ? "Patient declined — counseled" : ""
+                });
+            }
+        }
+        await db.SaveChangesAsync();
+
+        // ── CDS Alerts ────────────────────────────────────────────
+        var cdsMessages = new (string Type, string Sev, string Msg, string Rec)[] {
+            ("Drug-Allergy",     "crit", "Penicillin allergy on file — Amoxicillin ordered",                                    "Substitute with azithromycin or doxycycline"),
+            ("Drug-Interaction", "warn", "Warfarin + Metronidazole: significant CYP2C9 inhibition",                             "Monitor INR closely; consider dose reduction"),
+            ("Drug-Interaction", "warn", "Heparin + Aspirin: additive bleeding risk",                                           "Ensure indication justifies concurrent use"),
+            ("Duplicate Order",  "info", "Acetaminophen 650 mg q6h already active — new PRN order duplicates",                  "Cancel one of the duplicate orders"),
+            ("Renal Dose",       "warn", "Vancomycin: patient CrCl 28 mL/min — dose requires adjustment",                      "Pharmacy consult recommended; target AUC 400–600"),
+            ("High Alert",       "crit", "Insulin ordered without meal tray confirmed",                                         "Verify patient is able to eat before administration"),
+            ("Drug-Allergy",     "crit", "Sulfa allergy on file — Trimethoprim/Sulfamethoxazole ordered",                       "Select an alternative antibiotic"),
+            ("Contraindication", "warn", "Metformin: eGFR < 30 — contraindicated",                                              "Discontinue metformin; consider insulin or GLP-1 agonist"),
+            ("Drug-Interaction", "info", "Lisinopril + Spironolactone: risk of hyperkalemia",                                   "Monitor potassium; check renal function within 5–7 days"),
+            ("Dose Check",       "warn", "Furosemide 160 mg IV exceeds typical maximum single dose (80–120 mg)",                "Verify intent; split into two doses if appropriate"),
+            ("Therapeutic Dup",  "info", "Two beta-blockers active: Metoprolol succinate + Carvedilol",                         "Confirm intended; taper one agent before starting the other"),
+            ("Lab Alert",        "crit", "Potassium 6.2 mEq/L — critical hyperkalemia, order signed before result reviewed",    "Assess ECG; initiate treatment per hyperkalemia protocol"),
+        };
+
+        var cdsOrders = await db.Orders.Where(o => o.TenantId == mercy.Id).ToListAsync();
+        for (int i = 0; i < 48; i++)
+        {
+            var alert = cdsMessages[rng.Next(cdsMessages.Length)];
+            var order = cdsOrders[rng.Next(cdsOrders.Count)];
+            db.CdsAlerts.Add(new CdsAlert
+            {
+                TenantId = mercy.Id,
+                OrderId = order.Id,
+                Type = alert.Type,
+                Severity = alert.Sev,
+                Message = alert.Msg,
+                Recommendation = alert.Rec
+            });
+        }
+        await db.SaveChangesAsync();
+
+        // ── Code Events ───────────────────────────────────────────
+        var codeKinds    = new[] { "Blue","Blue","STEMI","Stroke","Trauma","Sepsis","MTP" };
+        var codeLocations= new[] { "ED Bay 4","ICU-2","Med-Surg 3W","Telemetry 2E","OR-3","Cath Lab","ED Trauma Bay","PACU" };
+        var codeOutcomes = new[] { "ROSC","ROSC","transferred","deceased","false alarm","transferred","ROSC" };
+        var timelineTemplates = new Dictionary<string, string>
+        {
+            ["Blue"]   = """[{"at":0,"label":"Code called","done":true},{"at":1,"label":"Team assembled","done":true},{"at":2,"label":"CPR initiated","done":true},{"at":10,"label":"Epinephrine 1 mg IV","done":true},{"at":12,"label":"Defibrillation 200 J","done":true},{"at":20,"label":"ROSC achieved","done":false}]""",
+            ["STEMI"]  = """[{"at":0,"label":"ECG acquired","done":true},{"at":5,"label":"Cath lab activated","done":true},{"at":12,"label":"Aspirin 325 mg given","done":true},{"at":20,"label":"Heparin bolus","done":true},{"at":45,"label":"PCI — door to balloon","done":false}]""",
+            ["Stroke"]  = """[{"at":0,"label":"Stroke team paged","done":true},{"at":5,"label":"CT head ordered","done":true},{"at":15,"label":"NIH Stroke Scale completed","done":true},{"at":30,"label":"tPA eligibility reviewed","done":false}]""",
+            ["Sepsis"]  = """[{"at":0,"label":"Sepsis alert triggered","done":true},{"at":5,"label":"Blood cultures x2 drawn","done":true},{"at":10,"label":"Broad-spectrum antibiotics","done":true},{"at":20,"label":"30 mL/kg IVF bolus started","done":false}]""",
+            ["Trauma"]  = """[{"at":0,"label":"Trauma activation","done":true},{"at":3,"label":"Primary survey","done":true},{"at":8,"label":"Secondary survey","done":true},{"at":15,"label":"CT trauma survey","done":false}]""",
+            ["MTP"]     = """[{"at":0,"label":"MTP activated","done":true},{"at":5,"label":"O-neg RBCs released","done":true},{"at":10,"label":"1:1:1 ratio started","done":false}]""",
+        };
+        for (int i = 0; i < 12; i++)
+        {
+            var kind     = codeKinds[rng.Next(codeKinds.Length)];
+            var pat      = rng.Next(4) > 0 ? patients[rng.Next(patients.Count)] : null;
+            var active   = rng.Next(4) == 0;
+            var activated = DateTime.UtcNow.AddMinutes(-rng.Next(0, 480));
+            db.CodeEvents.Add(new CodeEvent
+            {
+                TenantId = mercy.Id,
+                PatientId = pat?.Id,
+                Kind = kind,
+                Location = codeLocations[rng.Next(codeLocations.Length)],
+                ActivatedBy = attendings[rng.Next(attendings.Length)],
+                ActivatedAt = activated,
+                ResolvedAt = active ? null : activated.AddMinutes(rng.Next(10, 90)),
+                Outcome = active ? "" : codeOutcomes[rng.Next(codeOutcomes.Length)],
+                Status = active ? "active" : "resolved",
+                TimelineJson = timelineTemplates.TryGetValue(kind, out var tl) ? tl : "[]"
+            });
+        }
+        await db.SaveChangesAsync();
+
+        // ── More Documents ────────────────────────────────────────
+        var extraDocTitles = new[] {
+            "Advance Directive","Insurance Card (front)","Insurance Card (back)",
+            "Pathology Report","Cardiology Consult Note","Nephrology Consult Note",
+            "Physical Therapy Eval","Social Work Assessment","Nutrition Assessment",
+            "Pre-op Checklist","Post-op Note","Anesthesia Record",
+            "Radiology Report — CXR","Radiology Report — CT Chest","Echo Report",
+            "EKG Tracing","Transfer Summary","Referral Letter"
+        };
+        for (int i = 0; i < 60; i++)
+        {
+            var pat = patients[rng.Next(patients.Count)];
+            db.Documents.Add(new Document
+            {
+                TenantId = mercy.Id, PatientId = pat.Id,
+                Title = extraDocTitles[rng.Next(extraDocTitles.Length)],
+                Category = new[]{"Consent","Note","Imaging","Lab","Administrative","Referral"}[rng.Next(6)],
+                FileType = rng.Next(4) == 0 ? "jpg" : "pdf",
+                Pages = rng.Next(1, 20), SizeBytes = rng.Next(50_000, 5_000_000),
+                AuthorName = attendings[rng.Next(attendings.Length)],
+                Status = new[]{"signed","signed","draft","unsigned"}[rng.Next(4)]
+            });
+        }
+        await db.SaveChangesAsync();
+
+        // ── More Notes ────────────────────────────────────────────
+        var noteContents = new[] {
+            "Patient continues to improve clinically. Afebrile overnight. Tolerating diet. Continue current management.",
+            "Vitals stable. WBC trending down. Blood cultures no growth at 48h. ID following.",
+            "Family meeting held. Goals of care discussed. Patient wishes to continue full treatment.",
+            "Respiratory status improved on 2L NC. O2 weaned from 4L. Ambulating with PT.",
+            "BUN/Cr stable. Urine output adequate. Nephrology recommends continuing current fluid strategy.",
+            "Cardiology consult completed. Recommend rate control with metoprolol. Echo ordered.",
+            "Patient reports pain 3/10. Analgesics effective. No new complaints.",
+            "Social work consulted for discharge planning. Patient may need short-term rehab.",
+            "Hyperglycemia persisting. Endocrine consulted. Insulin regimen to be adjusted.",
+            "CT results reviewed — no acute finding. Continue observation.",
+            "Patient expressing anxiety about diagnosis. Chaplaincy and social work notified.",
+            "PICC line placed without complication. CXR confirming tip position.",
+        };
+        for (int i = 0; i < 80; i++)
+        {
+            var pat = patients[rng.Next(patients.Count)];
+            db.Notes.Add(new Note
+            {
+                TenantId = mercy.Id, PatientId = pat.Id,
+                Type = new[]{"Progress","Nursing","Consult","H&P","Procedure","Discharge"}[rng.Next(6)],
+                AuthorName = rng.Next(3) == 0 ? rns[rng.Next(rns.Length)] : attendings[rng.Next(attendings.Length)],
+                Content = noteContents[rng.Next(noteContents.Length)],
+                Signed = rng.Next(4) > 0,
+                SignedAt = DateTime.UtcNow.AddHours(-rng.Next(0, 240))
+            });
+        }
+        await db.SaveChangesAsync();
+
+        // ── More Message Threads ──────────────────────────────────
+        var threadSubjects = new[] {
+            "Urgent consult","Patient update","Coverage question","Lab follow-up","Discharge plan",
+            "Medication clarification","Bed request","Code status discussion","Family concerns",
+            "Transfer coordination","Abnormal result notification","PRN order clarification",
+            "On-call handoff","Staffing update","Equipment request"
+        };
+        for (int i = 0; i < 20; i++)
+        {
+            var t = new MessageThread
+            {
+                TenantId = mercy.Id,
+                Subject = threadSubjects[rng.Next(threadSubjects.Length)],
+                Urgent = rng.Next(5) == 0,
+                LastMessageAt = DateTime.UtcNow.AddMinutes(-rng.Next(0, 4320)),
+                Participants = $"Albert Drobo, {attendings[rng.Next(attendings.Length)]}, {rns[rng.Next(rns.Length)]}"
+            };
+            db.MessageThreads.Add(t);
+            await db.SaveChangesAsync();
+            var msgBodies = new[] {
+                "Following up on the patient — please advise.",
+                "Lab results are back. Please review at your earliest convenience.",
+                "Patient's family is requesting an update. Can we schedule a meeting?",
+                "Discharge planning in progress. Need your input on medications.",
+                "Coverage for tonight — any pending issues I should know about?",
+                "Please review and co-sign the order when you get a chance.",
+                "Patient deteriorating slightly. Vitals attached. Thoughts?",
+            };
+            for (int j = 0; j < rng.Next(2, 8); j++)
+            {
+                db.Messages.Add(new Message
+                {
+                    TenantId = mercy.Id, ThreadId = t.Id,
+                    SenderName = j % 2 == 0 ? "Albert Drobo" : attendings[rng.Next(attendings.Length)],
+                    Body = msgBodies[rng.Next(msgBodies.Length)],
+                    SentAt = DateTime.UtcNow.AddMinutes(-rng.Next(0, 4320)),
+                    Read = j < 3
+                });
+            }
+        }
+        await db.SaveChangesAsync();
+
+        // ── More Claims ───────────────────────────────────────────
+        var cptCodes = new[] {
+            ("99213","Office Visit — E&M Level 3"), ("99214","Office Visit — E&M Level 4"),
+            ("99232","Subsequent Inpatient E&M"), ("99233","Subsequent Inpatient E&M Complex"),
+            ("93000","12-lead ECG with interpretation"), ("71046","CXR 2 views"),
+            ("80053","CMP panel"), ("85025","CBC with differential"),
+            ("36415","Venipuncture"), ("99291","Critical care, first hour")
+        };
+        for (int i = 0; i < 80; i++)
+        {
+            var pat = patients[rng.Next(patients.Count)];
+            var cpt = cptCodes[rng.Next(cptCodes.Length)];
+            db.Claims.Add(new Claim
+            {
+                TenantId = mercy.Id, PatientId = pat.Id,
+                ClaimNumber = $"CLM{rng.Next(100000, 999999)}",
+                Payer = payers[rng.Next(payers.Length)],
+                CptCode = cpt.Item1,
+                ServiceDescription = cpt.Item2,
+                DateOfService = DateTime.UtcNow.AddDays(-rng.Next(0, 180)),
+                Amount = (decimal)Math.Round(80 + rng.NextDouble() * 7920, 2),
+                Status = cstats[rng.Next(cstats.Length)],
+                DenialReason = rng.Next(8) == 0 ? new[]{"CO-50 — Not medically necessary","CO-4 — Service inconsistent with modifier","PR-96 — Non-covered charge","CO-18 — Duplicate claim","CO-97 — Payment included in allowance"}[rng.Next(5)] : ""
+            });
+        }
+        await db.SaveChangesAsync();
+
+        // ── More Inventory ────────────────────────────────────────
+        var supplies = new[] {
+            ("IV Catheter 18G","SUP001","Supply"), ("IV Catheter 20G","SUP002","Supply"),
+            ("Foley Catheter 16Fr","SUP003","Supply"), ("Urinary Bag 2000mL","SUP004","Supply"),
+            ("Suture 4-0 Vicryl","SUP005","Supply"), ("Staple Remover","SUP006","Supply"),
+            ("Wound Dressing 4x4","SUP007","Supply"), ("Elastic Bandage 4in","SUP008","Supply"),
+            ("PPE Gown","SUP009","PPE"), ("N95 Respirator","SUP010","PPE"),
+            ("Exam Gloves M","SUP011","PPE"), ("Exam Gloves L","SUP012","PPE"),
+            ("Syringe 10mL","SUP013","Supply"), ("Syringe 60mL","SUP014","Supply"),
+            ("Alcohol Prep Pad","SUP015","Supply"), ("Blood Glucose Strips","SUP016","Diagnostic"),
+            ("Pulse Oximeter","SUP017","Equipment"), ("BP Cuff Adult","SUP018","Equipment"),
+        };
+        foreach (var (name, sku, cat) in supplies)
+        {
+            db.InventoryItems.Add(new InventoryItem
+            {
+                TenantId = mercy.Id,
+                Name = name, Ndc = "", Sku = sku,
+                Category = cat,
+                OnHand = rng.Next(10, 500), ParLevel = 100,
+                Location = new[]{"Central Supply","Storeroom A","Storeroom B","Floor Cart 3W","Floor Cart ICU"}[rng.Next(5)],
+                LotNumber = $"L{rng.Next(10000, 99999)}",
+                ExpiresAt = cat == "PPE" || cat == "Supply" ? DateTime.UtcNow.AddDays(rng.Next(30, 1080)) : DateTime.UtcNow.AddYears(5),
+                UnitCost = (decimal)Math.Round(0.5 + rng.NextDouble() * 49.5, 2)
+            });
+        }
+        await db.SaveChangesAsync();
+
+        // ── ED Arrivals (more, for Northcare + Riverside) ─────────
+        for (int i = 0; i < 14; i++)
+        {
+            db.EDArrivals.Add(new EDArrival
+            {
+                TenantId = riverside.Id,
+                PatientName = $"{firstNames[rng.Next(firstNames.Length)]} {lastNames[rng.Next(lastNames.Length)]}",
+                Age = rng.Next(16, 85), Sex = rng.Next(2)==0?"M":"F",
+                ChiefComplaint = new[]{"GSW abdomen","MVC — polytrauma","Fall from height","Stab wound chest","Burn injury","ATV rollover","Crush injury"}[rng.Next(7)],
+                EsiLevel = rng.Next(1, 3), // mostly level 1-2 for trauma
+                ArrivalMode = new[]{"EMS","Air transport","POV"}[rng.Next(3)],
+                ArrivedAt = DateTime.UtcNow.AddMinutes(-rng.Next(0, 180)),
+                Status = new[]{"triaged","in-bed","dispo"}[rng.Next(3)],
+                Bay = $"TBY-{rng.Next(1,9)}",
+                Hr = 70+rng.Next(80), Sbp = 80+rng.Next(80), Spo2 = 85+rng.Next(15)
+            });
+        }
+        await db.SaveChangesAsync();
+
+        // ── Audit Trail ───────────────────────────────────────────
+        var auditActions = new[] { "Login","Login","ViewChart","ViewChart","ViewChart","OrderSigned","OrderCancelled","NoteCreated","NoteSigned","ResultViewed","ResultAcknowledged","ClaimSubmitted","PatientAdmitted","PatientDischarged","PasswordChanged","TenantSwitched","SettingsUpdated","ReportExported" };
+        var auditResources = new[] { "Patient","Order","Note","LabResult","Claim","User","Encounter","Document" };
+        for (int i = 0; i < 150; i++)
+        {
+            var action = auditActions[rng.Next(auditActions.Length)];
+            var resource = auditResources[rng.Next(auditResources.Length)];
+            var pat = patients[rng.Next(patients.Count)];
+            db.AuditEntries.Add(new AuditEntry
+            {
+                TenantId = mercy.Id,
+                UserId = demo.Id,
+                Action = action,
+                Resource = resource,
+                Detail = $"{action} on {resource} — Patient {pat.Mrn}",
+                At = DateTime.UtcNow.AddMinutes(-rng.Next(0, 10080))
+            });
+        }
         await db.SaveChangesAsync();
     }
 }
+
