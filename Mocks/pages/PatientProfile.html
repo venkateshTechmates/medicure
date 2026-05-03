@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Patient · Albert Smith</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .crumb{font-size:12px;color:var(--ink-mute);margin:8px 4px 14px}
+  .crumb a{color:var(--ink-soft);text-decoration:none;font-weight:600}
+  .hero{display:grid;grid-template-columns:auto 1fr auto;gap:22px;align-items:center;background:#fff;border-radius:24px;padding:22px;box-shadow:var(--shadow);margin-bottom:18px}
+  .hero .pic{width:96px;height:96px;border-radius:24px;background:#eee center/cover}
+  .hero h1{font-family:"Instrument Serif",serif;font-size:46px;letter-spacing:-.02em;line-height:1;margin:0}
+  .hero .meta{display:flex;gap:18px;margin-top:6px;font-size:12px;color:var(--ink-soft);flex-wrap:wrap}
+  .hero .meta span b{color:var(--ink);font-weight:700}
+  .hero .actions{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+  .hero .actions .row{display:flex;gap:8px}
+
+  .grid{display:grid;grid-template-columns:280px 1fr 320px;gap:18px;align-items:start}
+
+  .left .card{padding:18px;margin-bottom:14px}
+  .kv{display:flex;justify-content:space-between;font-size:12px;padding:8px 0;border-top:1px solid var(--line)}
+  .kv:first-of-type{border-top:0}.kv .k{color:var(--ink-mute)}.kv .v{font-weight:600;text-align:right}
+
+  .center .card{padding:18px;margin-bottom:14px}
+  .vital-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .vital{background:#fafbfc;border-radius:16px;padding:14px;border:1px solid var(--line)}
+  .vital .l{font-size:10px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+  .vital .v{font-family:"Instrument Serif",serif;font-size:30px;letter-spacing:-.02em;line-height:1;margin-top:4px}
+  .vital .v small{font-size:11px;font-family:"Plus Jakarta Sans";color:var(--ink-mute);font-weight:600;margin-left:2px}
+  .vital .spark{margin-top:6px;height:24px}
+
+  .timeline{position:relative;padding-left:18px}
+  .timeline::before{content:"";position:absolute;left:5px;top:6px;bottom:6px;width:2px;background:var(--line)}
+  .ev{position:relative;padding:10px 0 14px}
+  .ev::before{content:"";position:absolute;left:-18px;top:14px;width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid #0e1116}
+  .ev.b::before{border-color:#3a86ff}.ev.g::before{border-color:#27c26b}.ev.r::before{border-color:#ff4d6b}.ev.y::before{border-color:#ffb84d}
+  .ev .h{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+  .ev .ti{font-weight:700;font-size:13px}.ev .dt{font-size:11px;color:var(--ink-mute)}
+  .ev .body{font-size:12px;color:var(--ink-soft);margin-top:4px}
+
+  .meds-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+  .meds-row:first-of-type{border-top:0}
+  .meds-row .ic{width:36px;height:36px;border-radius:10px;background:#fff3df;color:#a05a00;display:grid;place-items:center;font-weight:700;font-size:11px}
+  .meds-row .nm{font-weight:700;font-size:13px}.meds-row .sub{font-size:11px;color:var(--ink-mute)}
+
+  .right .card{padding:18px;margin-bottom:14px}
+  .alg-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:#ffe7eb;color:#b3263d;font-size:11px;font-weight:700;margin:3px 4px 0 0}
+  .care-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+  .care-row:first-of-type{border-top:0}
+  .care-row .pic{width:32px;height:32px;border-radius:50%;background:#eee center/cover;flex:none}
+  .care-row .nm{font-weight:700;font-size:12px}.care-row .role{font-size:10px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em}
+
+  .tabs2{display:flex;gap:4px;background:#f4f6f9;border-radius:999px;padding:4px;width:fit-content;margin-bottom:14px}
+  .tabs2 .t{padding:8px 14px;border-radius:999px;font:600 12px "Plus Jakarta Sans";color:var(--ink-soft);cursor:pointer}
+  .tabs2 .t.active{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+</style></head>
+<body data-page="patients" data-base="../">
+
+<div class="page"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div class="crumb"><a href="Patients.html">Patients</a> &nbsp;›&nbsp; Albert Smith</div>
+
+  <div class="hero">
+    <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=200&h=200&fit=crop&crop=faces')"></div>
+    <div>
+      <h1>Albert Smith</h1>
+      <div class="meta">
+        <span><b>MRN</b> 4421-08</span>
+        <span><b>DOB</b> Mar 12, 2017 · <b>9 yrs</b></span>
+        <span><b>Sex</b> Male</span>
+        <span><b>Blood</b> O+</span>
+        <span><b>Insurance</b> Aetna PPO · #88421</span>
+        <span><b>PCP</b> Dr. Achebe</span>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+        <span class="pill good"><span class="pdot"></span>Active</span>
+        <span class="pill warn"><span class="pdot"></span>Allergy: Penicillin</span>
+        <span class="pill info"><span class="pdot"></span>Asthma · mild persistent</span>
+      </div>
+    </div>
+    <div class="actions">
+      <div class="row"><button class="btn">Message</button><button class="btn primary">Schedule visit <span class="arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></span></button></div>
+      <div class="row"><button class="btn">+ Note</button><button class="btn">+ Order</button><button class="btn">+ Rx</button></div>
+    </div>
+  </div>
+
+  <div class="tabs2">
+    <div class="t active">Summary</div><div class="t">Encounters</div><div class="t">Labs</div><div class="t">Imaging</div><div class="t">Meds</div><div class="t">Documents</div><div class="t">Billing</div>
+  </div>
+
+  <div class="grid">
+    <!-- LEFT: Demographics + problems -->
+    <div class="left">
+      <div class="card">
+        <div style="font-weight:700;margin-bottom:8px">Demographics</div>
+        <div class="kv"><span class="k">Address</span><span class="v">412 Ashwood Ln<br>Brookline, MA 02446</span></div>
+        <div class="kv"><span class="k">Phone</span><span class="v">(617) 555-0188</span></div>
+        <div class="kv"><span class="k">Guardian</span><span class="v">Albert Drobo Sr.</span></div>
+        <div class="kv"><span class="k">Language</span><span class="v">English</span></div>
+        <div class="kv"><span class="k">Pharmacy</span><span class="v">CVS — Coolidge Cnr</span></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:700">Problem list</div><span style="font-size:11px;color:var(--ink-mute)">4 active</span></div>
+        <div class="kv"><span class="k">Asthma, mild</span><span class="v">2022 →</span></div>
+        <div class="kv"><span class="k">Allergic rhinitis</span><span class="v">2021 →</span></div>
+        <div class="kv"><span class="k">Otitis media (rec.)</span><span class="v">2024 →</span></div>
+        <div class="kv"><span class="k">Eczema, atopic</span><span class="v">2020 →</span></div>
+      </div>
+
+      <div class="card">
+        <div style="font-weight:700;margin-bottom:8px">Immunizations</div>
+        <div class="kv"><span class="k">DTaP</span><span class="v" style="color:var(--good)">✓ Up to date</span></div>
+        <div class="kv"><span class="k">MMR</span><span class="v" style="color:var(--good)">✓ Complete</span></div>
+        <div class="kv"><span class="k">Varicella</span><span class="v" style="color:var(--good)">✓ Complete</span></div>
+        <div class="kv"><span class="k">HPV</span><span class="v" style="color:var(--ink-mute)">Due 2028</span></div>
+        <div class="kv"><span class="k">Influenza</span><span class="v" style="color:var(--bad)">Overdue</span></div>
+      </div>
+    </div>
+
+    <!-- CENTER: Vitals + timeline + meds -->
+    <div class="center">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-weight:700">Latest vitals</div><div style="font-size:11px;color:var(--ink-mute)">Apr 28, 11:30 AM · Ms. Brooks</div></div>
+        <div class="vital-row">
+          <div class="vital"><div class="l">Heart rate</div><div class="v">88<small>bpm</small></div>
+            <svg class="spark" viewBox="0 0 100 24"><polyline fill="none" stroke="#ff4d6b" stroke-width="2" points="0,16 12,14 24,18 36,12 48,15 60,10 72,16 84,12 96,18"/></svg></div>
+          <div class="vital"><div class="l">Blood pressure</div><div class="v">102/64</div>
+            <svg class="spark" viewBox="0 0 100 24"><polyline fill="none" stroke="#3a86ff" stroke-width="2" points="0,12 16,14 32,11 48,13 64,10 80,12 96,11"/></svg></div>
+          <div class="vital"><div class="l">SpO₂</div><div class="v">98<small>%</small></div>
+            <svg class="spark" viewBox="0 0 100 24"><polyline fill="none" stroke="#27c26b" stroke-width="2" points="0,8 16,9 32,7 48,9 64,8 80,7 96,9"/></svg></div>
+          <div class="vital"><div class="l">Temp</div><div class="v">98.4<small>°F</small></div>
+            <svg class="spark" viewBox="0 0 100 24"><polyline fill="none" stroke="#ffb84d" stroke-width="2" points="0,14 16,12 32,15 48,13 64,12 80,14 96,12"/></svg></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-weight:700;margin-bottom:10px">Recent encounters</div>
+        <div class="timeline">
+          <div class="ev b"><div class="h"><div><div class="ti">Office visit · Asthma follow-up</div><div class="dt">Dr. Achebe · 30 min</div></div><div class="dt">Today, 11:30 AM</div></div><div class="body">Symptoms well-controlled on albuterol PRN. Peak flow 92% predicted. Continue current regimen, recheck 8 weeks. Influenza vaccine offered — declined today, will revisit.</div></div>
+          <div class="ev g"><div class="h"><div><div class="ti">Lab · CBC + CMP</div><div class="dt">D. Voss, MLS</div></div><div class="dt">Apr 24, 9:14 AM</div></div><div class="body">All within reference range. Eosinophils mildly elevated (8%) — consistent with atopic history.</div></div>
+          <div class="ev y"><div class="h"><div><div class="ti">Refill · Albuterol HFA</div><div class="dt">Pharmacy · Achebe</div></div><div class="dt">Apr 18</div></div><div class="body">Refill #3 of 5 dispensed. Counsel re: spacer use; technique reinforced.</div></div>
+          <div class="ev b"><div class="h"><div><div class="ti">Telehealth · Sick visit</div><div class="dt">PA Reyes · 15 min</div></div><div class="dt">Mar 22</div></div><div class="body">URI sx, no LRT involvement. Symptomatic care; return precautions reviewed.</div></div>
+          <div class="ev r"><div class="h"><div><div class="ti">ED visit · Mild asthma exac.</div><div class="dt">Dr. Vasquez · ED-04</div></div><div class="dt">Feb 09</div></div><div class="body">Resp 24, SpO₂ 95% RA. Albuterol nebs ×2, oral prednisolone 5d. Discharged stable to PCP follow-up.</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:700">Active medications</div><span style="font-size:11px;color:var(--ink-mute)">3 active · 2 inactive</span></div>
+        <div class="meds-row"><div class="ic">Ab</div><div style="flex:1"><div class="nm">Albuterol HFA 90mcg</div><div class="sub">2 puffs q4–6h PRN · spacer</div></div><div style="font-size:11px;color:var(--ink-mute)">Refills 4</div></div>
+        <div class="meds-row"><div class="ic">Fl</div><div style="flex:1"><div class="nm">Fluticasone 50mcg nasal</div><div class="sub">1 spray each nostril daily</div></div><div style="font-size:11px;color:var(--ink-mute)">Refills 2</div></div>
+        <div class="meds-row"><div class="ic">Dx</div><div style="flex:1"><div class="nm">Cetirizine 5mg</div><div class="sub">Once daily PRN</div></div><div style="font-size:11px;color:var(--ink-mute)">OTC</div></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Allergies, care team, upcoming, balance -->
+    <div class="right">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:700">Allergies</div><span class="pill bad"><span class="pdot"></span>2 critical</span></div>
+        <div class="alg-pill">⚠ Penicillin · hives</div>
+        <div class="alg-pill">⚠ Peanuts · anaphylaxis</div>
+        <div class="alg-pill" style="background:#fff7d6;color:#a05a00">Dust mites</div>
+        <div class="alg-pill" style="background:#fff7d6;color:#a05a00">Pollen, grass</div>
+      </div>
+
+      <div class="card">
+        <div style="font-weight:700;margin-bottom:8px">Care team</div>
+        <div class="care-row"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=80&h=80&fit=crop&crop=faces')"></div><div style="flex:1"><div class="nm">Dr. Mireille Achebe</div><div class="role">Primary care</div></div></div>
+        <div class="care-row"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=80&h=80&fit=crop&crop=faces')"></div><div style="flex:1"><div class="nm">Dr. Iqbal Tanaka</div><div class="role">Allergy / immunology</div></div></div>
+        <div class="care-row"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1587614382346-4ec70e388b28?w=80&h=80&fit=crop&crop=faces')"></div><div style="flex:1"><div class="nm">Nurse A. Brooks</div><div class="role">RN · ED</div></div></div>
+      </div>
+
+      <div class="card">
+        <div style="font-weight:700;margin-bottom:6px">Upcoming</div>
+        <div style="background:#fff7d6;border:1px solid #ffe26b;border-radius:14px;padding:12px">
+          <div style="font-weight:700;font-size:13px">Asthma re-eval</div>
+          <div style="font-size:11px;color:var(--ink-soft);margin-top:2px">Dr. Achebe · Room 204</div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-top:8px"><span><b>Jun 24, 2026</b> · 30 min</span><span style="color:var(--ink-mute)">8 wks</span></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)"><span style="color:var(--ink-mute)">Flu shot</span><b style="color:var(--bad)">Overdue</b></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:8px"><span style="color:var(--ink-mute)">Annual physical</span><b>Mar 2027</b></div>
+      </div>
+
+      <div class="card" style="background:#0e1116;color:#fff">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:700">Balance</div><span class="pill" style="background:rgba(255,255,255,.12);color:#fff"><span class="pdot" style="background:#27c26b"></span>Current</span></div>
+        <div style="font-family:'Instrument Serif',serif;font-size:32px;letter-spacing:-.02em">$48.00</div>
+        <div style="font-size:11px;color:#9aa0ad;margin-top:4px">Last payment $120 · Apr 02</div>
+        <button class="btn" style="background:#fff;color:#0e1116;width:100%;margin-top:12px">View statements</button>
+      </div>
+    </div>
+  </div>
+</div></div>
+<script src="../scripts/nav.js"></script>
+
+<script>window.MC_ROUTES = [{"sel":".action-card, .quick-action","href":"PatientChart.html","soft":true},{"sel":".btn.primary, button.primary","href":"PatientChart.html","title":"Open chart"}];</script>
+<script src="../scripts/router.js"></script>
+</body></html>

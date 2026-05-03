@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Specimen Tracking · Phlebotomy</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;justify-content:space-between;align-items:flex-end;margin:8px 4px 18px;flex-wrap:wrap;gap:14px}
+  .head .h1{font-size:48px}
+
+  .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px}
+  .stat{background:#fff;border-radius:14px;padding:14px 18px;box-shadow:var(--shadow);position:relative}
+  .stat .lab{font-size:11px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;font-weight:800}
+  .stat .v{font-family:"Instrument Serif",serif;font-size:38px;letter-spacing:-.02em;line-height:1;margin-top:6px}
+  .stat .sub{font-size:11px;color:var(--ink-soft);margin-top:4px}
+  .stat.warn{background:#fff7e3}.stat.crit{background:#fff7f9}.stat.ok{background:#f0faf3}
+
+  /* Pipeline */
+  .pipe{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px}
+  .stage{background:#fff;border-radius:14px;padding:14px;box-shadow:var(--shadow);position:relative}
+  .stage::after{content:'→';position:absolute;right:-14px;top:50%;transform:translateY(-50%);font-size:18px;color:var(--ink-mute);z-index:2}
+  .stage:last-child::after{display:none}
+  .stage h4{margin:0;font-size:11px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;font-weight:800;display:flex;justify-content:space-between;align-items:center}
+  .stage h4 .ct{font-family:"Instrument Serif",serif;font-size:32px;letter-spacing:-.02em;color:var(--ink);font-weight:400;line-height:1}
+  .stage .bar{height:4px;background:var(--line);border-radius:2px;margin-top:10px;overflow:hidden}
+  .stage .bar > div{height:100%;background:var(--good);border-radius:2px}
+  .stage.crit .bar > div{background:var(--bad)}
+  .stage.warn .bar > div{background:var(--warn)}
+
+  /* Specimen list */
+  .layout{display:grid;grid-template-columns:1fr 380px;gap:14px;align-items:start}
+  .table{background:#fff;border-radius:18px;box-shadow:var(--shadow);overflow:hidden}
+  .t-head{display:grid;grid-template-columns:90px 1fr 130px 120px 100px 80px;gap:14px;padding:14px 20px;border-bottom:1px solid var(--line);font-size:10px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;font-weight:800}
+  .t-row{display:grid;grid-template-columns:90px 1fr 130px 120px 100px 80px;gap:14px;padding:14px 20px;align-items:center;border-bottom:1px solid var(--line);cursor:pointer;font-size:12px;transition:.1s}
+  .t-row:hover{background:#fafbfc}
+  .t-row.act{background:#0e1116;color:#fff}
+  .t-row.act .meta,.t-row.act .who small,.t-row.act .id-sub{color:rgba(255,255,255,.6)}
+
+  .id-num{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:13px}
+  .id-sub{font-size:10px;color:var(--ink-mute);margin-top:1px}
+
+  .who{display:flex;gap:10px;align-items:center}
+  .who .pic{width:30px;height:30px;border-radius:9px;background:#888 center/cover;flex:none}
+  .who .nm{font-weight:700;font-size:12px}
+  .who small{display:block;font-size:10px;color:var(--ink-mute);font-weight:600}
+
+  .tube-wrap{display:flex;gap:3px}
+  .tube{width:10px;height:24px;border-radius:2px;border:1px solid rgba(0,0,0,.1)}
+  .tube.red{background:#d63a55}
+  .tube.lav{background:#a86bff}
+  .tube.gold{background:#e6b333}
+  .tube.green{background:#27c26b}
+  .tube.blue{background:#3a86ff}
+  .tube.gray{background:#888}
+
+  .stat-pill{padding:4px 10px;border-radius:999px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+  .stat-pill.collect{background:#fff3df;color:#a05a00}
+  .stat-pill.transit{background:#e6efff;color:#1a4fb3}
+  .stat-pill.received{background:#f0faf3;color:#1a8a48}
+  .stat-pill.process{background:#f0e9ff;color:#5024c2}
+  .stat-pill.result{background:#dff7e7;color:#1a8a48}
+  .stat-pill.reject{background:var(--bad);color:#fff}
+
+  .meta{font-size:11px;color:var(--ink-mute);font-weight:600}
+  .age.over{color:var(--bad);font-weight:800}
+  .age.warn{color:var(--warn);font-weight:800}
+
+  /* Detail */
+  .detail{background:#fff;border-radius:18px;box-shadow:var(--shadow);padding:22px;position:sticky;top:14px}
+  .detail .who-big{display:flex;gap:12px;align-items:center;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+  .detail .who-big .pic{width:44px;height:44px;border-radius:13px;background:#888 center/cover}
+  .detail .who-big .nm{font-weight:800;font-size:15px}
+  .detail .who-big .meta{font-size:11px;color:var(--ink-soft);margin-top:2px}
+  .detail h2{font-family:"Instrument Serif",serif;font-size:30px;letter-spacing:-.02em;margin:0 0 4px;font-weight:400;line-height:1.1}
+  .detail .barcode{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink-soft);margin-bottom:14px}
+
+  /* Chain of custody */
+  .chain{position:relative;padding-left:22px}
+  .chain::before{content:'';position:absolute;left:7px;top:6px;bottom:6px;width:2px;background:var(--line)}
+  .chain-row{position:relative;padding:6px 0 14px;font-size:12px}
+  .chain-row::before{content:'';position:absolute;left:-19px;top:8px;width:10px;height:10px;border-radius:50%;background:var(--good);border:2px solid #fff;box-shadow:0 0 0 1px var(--good)}
+  .chain-row.pending::before{background:#fff;box-shadow:0 0 0 2px var(--line)}
+  .chain-row.crit::before{background:var(--bad);box-shadow:0 0 0 1px var(--bad)}
+  .chain-row .t{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--ink-mute);font-weight:700}
+  .chain-row .ev{font-weight:700;font-size:13px;margin-top:1px}
+  .chain-row .by{font-size:11px;color:var(--ink-soft);margin-top:1px}
+
+  .test-row{display:grid;grid-template-columns:1fr auto;gap:10px;padding:8px 12px;background:#fafbfc;border-radius:10px;margin-bottom:4px;font-size:12px;border:1px solid var(--line)}
+  .test-row .nm{font-weight:700}
+  .test-row .sub{font-size:10px;color:var(--ink-mute);margin-top:1px}
+  .test-row .stat{font-size:9px;font-weight:800;padding:3px 7px;border-radius:5px;text-transform:uppercase}
+
+  .seg{display:flex;background:#fafbfc;border-radius:10px;padding:4px;border:1px solid var(--line);margin-bottom:14px}
+  .seg .o{flex:1;padding:8px;text-align:center;font:700 11px "Plus Jakarta Sans";color:var(--ink-soft);cursor:pointer;border-radius:7px}
+  .seg .o.act{background:#0e1116;color:#fff}
+</style></head>
+<body data-page="labs" data-base="../">
+
+<div class="page" style="max-width:1600px"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div class="head">
+    <div><span class="eyebrow">Lab logistics · phlebotomy &amp; specimen tracking</span><h1 class="h1">Specimens</h1><div style="font-size:13px;color:var(--ink-soft);margin-top:4px">Real-time tracking from collection to result · 84 active specimens · 2 critical TAT alerts</div></div>
+    <div style="display:flex;gap:8px"><button class="btn">Print rounds list</button><button class="btn">Scan specimen</button><button class="btn primary">+ New collection <span class="arrow">→</span></button></div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="lab">Pending collect</div><div class="v">14</div><div class="sub">3 STAT · AM rounds</div></div>
+    <div class="stat warn"><div class="lab">In transit</div><div class="v">22</div><div class="sub">Avg 8 min · pneumatic tube</div></div>
+    <div class="stat ok"><div class="lab">Processing</div><div class="v">38</div><div class="sub">Avg 24 min on bench</div></div>
+    <div class="stat crit"><div class="lab">TAT exceeded</div><div class="v">2</div><div class="sub">Lactate · troponin</div></div>
+    <div class="stat"><div class="lab">Resulted today</div><div class="v">312</div><div class="sub">98.6% within target</div></div>
+  </div>
+
+  <div class="pipe">
+    <div class="stage"><h4>Ordered <span class="ct">14</span></h4><div class="bar"><div style="width:30%"></div></div></div>
+    <div class="stage warn"><h4>Collecting <span class="ct">8</span></h4><div class="bar"><div style="width:55%"></div></div></div>
+    <div class="stage"><h4>In transit <span class="ct">22</span></h4><div class="bar"><div style="width:70%"></div></div></div>
+    <div class="stage warn"><h4>On bench <span class="ct">38</span></h4><div class="bar"><div style="width:60%"></div></div></div>
+    <div class="stage"><h4>Resulted <span class="ct">312</span></h4><div class="bar"><div style="width:98%"></div></div></div>
+  </div>
+
+  <div class="layout">
+    <div class="table">
+      <div class="seg" style="margin:14px 18px">
+        <div class="o act">All active (84)</div>
+        <div class="o">STAT (6)</div>
+        <div class="o">My patients (12)</div>
+        <div class="o">TAT alerts (2)</div>
+        <div class="o">Rejected (3)</div>
+      </div>
+
+      <div class="t-head">
+        <div>Specimen ID</div>
+        <div>Patient</div>
+        <div>Tubes / tests</div>
+        <div>Stage</div>
+        <div>Age</div>
+        <div></div>
+      </div>
+
+      <div class="t-row act">
+        <div><div class="id-num">SP-184462</div><div class="id-sub">Lac · STAT</div></div>
+        <div class="who"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=faces')"></div><div><div class="nm">Maria Hernandez</div><small>MRN 08461 · ICU-2</small></div></div>
+        <div><div class="tube-wrap"><span class="tube gray"></span></div><div class="meta" style="margin-top:4px">Lactate</div></div>
+        <div><span class="stat-pill process">On bench</span></div>
+        <div class="age over">22 min ⚠</div>
+        <div><span style="background:var(--bad);color:#fff;font-size:9px;padding:3px 6px;border-radius:5px;font-weight:800">STAT</span></div>
+      </div>
+
+      <div class="t-row">
+        <div><div class="id-num">SP-184461</div><div class="id-sub">Trop · STAT</div></div>
+        <div class="who"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=faces')"></div><div><div class="nm">James Liu</div><small>MRN 08410 · CCU</small></div></div>
+        <div><div class="tube-wrap"><span class="tube green"></span></div><div class="meta" style="margin-top:4px">Troponin I hs</div></div>
+        <div><span class="stat-pill process">On bench</span></div>
+        <div class="age warn">18 min</div>
+        <div><span style="background:var(--bad);color:#fff;font-size:9px;padding:3px 6px;border-radius:5px;font-weight:800">STAT</span></div>
+      </div>
+
+      <div class="t-row">
+        <div><div class="id-num">SP-184460</div><div class="id-sub">CBC + CMP</div></div>
+        <div class="who"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=80&h=80&fit=crop&crop=faces')"></div><div><div class="nm">Albert Smith</div><small>MRN 4421 · Peds-2</small></div></div>
+        <div><div class="tube-wrap"><span class="tube lav"></span><span class="tube green"></span></div><div class="meta" style="margin-top:4px">CBC, CMP</div></div>
+        <div><span class="stat-pill transit">In transit</span></div>
+        <div class="age">6 min</div>
+        <div><span style="background:#fff3df;color:#a05a00;font-size:9px;padding:3px 6px;border-radius:5px;font-weight:800">RTN</span></div>
+      </div>
+
+      <div class="t-row">
+        <div><div class="id-num">SP-184459</div><div class="id-sub">Blood cx ×2</div></div>
+        <div class="who"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=faces')"></div><div><div class="nm">Maria Hernandez</div><small>MRN 08461 · ICU-2</small></div></div>
+        <div><div class="tube-wrap"><span class="tube blue"></span><span class="tube blue"></span></div><div class="meta" style="margin-top:4px">Aerobic + Anaerobic</div></div>
+        <div><span class="stat-pill process">Incubating</span></div>
+        <div class="age">2.5 hr</div>
+        <div><span style="background:#fff3df;color:#a05a00;font-size:9px;padding:3px 6px;border-radius:5px;font-weight:800">RTN</span></div>
+      </div>
+
+      <div class="t-row">
+        <div><div class="id-num">SP-184458</div><div class="id-sub">Type &amp; screen</div></div>
+        <div class="who"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=faces')"></div><div><div class="nm">Sarah Johnson</div><small>MRN 08440 · StepD</small></div></div>
+        <div><div class="tube-wrap"><span class="tube red"></span><span class="tube red"></span></div><div class="meta" style="margin-top:4px">T&S, antibody screen</div></div>
+        <div><span class="stat-pill collect">Collecting</span></div>
+        <div class="age">3 min</div>
+        <div><span style="background:#fff3df;color:#a05a00;font-size:9px;padding:3px 6px;border-radius:5px;font-weight:800">RTN</span></div>
+      </div>
+
+      <div class="t-row">
+        <div><div class="id-num">SP-184457</div><div class="id-sub">UA + UC</div></div>
+        <div class="who"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=80&h=80&fit=crop&crop=faces')"></div><div><div class="nm">Priya Shah</div><small>MRN 08233 · Maty</small></div></div>
+        <div><div class="tube-wrap"><span class="tube gold"></span></div><div class="meta" style="margin-top:4px">UA, urine cx</div></div>
+        <div><span class="stat-pill received">Received</span></div>
+        <div class="age">12 min</div>
+        <div><span style="background:#fff3df;color:#a05a00;font-size:9px;padding:3px 6px;border-radius:5px;font-weight:800">RTN</span></div>
+      </div>
+
+      <div class="t-row">
+        <div><div class="id-num">SP-184456</div><div class="id-sub">CSF analysis</div></div>
+        <div class="who"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop&crop=faces')"></div><div><div class="nm">Adison Reyes</div><small>MRN 08423 · Peds-2</small></div></div>
+        <div><div class="tube-wrap"><span class="tube blue"></span><span class="tube blue"></span><span class="tube blue"></span></div><div class="meta" style="margin-top:4px">Cell ct, gluc, prot, gram</div></div>
+        <div><span class="stat-pill reject">⚠ Rejected</span></div>
+        <div class="age">1 hr</div>
+        <div><span style="background:var(--bad);color:#fff;font-size:9px;padding:3px 6px;border-radius:5px;font-weight:800">RECOL</span></div>
+      </div>
+
+      <div class="t-row">
+        <div><div class="id-num">SP-184455</div><div class="id-sub">PT/INR</div></div>
+        <div class="who"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=80&h=80&fit=crop&crop=faces')"></div><div><div class="nm">Emma Bauer</div><small>MRN 08561 · ICU-1</small></div></div>
+        <div><div class="tube-wrap"><span class="tube blue"></span></div><div class="meta" style="margin-top:4px">PT, INR, PTT</div></div>
+        <div><span class="stat-pill result">✓ Resulted</span></div>
+        <div class="age">38 min</div>
+        <div><span style="font-size:9px;color:var(--ink-mute);font-weight:700">DONE</span></div>
+      </div>
+
+      <div class="t-row">
+        <div><div class="id-num">SP-184454</div><div class="id-sub">HbA1c</div></div>
+        <div class="who"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=80&h=80&fit=crop&crop=faces')"></div><div><div class="nm">Daniel Owusu</div><small>MRN 08299 · StepD</small></div></div>
+        <div><div class="tube-wrap"><span class="tube lav"></span></div><div class="meta" style="margin-top:4px">A1c</div></div>
+        <div><span class="stat-pill collect">Pending collect</span></div>
+        <div class="age">—</div>
+        <div><span style="font-size:9px;color:var(--ink-mute);font-weight:700">AM</span></div>
+      </div>
+
+      <div class="t-row">
+        <div><div class="id-num">SP-184453</div><div class="id-sub">D-dimer</div></div>
+        <div class="who"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1614283233556-f35b0c801ef1?w=80&h=80&fit=crop&crop=faces')"></div><div><div class="nm">Layla Hassan</div><small>MRN 08612 · StepD</small></div></div>
+        <div><div class="tube-wrap"><span class="tube blue"></span></div><div class="meta" style="margin-top:4px">D-dimer quant</div></div>
+        <div><span class="stat-pill result">✓ Resulted</span></div>
+        <div class="age">52 min</div>
+        <div><span style="font-size:9px;color:var(--ink-mute);font-weight:700">DONE</span></div>
+      </div>
+    </div>
+
+    <!-- Detail panel -->
+    <div class="detail">
+      <div class="who-big">
+        <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=160&h=160&fit=crop&crop=faces')"></div>
+        <div><div class="nm">Maria Hernandez</div><div class="meta">MRN 08461 · ICU-2 / 04 · 64F</div></div>
+      </div>
+
+      <span style="background:var(--bad);color:#fff;font-size:10px;padding:3px 8px;border-radius:5px;font-weight:800;text-transform:uppercase">⚠ TAT exceeded</span>
+      <h2 style="margin-top:6px">SP-184462</h2>
+      <div class="barcode">|||| ||| || ||||| ||| ||| · Order ID OE-22841</div>
+
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <span class="tube gray" style="height:40px;width:14px;border-radius:3px"></span>
+        <div style="font-size:11px"><b style="display:block">1× gray top (NaF)</b><span style="color:var(--ink-mute)">2 mL · Lactate</span></div>
+      </div>
+
+      <div style="font-size:11px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;font-weight:800;margin:14px 0 6px">Tests on this specimen</div>
+      <div class="test-row"><div><div class="nm">Lactate</div><div class="sub">Ref 0.5–2.2 mmol/L · STAT &lt; 15 min TAT</div></div><span class="stat" style="background:var(--bad);color:#fff">⚠ over</span></div>
+
+      <div style="font-size:11px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;font-weight:800;margin:14px 0 6px">Chain of custody</div>
+      <div class="chain">
+        <div class="chain-row">
+          <div class="t">14:08</div>
+          <div class="ev">Order placed</div>
+          <div class="by">Dr. Okafor · ICU rounds</div>
+        </div>
+        <div class="chain-row">
+          <div class="t">14:11</div>
+          <div class="ev">Collected at bedside</div>
+          <div class="by">Phleb J. Marin · scanned wristband</div>
+        </div>
+        <div class="chain-row">
+          <div class="t">14:14</div>
+          <div class="ev">Pneumatic tube · station ICU-2</div>
+          <div class="by">Tube ID T-441 → Lab Receive</div>
+        </div>
+        <div class="chain-row">
+          <div class="t">14:16</div>
+          <div class="ev">Received in lab</div>
+          <div class="by">Receiver: B. Park · queue position 3</div>
+        </div>
+        <div class="chain-row crit">
+          <div class="t">14:20</div>
+          <div class="ev">On bench · ABL90 analyzer</div>
+          <div class="by">Tech: A. Lee · running</div>
+        </div>
+        <div class="chain-row pending">
+          <div class="t">—</div>
+          <div class="ev" style="color:var(--ink-mute)">Result expected</div>
+          <div class="by">~3 min · auto-page on critical</div>
+        </div>
+      </div>
+
+      <div style="margin-top:14px;display:flex;flex-direction:column;gap:6px">
+        <button class="btn">📞 Call lab supervisor</button>
+        <a href="ResultAck.html" class="btn" style="text-decoration:none;justify-content:flex-start">→ Check result inbox</a>
+        <a href="OrderEntry.html" class="btn" style="text-decoration:none;justify-content:flex-start">→ Re-order or add tests</a>
+        <a href="PatientChart.html" class="btn" style="text-decoration:none;justify-content:flex-start">→ Open chart</a>
+        <button class="btn" style="background:var(--bad);color:#fff;border-color:var(--bad)">⚠ Mark specimen lost / re-collect</button>
+      </div>
+    </div>
+  </div>
+
+</div></div>
+
+<script src="../scripts/nav.js"></script>
+<script>
+document.querySelectorAll('.t-row').forEach(r => r.addEventListener('click', () => {
+  document.querySelectorAll('.t-row').forEach(x => x.classList.remove('act'));
+  r.classList.add('act');
+}));
+</script>
+</body>
+</html>

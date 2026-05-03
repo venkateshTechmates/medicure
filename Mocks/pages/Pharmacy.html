@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Medcure — Pharmacy</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin:8px 4px 22px;gap:20px;flex-wrap:wrap}
+  .head .h1{font-size:56px}
+  .head .meta{color:var(--ink-soft);font-size:13px;margin-top:6px}
+  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+  .stat-card{background:#fff;border-radius:20px;padding:18px;box-shadow:var(--shadow)}
+  .stat-card .lbl{display:flex;align-items:center;gap:8px;color:var(--ink-soft);font-size:12px;font-weight:600}
+  .stat-card .lbl .si{width:24px;height:24px;border-radius:8px;display:grid;place-items:center}
+  .si.r{background:#fde7eb;color:#e15670}.si.b{background:#e6efff;color:#3a86ff}.si.g{background:#e6f8ec;color:#27c26b}.si.y{background:#fff3df;color:#c98a00}
+  .stat-card .num{font-family:"Instrument Serif",serif;font-size:38px;letter-spacing:-.02em;line-height:1;margin-top:8px}
+  .stat-card .delta{font-size:11px;color:var(--ink-mute);margin-top:4px}
+  .stat-card .delta b.up{color:var(--good)}.stat-card .delta b.dn{color:var(--bad)}
+  .grid{display:grid;grid-template-columns:1fr 360px;gap:18px;align-items:start}
+  .queue{padding:0;overflow:hidden}
+  .qh{padding:16px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line)}
+  .q-tabs{display:flex;gap:4px;background:#f4f6f9;border-radius:999px;padding:4px}
+  .q-tabs .t{padding:6px 12px;border-radius:999px;font:600 11px "Plus Jakarta Sans";color:var(--ink-soft);cursor:pointer}
+  .q-tabs .t.active{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+  .rx-row{display:grid;grid-template-columns:36px 1.4fr 1.2fr 0.9fr 0.9fr 0.7fr 90px;gap:12px;padding:14px 20px;border-top:1px solid var(--line);align-items:center;font-size:13px}
+  .rx-row .pic{width:36px;height:36px;border-radius:50%;background:#eee center/cover}
+  .rx-row .nm{font-weight:700;font-size:13px}.rx-row .sub{font-size:11px;color:var(--ink-mute)}
+  .rx-row .med{font-weight:700}.rx-row .dose{font-size:11px;color:var(--ink-mute)}
+  .rx-row .doc{font-size:12px;color:var(--ink-soft)}
+  .rx-row button{padding:8px 12px;border-radius:999px;border:0;background:#0e1116;color:#fff;font:600 11px "Plus Jakarta Sans";cursor:pointer;width:100%}
+  .rx-row button.warn{background:var(--accent);color:var(--ink)}
+  .interaction{padding:18px}
+  .ix-row{display:flex;justify-content:space-between;align-items:flex-start;padding:12px;border-radius:12px;background:#fff7d6;border:1px solid #ffe26b;margin-top:8px;gap:10px}
+  .ix-row.bad{background:#ffe7eb;border-color:#ff4d6b}
+  .ix-row .l{font-size:12px}.ix-row .l b{font-size:13px;display:block;margin-bottom:2px}
+  .ix-row .sev{font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;background:#fff;color:var(--bad);white-space:nowrap}
+  .stock-mini{padding:18px}
+  .stock-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+  .stock-row:first-of-type{border-top:0}
+  .stock-bar{flex:1;height:6px;background:#f4f6f9;border-radius:3px;overflow:hidden}
+  .stock-bar .f{height:100%;border-radius:3px}
+  .stock-row .nm{font-size:12px;font-weight:600;min-width:120px}
+  .stock-row .pct{font-size:11px;color:var(--ink-soft);min-width:54px;text-align:right}
+  .top-meds{padding:18px}
+  .tm-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line)}
+  .tm-row:first-of-type{border-top:0}
+  .tm-row .l{display:flex;align-items:center;gap:10px}
+  .tm-row .ic{width:32px;height:32px;border-radius:10px;background:#fff3df;color:#c98a00;display:grid;place-items:center;font-weight:700;font-size:11px}
+  .tm-row .nm{font-weight:700;font-size:13px}.tm-row .sub{font-size:11px;color:var(--ink-mute)}
+</style>
+</head>
+<body data-page="pharmacy" data-base="../">
+
+<div class="page"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+  <div class="head">
+    <div><h1 class="h1">Pharmacy</h1><div class="meta">12 prescriptions awaiting verification · 4 drug-interaction alerts</div></div>
+    <div style="display:flex;gap:10px">
+      <div class="searchbox"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input placeholder="Search Rx, drug or NDC..."/></div>
+      <button class="btn primary">+ New Rx <span class="arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></span></button>
+    </div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-card"><div class="lbl"><span class="si b">Rx</span>Filled today</div><div class="num">142</div><div class="delta"><b class="up">+12%</b> vs yesterday</div></div>
+    <div class="stat-card"><div class="lbl"><span class="si y">⏱</span>In queue</div><div class="num">12</div><div class="delta"><b class="dn">+3</b> last hour</div></div>
+    <div class="stat-card"><div class="lbl"><span class="si r">⚠</span>Interactions</div><div class="num">4</div><div class="delta">2 critical · 2 moderate</div></div>
+    <div class="stat-card"><div class="lbl"><span class="si g">💬</span>Counsel pending</div><div class="num">7</div><div class="delta">Avg 4 min wait</div></div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card queue">
+        <div class="qh"><div style="font-weight:700">Verification Queue</div>
+          <div class="q-tabs"><div class="t active">New (12)</div><div class="t">In progress (5)</div><div class="t">Ready (28)</div><div class="t">All</div></div></div>
+        <div style="padding:10px 20px 6px;display:grid;grid-template-columns:36px 1.4fr 1.2fr 0.9fr 0.9fr 0.7fr 90px;gap:12px;font-size:10px;color:var(--ink-mute);font-weight:600;text-transform:uppercase;letter-spacing:.05em">
+          <div></div><div>Patient</div><div>Drug</div><div>Doctor</div><div>Submitted</div><div>Priority</div><div></div></div>
+        <div class="rx-row"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=120&h=120&fit=crop&crop=faces')"></div><div><div class="nm">Albert Smith</div><div class="sub">MRN 4421-08</div></div><div><div class="med">Amoxicillin 500mg</div><div class="dose">3× daily · 7 days</div></div><div class="doc">Dr. Achebe</div><div><div class="doc">2 min ago</div><div class="dose">10:04 AM</div></div><span class="pill warn"><span class="pdot"></span>Med</span><button>Verify</button></div>
+        <div class="rx-row"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=120&h=120&fit=crop&crop=faces')"></div><div><div class="nm">Priya Iyer</div><div class="sub">MRN 7710-22</div></div><div><div class="med">Warfarin 5mg</div><div class="dose">⚠ INR check</div></div><div class="doc">Dr. Park</div><div><div class="doc">5 min</div><div class="dose">10:01 AM</div></div><span class="pill bad"><span class="pdot"></span>High</span><button class="warn">Review</button></div>
+        <div class="rx-row"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=120&h=120&fit=crop&crop=faces')"></div><div><div class="nm">Tomás Bauer</div><div class="sub">MRN 9988-15</div></div><div><div class="med">Metformin 1000mg</div><div class="dose">2× daily</div></div><div class="doc">Dr. Tanaka</div><div><div class="doc">9 min</div><div class="dose">9:57 AM</div></div><span class="pill"><span class="pdot"></span>Std</span><button>Verify</button></div>
+        <div class="rx-row"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=120&h=120&fit=crop&crop=faces')"></div><div><div class="nm">Kayode Adeyemi</div><div class="sub">MRN 3320-04</div></div><div><div class="med">Lisinopril 10mg</div><div class="dose">Once daily</div></div><div class="doc">Dr. Achebe</div><div><div class="doc">12 min</div><div class="dose">9:54 AM</div></div><span class="pill"><span class="pdot"></span>Std</span><button>Verify</button></div>
+        <div class="rx-row"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&h=120&fit=crop&crop=faces')"></div><div><div class="nm">Marisol Reyes</div><div class="sub">MRN 6633-91</div></div><div><div class="med">Oxycodone 5mg</div><div class="dose">⚠ Schedule II · PMP</div></div><div class="doc">Dr. Park</div><div><div class="doc">15 min</div><div class="dose">9:51 AM</div></div><span class="pill bad"><span class="pdot"></span>Ctrl</span><button class="warn">PMP</button></div>
+        <div class="rx-row"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&h=120&fit=crop&crop=faces')"></div><div><div class="nm">Lin Chen</div><div class="sub">MRN 1102-77</div></div><div><div class="med">Levothyroxine 75mcg</div><div class="dose">Once daily</div></div><div class="doc">Dr. Tanaka</div><div><div class="doc">22 min</div><div class="dose">9:44 AM</div></div><span class="pill"><span class="pdot"></span>Std</span><button>Verify</button></div>
+        <div class="rx-row"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=120&h=120&fit=crop&crop=faces')"></div><div><div class="nm">Naomi Whitfield</div><div class="sub">MRN 8801-44</div></div><div><div class="med">Atorvastatin 40mg</div><div class="dose">QHS</div></div><div class="doc">Dr. Park</div><div><div class="doc">28 min</div><div class="dose">9:38 AM</div></div><span class="pill"><span class="pdot"></span>Std</span><button>Verify</button></div>
+      </div>
+
+      <div class="card interaction" style="margin-top:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-weight:700">Active Interaction Alerts</div><span class="pill bad"><span class="pdot"></span>4 active</span></div>
+        <div class="ix-row bad"><div class="l"><b>Warfarin + Bactrim — Priya Iyer</b>Major bleeding risk. Consider alternative or reduce warfarin 25%; recheck INR in 48h.</div><span class="sev">CRITICAL</span></div>
+        <div class="ix-row bad"><div class="l"><b>Tramadol + Sertraline — A. Drobo Jr.</b>Serotonin syndrome risk. Avoid combination.</div><span class="sev">CRITICAL</span></div>
+        <div class="ix-row"><div class="l"><b>Metformin + Contrast — T. Bauer</b>Hold metformin 48h after contrast study.</div><span class="sev" style="color:#a05a00">MODERATE</span></div>
+        <div class="ix-row"><div class="l"><b>Lisinopril + KCl — K. Adeyemi</b>Monitor potassium; risk of hyperkalemia.</div><span class="sev" style="color:#a05a00">MODERATE</span></div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card stock-mini">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-weight:700">Inventory low</div><a href="Inventory.html" style="font-size:11px;color:var(--ink-mute);text-decoration:none">View all →</a></div>
+        <div class="stock-row"><div class="nm">Epinephrine 1mg</div><div class="stock-bar"><div class="f" style="width:8%;background:#ff4d6b"></div></div><div class="pct">8% · 4</div></div>
+        <div class="stock-row"><div class="nm">Heparin 5,000U</div><div class="stock-bar"><div class="f" style="width:18%;background:#ff4d6b"></div></div><div class="pct">18% · 12</div></div>
+        <div class="stock-row"><div class="nm">Insulin glargine</div><div class="stock-bar"><div class="f" style="width:34%;background:#ffb84d"></div></div><div class="pct">34% · 22</div></div>
+        <div class="stock-row"><div class="nm">Albuterol HFA</div><div class="stock-bar"><div class="f" style="width:42%;background:#ffb84d"></div></div><div class="pct">42% · 31</div></div>
+        <div class="stock-row"><div class="nm">Cefazolin 1g</div><div class="stock-bar"><div class="f" style="width:58%;background:#27c26b"></div></div><div class="pct">58% · 88</div></div>
+        <div class="stock-row"><div class="nm">Acetaminophen</div><div class="stock-bar"><div class="f" style="width:71%;background:#27c26b"></div></div><div class="pct">71% · 612</div></div>
+      </div>
+
+      <div class="card top-meds">
+        <div style="font-weight:700;margin-bottom:8px">Top dispensed · this week</div>
+        <div class="tm-row"><div class="l"><div class="ic">Lp</div><div><div class="nm">Lisinopril 10mg</div><div class="sub">ACE inhibitor · oral</div></div></div><div style="text-align:right"><div style="font-weight:700">218</div><div class="sub" style="color:var(--good)">+9%</div></div></div>
+        <div class="tm-row"><div class="l"><div class="ic">Mt</div><div><div class="nm">Metformin 1000mg</div><div class="sub">Antidiabetic · oral</div></div></div><div style="text-align:right"><div style="font-weight:700">196</div><div class="sub" style="color:var(--good)">+4%</div></div></div>
+        <div class="tm-row"><div class="l"><div class="ic">At</div><div><div class="nm">Atorvastatin 40mg</div><div class="sub">Statin · oral</div></div></div><div style="text-align:right"><div style="font-weight:700">174</div><div class="sub">−1%</div></div></div>
+        <div class="tm-row"><div class="l"><div class="ic">Am</div><div><div class="nm">Amoxicillin 500mg</div><div class="sub">Antibiotic · oral</div></div></div><div style="text-align:right"><div style="font-weight:700">144</div><div class="sub" style="color:var(--good)">+11%</div></div></div>
+        <div class="tm-row"><div class="l"><div class="ic">Lv</div><div><div class="nm">Levothyroxine 75</div><div class="sub">Thyroid · oral</div></div></div><div style="text-align:right"><div style="font-weight:700">132</div><div class="sub" style="color:var(--good)">+2%</div></div></div>
+      </div>
+
+      <div class="card" style="padding:18px;background:#0e1116;color:#fff">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-weight:700">Controlled substances</div><span class="pill" style="background:rgba(255,255,255,.12);color:#fff"><span class="pdot" style="background:#ff4d6b"></span>Audit due</span></div>
+        <div style="font-family:'Instrument Serif',serif;font-size:36px;letter-spacing:-.02em;line-height:1">14<span style="font-size:14px;font-family:'Plus Jakarta Sans';color:#9aa0ad;font-weight:600"> Sch II</span></div>
+        <div style="font-size:12px;color:#9aa0ad;margin-top:6px">Last reconciliation 03:14 PM · A. Drobo</div>
+        <div style="margin-top:14px;display:flex;gap:8px"><button class="btn" style="background:#fff;color:#0e1116;flex:1">Witness count</button><button class="btn" style="background:rgba(255,255,255,.12);color:#fff;flex:1">PMP query</button></div>
+      </div>
+    </div>
+  </div>
+</div></div>
+<script src="../scripts/nav.js"></script>
+
+<script>window.MC_ROUTES = [{"sel":".queue-row, .order-row, .verify-row, tbody tr","href":"PharmacyVerify.html","title":"Verify order"},{"sel":".btn.primary, button.primary","href":"PharmacyVerify.html","title":"Open verification queue"},{"sel":".med-card, .drug-card, .stock-row","href":"Inventory.html","title":"Stock detail"}];</script>
+<script src="../scripts/router.js"></script>
+</body></html>

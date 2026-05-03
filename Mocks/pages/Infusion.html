@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Infusion / Chemo</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin:8px 4px 22px;flex-wrap:wrap;gap:14px}
+  .head .h1{font-size:46px}
+  .head .meta{color:var(--ink-soft);font-size:13px;margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}
+  .head .meta b{color:var(--ink)}
+  .stat-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
+  .stat-card{background:#fff;border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+  .stat-card .lbl{color:var(--ink-soft);font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+  .stat-card .num{font-family:"Instrument Serif",serif;font-size:30px;letter-spacing:-.02em;line-height:1;margin-top:6px}
+  .stat-card .delta{font-size:10px;color:var(--ink-mute);margin-top:3px}
+  .layout{display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start}
+  .card{padding:0;overflow:hidden}
+  .ch{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+  .ch .t{font-weight:800;font-size:14px}
+  .ch .s{font-size:11px;color:var(--ink-mute);font-family:"JetBrains Mono",monospace}
+
+  /* Big drip viz */
+  .drip-hero{padding:18px;background:linear-gradient(135deg,#0e1116,#243049);color:#fff;display:grid;grid-template-columns:1fr 320px;gap:24px;align-items:center}
+  .drip-hero h2{font-family:"Instrument Serif",serif;font-size:32px;letter-spacing:-.015em;line-height:1.05;margin:0 0 6px;font-weight:400}
+  .drip-hero .sub{font-size:12px;color:rgba(255,255,255,.65);font-family:"JetBrains Mono",monospace}
+  .iv-bag{position:relative;width:120px;height:160px;margin:0 auto;background:linear-gradient(180deg,rgba(58,134,255,.4),rgba(58,134,255,.7));border-radius:12px 12px 60px 60px;border:2px solid rgba(255,255,255,.2);overflow:hidden}
+  .iv-bag .level{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(58,134,255,.9));border-top:1px solid rgba(255,255,255,.4)}
+  .iv-bag .grad{position:absolute;left:6px;top:10px;width:2px;height:120px;background:repeating-linear-gradient(to bottom,rgba(255,255,255,.4) 0 1px,transparent 1px 12px)}
+  .drip-info{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+  .di{background:rgba(255,255,255,.08);border-radius:10px;padding:12px}
+  .di .l{font-size:9.5px;color:rgba(255,255,255,.6);font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+  .di .v{font-family:"Instrument Serif",serif;font-size:24px;letter-spacing:-.01em;margin-top:4px;line-height:1}
+
+  /* Regimen */
+  .reg-row{display:grid;grid-template-columns:50px 1fr 110px 100px 90px 80px;gap:10px;padding:11px 18px;border-top:1px solid var(--line);align-items:center;font-size:12px}
+  .reg-row.h{font-size:9.5px;font-weight:800;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;border-top:0;padding:8px 18px;background:#fafbfc}
+  .reg-row .step{font-family:"JetBrains Mono",monospace;font-weight:800;color:var(--ink-mute);font-size:11px}
+  .reg-row .step.now{color:#0e1116;background:#0e1116;color:#fff;width:28px;height:28px;border-radius:8px;display:grid;place-items:center}
+  .reg-row .nm{font-weight:800}
+  .reg-row .sub{font-size:10.5px;color:var(--ink-mute);margin-top:2px;font-family:"JetBrains Mono",monospace;font-weight:600}
+  .reg-row .num{font-family:"JetBrains Mono",monospace;font-weight:700}
+  .reg-row .stat{font-size:9px;font-weight:800;padding:3px 7px;border-radius:5px;text-transform:uppercase}
+  .stat.done{background:#dff7e7;color:#1a8a48}
+  .stat.run{background:#e6efff;color:#1a4fb3}
+  .stat.up{background:#fff5e2;color:#a06e0d}
+  .stat.due{background:#fafbfc;color:var(--ink-mute)}
+  .reg-row.curr{background:#e6efff}
+
+  /* Chair grid */
+  .chair-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:14px}
+  .chair{aspect-ratio:1.1;border-radius:10px;background:#fafbfc;border:1.5px solid var(--line);padding:10px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;font-size:11px}
+  .chair:hover{border-color:#0e1116}
+  .chair.active{background:#e6efff;border-color:#3a86ff}
+  .chair.curr{background:#0e1116;color:#fff;border-color:#0e1116}
+  .chair.empty{background:#fafbfc;border-style:dashed;color:var(--ink-mute)}
+  .chair .num{font-family:"JetBrains Mono",monospace;font-size:9.5px;font-weight:800;color:var(--ink-mute)}
+  .chair.curr .num{color:rgba(255,255,255,.6)}
+  .chair .nm{font-weight:800;font-size:12px;line-height:1.15}
+  .chair .reg{font-size:9.5px;font-family:"JetBrains Mono",monospace;font-weight:700;color:var(--ink-soft)}
+  .chair.curr .reg{color:rgba(255,255,255,.7)}
+  .chair .pct{font-family:"JetBrains Mono",monospace;font-weight:800;font-size:11px}
+  .chair .bar{height:3px;border-radius:2px;background:rgba(0,0,0,.08);margin-top:4px;overflow:hidden}
+  .chair .bar .f{height:100%;background:#3a86ff}
+  .chair.curr .bar{background:rgba(255,255,255,.15)}
+  .chair.curr .bar .f{background:#27c26b}
+
+  /* Vitals strip */
+  .vstrip{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--line);padding:1px;border-radius:10px;overflow:hidden;margin:14px 18px}
+  .vc{background:#fff;padding:11px}
+  .vc .l{font-size:9px;color:var(--ink-mute);font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+  .vc .v{font-family:"Instrument Serif",serif;font-size:22px;line-height:1;margin-top:3px}
+  .vc.warn .v{color:#a06e0d}
+  .vc.ok .v{color:#1a8a48}
+
+  /* Pre-meds checklist */
+  .ck{padding:11px 16px;border-top:1px solid var(--line);display:grid;grid-template-columns:24px 1fr auto;gap:10px;align-items:center;font-size:12px}
+  .ck:first-of-type{border-top:0}
+  .ck .b{width:18px;height:18px;border-radius:5px;background:#27c26b;color:#0e1116;display:grid;place-items:center;font:800 11px sans-serif}
+  .ck .b.todo{background:#fafbfc;border:2px solid var(--line)}
+  .ck .nm{font-weight:600}
+  .ck .when{font-size:10px;color:var(--ink-mute);font-family:"JetBrains Mono",monospace}
+  .ck .nm.done{color:var(--ink-mute);text-decoration:line-through}
+
+  /* Lab card */
+  .lab-row{display:grid;grid-template-columns:1fr 70px 70px 50px;gap:10px;padding:9px 16px;border-top:1px solid var(--line);font-size:11.5px;align-items:center}
+  .lab-row:first-of-type{border-top:0}
+  .lab-row .nm{font-weight:700}
+  .lab-row .ref{font-size:10px;color:var(--ink-mute);font-family:"JetBrains Mono",monospace;margin-top:2px}
+  .lab-row .v{font-family:"JetBrains Mono",monospace;font-weight:800;text-align:right}
+  .lab-row .v.bad{color:#c43c3c}
+  .lab-row .v.warn{color:#a06e0d}
+  .lab-row .v.ok{color:#1a8a48}
+  .lab-row .arr{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--ink-mute);text-align:right}
+</style></head>
+<body data-page="overview" data-base="../">
+
+<div class="page" style="max-width:1500px"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div data-bc='[{"label":"Oncology"},{"label":"Infusion suite"},{"label":"Chair 7 — S. Russo"}]'></div>
+
+  <div class="head">
+    <div>
+      <h1 class="h1">Infusion · chair 7</h1>
+      <div class="meta">
+        <span><b>Sofia Russo</b> · F · 54 yo · BSA 1.78 m²</span>
+        <span>Dx · breast Ca · stage IIIA · ER+ HER2−</span>
+        <span>Cycle 4 of 6 · day 1 · q21d</span>
+        <span>Regimen · <b>AC-T (dose-dense)</b></span>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn">⏸ Pause infusion</button>
+      <button class="btn">+ Note</button>
+      <button class="btn primary">Discharge to home →</button>
+    </div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-card"><div class="lbl">Cycle progress</div><div class="num">4 / 6</div><div class="delta">67% — 2 cycles remaining</div></div>
+    <div class="stat-card"><div class="lbl">Today's bag</div><div class="num">2 of 4</div><div class="delta">Doxo running · 38min left</div></div>
+    <div class="stat-card"><div class="lbl">ANC nadir Day 10</div><div class="num">1.2</div><div class="delta">Last cycle · k/uL</div></div>
+    <div class="stat-card"><div class="lbl">Hgb</div><div class="num">10.4</div><div class="delta">↓ from 11.2 (cycle 3)</div></div>
+    <div class="stat-card"><div class="lbl">Chair time</div><div class="num">2h 14m</div><div class="delta">Est total 4h 30m</div></div>
+  </div>
+
+  <div class="layout">
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <div class="card">
+        <div class="drip-hero">
+          <div>
+            <div style="font-size:10.5px;color:rgba(255,255,255,.6);font-weight:800;text-transform:uppercase;letter-spacing:.05em">Currently infusing · bag 2 of 4</div>
+            <h2>Doxorubicin · 106 mg in 100mL D5W</h2>
+            <div class="sub">60 mg/m² · BSA 1.78 m² · IV push slow · vesicant ⚠</div>
+            <div class="drip-info">
+              <div class="di"><div class="l">Rate</div><div class="v">300 mL/hr</div></div>
+              <div class="di"><div class="l">Volume left</div><div class="v">62 mL</div></div>
+              <div class="di"><div class="l">Time left</div><div class="v">38 min</div></div>
+              <div class="di"><div class="l">Pump · Alaris</div><div class="v" style="font-size:18px">Running ✓</div></div>
+            </div>
+          </div>
+          <div>
+            <div class="iv-bag">
+              <div class="level" style="height:62%"></div>
+              <div class="grad"></div>
+            </div>
+            <div style="text-align:center;font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,.7);margin-top:8px">62% remaining · ~38 min</div>
+          </div>
+        </div>
+
+        <div class="vstrip">
+          <div class="vc"><div class="l">HR</div><div class="v">82</div></div>
+          <div class="vc"><div class="l">BP</div><div class="v">118/72</div></div>
+          <div class="vc ok"><div class="l">SpO2</div><div class="v">99%</div></div>
+          <div class="vc"><div class="l">Temp</div><div class="v">36.8</div></div>
+          <div class="vc warn"><div class="l">Pain</div><div class="v">2/10</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">AC-T regimen · today's order</span><span class="s">Cycle 4 · Day 1 · q21d · est total 4h 30m</span></div>
+
+        <div class="reg-row h">
+          <span></span><span>Step / drug</span><span style="text-align:right">Dose · BSA</span><span>Volume / fluid</span><span>Run-time</span><span>Status</span>
+        </div>
+        <div class="reg-row">
+          <span class="step">01</span>
+          <div><div class="nm">Ondansetron 16 mg + Dex 12 mg + fos-aprepitant 150 mg</div><div class="sub">Pre-medication · anti-emetic CINV ppx</div></div>
+          <span class="num">flat dose</span>
+          <span class="num">100 mL NS</span>
+          <span class="num">15 min</span>
+          <span class="stat done">✓ Done</span>
+        </div>
+        <div class="reg-row">
+          <span class="step">02</span>
+          <div><div class="nm">Cyclophosphamide 1,068 mg</div><div class="sub">600 mg/m² · alkylator · IV infusion</div></div>
+          <span class="num">600 mg/m²</span>
+          <span class="num">500 mL D5W</span>
+          <span class="num">30 min</span>
+          <span class="stat done">✓ Done</span>
+        </div>
+        <div class="reg-row curr">
+          <span class="step now">03</span>
+          <div><div class="nm">Doxorubicin 106 mg ⚠ vesicant</div><div class="sub">60 mg/m² · anthracycline · IV push slow via free-flowing line</div></div>
+          <span class="num">60 mg/m²</span>
+          <span class="num">100 mL D5W</span>
+          <span class="num">20 min</span>
+          <span class="stat run">▶ Running · 38m</span>
+        </div>
+        <div class="reg-row">
+          <span class="step">04</span>
+          <div><div class="nm">Dexrazoxane 1,068 mg</div><div class="sub">cardio-protectant · within 30 min after Doxo · 10:1 ratio</div></div>
+          <span class="num">10× Doxo</span>
+          <span class="num">200 mL NS</span>
+          <span class="num">15 min</span>
+          <span class="stat up">↑ Up next</span>
+        </div>
+        <div class="reg-row">
+          <span class="step">05</span>
+          <div><div class="nm">Saline flush + line maintenance</div><div class="sub">Confirm port patency · 3 mL/sec</div></div>
+          <span class="num">10 mL</span>
+          <span class="num">NS</span>
+          <span class="num">2 min</span>
+          <span class="stat due">Due</span>
+        </div>
+        <div class="reg-row">
+          <span class="step">06</span>
+          <div><div class="nm">Pegfilgrastim 6 mg SQ</div><div class="sub">Day 2 · home-dispensed via on-body injector · educate pt</div></div>
+          <span class="num">6 mg</span>
+          <span class="num">SQ</span>
+          <span class="num">— next-day</span>
+          <span class="stat due">Day 2</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Pre-treatment safety checklist</span><span class="s">10 of 10 ✓ · oncologist verified</span></div>
+        <div class="ck"><div class="b">✓</div><div class="nm done">Patient ID · two-source verified (band + DOB)</div><span class="when">L. Chen · 11:48</span></div>
+        <div class="ck"><div class="b">✓</div><div class="nm done">Allergy band reviewed · NKDA</div><span class="when">L. Chen · 11:48</span></div>
+        <div class="ck"><div class="b">✓</div><div class="nm done">Height · weight · BSA recalculated · 1.78 m²</div><span class="when">L. Chen · 11:50</span></div>
+        <div class="ck"><div class="b">✓</div><div class="nm done">Today's CBC · ANC ≥ 1.5 · platelets ≥ 100</div><span class="when">Auto · 09:14</span></div>
+        <div class="ck"><div class="b">✓</div><div class="nm done">CMP · LFTs · within parameters</div><span class="when">Auto · 09:14</span></div>
+        <div class="ck"><div class="b">✓</div><div class="nm done">EF echo &gt; 50% · within 90 days</div><span class="when">Mar 22 · 62%</span></div>
+        <div class="ck"><div class="b">✓</div><div class="nm done">Port flush · brisk return · no resistance</div><span class="when">L. Chen · 12:00</span></div>
+        <div class="ck"><div class="b">✓</div><div class="nm done">Independent double-check by 2nd RN — drug, dose, route, volume</div><span class="when">M. Patel · 12:04</span></div>
+        <div class="ck"><div class="b">✓</div><div class="nm done">Spill kit + extravasation kit at bedside</div><span class="when">L. Chen · 12:04</span></div>
+        <div class="ck"><div class="b">✓</div><div class="nm done">PPE worn · gown · double gloves · face shield</div><span class="when">L. Chen · 12:06</span></div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <div class="card">
+        <div class="ch"><span class="t">Infusion suite · 12 chairs</span><span class="s">9 occupied · 3 open</span></div>
+        <div class="chair-grid">
+          <div class="chair active"><div><div class="num">CHAIR 1</div><div class="nm">B. Park</div></div><div><div class="reg">FOLFOX</div><div class="bar"><div class="f" style="width:30%"></div></div></div></div>
+          <div class="chair active"><div><div class="num">CHAIR 2</div><div class="nm">M. Tao</div></div><div><div class="reg">Rituxan</div><div class="bar"><div class="f" style="width:80%"></div></div></div></div>
+          <div class="chair empty"><div class="num">CHAIR 3</div><div class="nm" style="margin:auto 0">Empty</div><div class="reg">— Ready</div></div>
+          <div class="chair active"><div><div class="num">CHAIR 4</div><div class="nm">P. Sharma</div></div><div><div class="reg">Carbo+Pem</div><div class="bar"><div class="f" style="width:50%"></div></div></div></div>
+          <div class="chair active"><div><div class="num">CHAIR 5</div><div class="nm">D. Park</div></div><div><div class="reg">Iron sucrose</div><div class="bar"><div class="f" style="width:90%"></div></div></div></div>
+          <div class="chair empty"><div class="num">CHAIR 6</div><div class="nm" style="margin:auto 0">Cleaning</div><div class="reg">— 8 min</div></div>
+          <div class="chair curr"><div><div class="num">CHAIR 7 · YOU</div><div class="nm">S. Russo</div></div><div><div class="reg">AC-T C4D1</div><div class="bar"><div class="f" style="width:55%"></div></div></div></div>
+          <div class="chair active"><div><div class="num">CHAIR 8</div><div class="nm">B. Goldberg</div></div><div><div class="reg">Infliximab</div><div class="bar"><div class="f" style="width:65%"></div></div></div></div>
+          <div class="chair active"><div><div class="num">CHAIR 9</div><div class="nm">M. Tanaka</div></div><div><div class="reg">Pacli weekly</div><div class="bar"><div class="f" style="width:20%"></div></div></div></div>
+          <div class="chair active"><div><div class="num">CHAIR 10</div><div class="nm">A. Klein</div></div><div><div class="reg">IVIG</div><div class="bar"><div class="f" style="width:40%"></div></div></div></div>
+          <div class="chair empty"><div class="num">CHAIR 11</div><div class="nm" style="margin:auto 0">Reserved</div><div class="reg">M. Rivera 14:30</div></div>
+          <div class="chair active"><div><div class="num">CHAIR 12</div><div class="nm">J. Wu</div></div><div><div class="reg">Pembro</div><div class="bar"><div class="f" style="width:70%"></div></div></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Same-day labs · pre-treat</span><span class="s">Drawn 09:14</span></div>
+        <div class="lab-row"><div><div class="nm">ANC</div><div class="ref">≥ 1.5 k/uL · req</div></div><span class="v ok">2.4</span><span class="v" style="color:var(--ink-mute);text-align:right">2.6</span><span class="arr">↘</span></div>
+        <div class="lab-row"><div><div class="nm">Platelets</div><div class="ref">≥ 100 k/uL · req</div></div><span class="v ok">182</span><span class="v" style="color:var(--ink-mute);text-align:right">198</span><span class="arr">↘</span></div>
+        <div class="lab-row"><div><div class="nm">Hgb</div><div class="ref">≥ 9 · supportive</div></div><span class="v warn">10.4</span><span class="v" style="color:var(--ink-mute);text-align:right">11.2</span><span class="arr">↘</span></div>
+        <div class="lab-row"><div><div class="nm">Cr</div><div class="ref">0.6 - 1.2</div></div><span class="v ok">0.84</span><span class="v" style="color:var(--ink-mute);text-align:right">0.82</span><span class="arr">→</span></div>
+        <div class="lab-row"><div><div class="nm">ALT</div><div class="ref">7 - 56</div></div><span class="v ok">22</span><span class="v" style="color:var(--ink-mute);text-align:right">19</span><span class="arr">↗</span></div>
+        <div class="lab-row"><div><div class="nm">Total bili</div><div class="ref">0.1 - 1.2</div></div><span class="v ok">0.7</span><span class="v" style="color:var(--ink-mute);text-align:right">0.6</span><span class="arr">→</span></div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Active concerns / monitoring</span></div>
+        <div style="padding:12px 16px;font-size:11.5px;line-height:1.55">
+          <div style="padding:8px 10px;background:#ffe3e3;border-radius:8px;margin-bottom:6px"><b style="color:#7a1f1f">⚠ Vesicant infusing</b> — assess port site q5 min for swelling, redness, leak. Have extravasation kit ready.</div>
+          <div style="padding:8px 10px;background:#fff5e2;border-radius:8px;margin-bottom:6px"><b style="color:#5c4108">Cumulative Doxo</b> — 240 mg/m² (max 450 lifetime). EF 62% on echo Mar 22.</div>
+          <div style="padding:8px 10px;background:#e6efff;border-radius:8px"><b style="color:#1a4fb3">Pegfilgrastim Day 2</b> — confirm pt has on-body injector at home + nadir-precaution teach-back.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div></div>
+
+<script src="../scripts/nav.js"></script>
+<script src="../scripts/breadcrumbs.js"></script>
+</body>
+</html>

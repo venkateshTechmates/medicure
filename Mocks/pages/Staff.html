@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Staff</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin:8px 4px 22px;gap:20px;flex-wrap:wrap}
+  .head .h1{font-size:56px}.head .meta{color:var(--ink-soft);font-size:13px;margin-top:6px}
+  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+  .stat-card{background:#fff;border-radius:20px;padding:18px;box-shadow:var(--shadow)}
+  .stat-card .lbl{display:flex;align-items:center;gap:8px;color:var(--ink-soft);font-size:12px;font-weight:600}
+  .stat-card .num{font-family:"Instrument Serif",serif;font-size:38px;letter-spacing:-.02em;line-height:1;margin-top:8px}
+  .stat-card .delta{font-size:11px;color:var(--ink-mute);margin-top:4px}
+  .si{width:24px;height:24px;border-radius:8px;display:grid;place-items:center;font-weight:700;font-size:11px}
+  .si.b{background:#e6efff;color:#3a86ff}.si.g{background:#e6f8ec;color:#27c26b}.si.y{background:#fff3df;color:#c98a00}.si.r{background:#fde7eb;color:#e15670}
+
+  .grid{display:grid;grid-template-columns:1fr 320px;gap:18px;align-items:start}
+  .roster-card{padding:18px}
+  .rh{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .r-tabs{display:flex;gap:4px;background:#f4f6f9;border-radius:999px;padding:4px}
+  .r-tabs .t{padding:6px 12px;border-radius:999px;font:600 11px "Plus Jakarta Sans";color:var(--ink-soft);cursor:pointer}
+  .r-tabs .t.active{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+  .docs{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .doc{background:#fafbfc;border-radius:18px;padding:16px;position:relative;border:1px solid var(--line)}
+  .doc .pic{width:54px;height:54px;border-radius:50%;background:#eee center/cover;border:2px solid #fff;box-shadow:0 0 0 2px var(--line)}
+  .doc .nm{font-weight:700;font-size:14px;margin-top:10px}
+  .doc .role{font-size:10px;color:var(--ink-mute);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+  .doc .stats{display:flex;gap:14px;margin-top:12px;font-size:10px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.04em;font-weight:600}
+  .doc .stats b{display:block;font-size:18px;color:var(--ink);font-family:"Instrument Serif",serif;font-weight:400;letter-spacing:-.01em;margin-bottom:1px;text-transform:none}
+  .doc .status{position:absolute;top:14px;right:14px}
+  .doc .links{margin-top:12px;display:flex;gap:6px}
+  .doc .links button{flex:1;padding:7px;background:#fff;border:1px solid var(--line);border-radius:10px;font:600 11px "Plus Jakarta Sans";color:var(--ink-soft);cursor:pointer}
+  .doc .links button.primary{background:#0e1116;border-color:#0e1116;color:#fff}
+
+  .schedule{padding:18px;margin-top:14px}
+  .sched-grid{display:grid;grid-template-columns:140px repeat(7,1fr);gap:4px;font-size:11px;margin-top:8px}
+  .sched-grid .h{font-weight:600;color:var(--ink-mute);text-align:center;padding:6px 0;font-size:10px;text-transform:uppercase;letter-spacing:.05em}
+  .sched-grid .h.today{color:var(--bad)}
+  .sched-grid .nmcell{display:flex;align-items:center;gap:8px;font-weight:700;font-size:12px;padding:6px 0}
+  .sched-grid .nmcell .pic{width:24px;height:24px;border-radius:50%;background:#eee center/cover;flex:none}
+  .sched-grid .cell{height:32px;border-radius:8px;display:grid;place-items:center;font-size:10px;font-weight:700}
+  .sched-grid .cell.day{background:#dff1ff;color:#1a4fb3}
+  .sched-grid .cell.eve{background:#fff3df;color:#a05a00}
+  .sched-grid .cell.night{background:#0e1116;color:#fff}
+  .sched-grid .cell.on{background:#dff7e7;color:#1a8a48}
+  .sched-grid .cell.off{background:#f4f6f9;color:var(--ink-mute)}
+  .sched-grid .cell.pto{background:#ffe7eb;color:#b3263d}
+
+  .credentials{padding:18px}
+  .cr-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+  .cr-row:first-of-type{border-top:0}
+  .cr-row .pic{width:32px;height:32px;border-radius:50%;background:#eee center/cover;flex:none}
+  .cr-row .nm{font-weight:700;font-size:12px}.cr-row .sub{font-size:10px;color:var(--ink-mute)}
+  .rank{padding:18px}
+  .rk-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line)}
+  .rk-row:first-of-type{border-top:0}
+  .rk-row .l{display:flex;align-items:center;gap:10px}
+  .rk-row .num{font-family:"Instrument Serif",serif;font-size:18px;color:var(--ink-mute);min-width:18px}
+  .rk-row .pic{width:28px;height:28px;border-radius:50%;background:#eee center/cover}
+  .rk-row .nm{font-weight:700;font-size:12px}.rk-row .sub{font-size:10px;color:var(--ink-mute)}
+</style></head>
+<body data-page="staff" data-base="../">
+
+<div class="page"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+  <div class="head">
+    <div><h1 class="h1">Staff</h1><div class="meta">142 active providers · 18 on-shift now · 6 credentials renewing this month</div></div>
+    <div style="display:flex;gap:10px">
+      <div class="searchbox"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input placeholder="Search staff, NPI, role..."/></div>
+      <button class="btn primary">+ Onboard <span class="arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></span></button>
+    </div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-card"><div class="lbl"><span class="si b">👥</span>Total staff</div><div class="num">142</div><div class="delta">+4 this quarter</div></div>
+    <div class="stat-card"><div class="lbl"><span class="si g">●</span>On shift now</div><div class="num">18</div><div class="delta">12 day · 6 night</div></div>
+    <div class="stat-card"><div class="lbl"><span class="si y">📜</span>Renewals due</div><div class="num">6</div><div class="delta">2 within 14 days</div></div>
+    <div class="stat-card"><div class="lbl"><span class="si r">⌛</span>Overtime WTD</div><div class="num">82h</div><div class="delta">Cap 120h</div></div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card roster-card">
+        <div class="rh"><div style="font-weight:700;font-size:15px">Providers</div>
+          <div class="r-tabs"><div class="t active">All</div><div class="t">MD / DO</div><div class="t">RN</div><div class="t">Allied</div><div class="t">Admin</div></div></div>
+        <div class="docs">
+          <div class="doc"><span class="status pill good"><span class="pdot"></span>On shift</span>
+            <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=160&h=160&fit=crop&crop=faces')"></div>
+            <div class="nm">Dr. Mireille Achebe</div><div class="role">Internal Medicine · MD</div>
+            <div class="stats"><div><b>14</b>today</div><div><b>4.9</b>rating</div><div><b>12y</b>tenure</div></div>
+            <div class="links"><button>Profile</button><button class="primary">Page</button></div></div>
+
+          <div class="doc"><span class="status pill warn"><span class="pdot"></span>Surgery</span>
+            <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=160&h=160&fit=crop&crop=faces')"></div>
+            <div class="nm">Dr. Hae-jin Park</div><div class="role">Cardiology · MD, FACC</div>
+            <div class="stats"><div><b>9</b>today</div><div><b>4.8</b>rating</div><div><b>8y</b>tenure</div></div>
+            <div class="links"><button>Profile</button><button class="primary">Page</button></div></div>
+
+          <div class="doc"><span class="status pill good"><span class="pdot"></span>Available</span>
+            <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=160&h=160&fit=crop&crop=faces')"></div>
+            <div class="nm">Dr. Iqbal Tanaka</div><div class="role">Endocrinology · MD</div>
+            <div class="stats"><div><b>7</b>today</div><div><b>4.9</b>rating</div><div><b>5y</b>tenure</div></div>
+            <div class="links"><button>Profile</button><button class="primary">Page</button></div></div>
+
+          <div class="doc"><span class="status pill bad"><span class="pdot"></span>Off duty</span>
+            <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=160&h=160&fit=crop&crop=faces')"></div>
+            <div class="nm">Dr. Sienna Vasquez</div><div class="role">Emergency Med · DO</div>
+            <div class="stats"><div><b>0</b>today</div><div><b>4.7</b>rating</div><div><b>6y</b>tenure</div></div>
+            <div class="links"><button>Profile</button><button>Schedule</button></div></div>
+
+          <div class="doc"><span class="status pill good"><span class="pdot"></span>On shift</span>
+            <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1587614382346-4ec70e388b28?w=160&h=160&fit=crop&crop=faces')"></div>
+            <div class="nm">Nurse Ayanna Brooks</div><div class="role">Charge RN · ED</div>
+            <div class="stats"><div><b>6</b>pts</div><div><b>4.9</b>rating</div><div><b>9y</b>tenure</div></div>
+            <div class="links"><button>Profile</button><button class="primary">Page</button></div></div>
+
+          <div class="doc"><span class="status pill warn"><span class="pdot"></span>In OR</span>
+            <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1618498082410-b4aa22193b38?w=160&h=160&fit=crop&crop=faces')"></div>
+            <div class="nm">Dr. Marcus Olufemi</div><div class="role">General Surgery · MD</div>
+            <div class="stats"><div><b>3</b>today</div><div><b>4.8</b>rating</div><div><b>11y</b>tenure</div></div>
+            <div class="links"><button>Profile</button><button>Schedule</button></div></div>
+
+          <div class="doc"><span class="status pill good"><span class="pdot"></span>On shift</span>
+            <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1551884170-09fb70a3a2ed?w=160&h=160&fit=crop&crop=faces')"></div>
+            <div class="nm">D. Voss, MLS</div><div class="role">Lab Director</div>
+            <div class="stats"><div><b>—</b></div><div><b>4.9</b>rating</div><div><b>14y</b>tenure</div></div>
+            <div class="links"><button>Profile</button><button class="primary">Page</button></div></div>
+
+          <div class="doc"><span class="status pill bad"><span class="pdot"></span>PTO</span>
+            <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=160&h=160&fit=crop&crop=faces')"></div>
+            <div class="nm">Dr. Lina Rashidova</div><div class="role">Radiology · MD</div>
+            <div class="stats"><div><b>—</b></div><div><b>4.8</b>rating</div><div><b>4y</b>tenure</div></div>
+            <div class="links"><button>Profile</button><button>Coverage</button></div></div>
+
+          <div class="doc"><span class="status pill good"><span class="pdot"></span>On shift</span>
+            <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=160&h=160&fit=crop&crop=faces')"></div>
+            <div class="nm">PA — Jordan Reyes</div><div class="role">Urgent Care · PA-C</div>
+            <div class="stats"><div><b>11</b>today</div><div><b>4.7</b>rating</div><div><b>3y</b>tenure</div></div>
+            <div class="links"><button>Profile</button><button class="primary">Page</button></div></div>
+        </div>
+      </div>
+
+      <div class="card schedule">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-weight:700">Weekly Schedule</div><div style="font-size:11px;color:var(--ink-mute)">Apr 27 – May 03 · 12 staff visible</div></div>
+        <div class="sched-grid">
+          <div></div><div class="h">MON</div><div class="h">TUE</div><div class="h">WED</div><div class="h">THU</div><div class="h today">FRI</div><div class="h">SAT</div><div class="h">SUN</div>
+
+          <div class="nmcell"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=80&h=80&fit=crop&crop=faces')"></div>Dr. Achebe</div>
+          <div class="cell day">D 7–7</div><div class="cell day">D 7–7</div><div class="cell off">—</div><div class="cell day">D 7–7</div><div class="cell day">D 7–7</div><div class="cell off">—</div><div class="cell off">—</div>
+
+          <div class="nmcell"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=80&h=80&fit=crop&crop=faces')"></div>Dr. Park</div>
+          <div class="cell off">—</div><div class="cell day">D 8–6</div><div class="cell day">D 8–6</div><div class="cell day">D 8–6</div><div class="cell day">D 8–6</div><div class="cell on">Call</div><div class="cell off">—</div>
+
+          <div class="nmcell"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=80&h=80&fit=crop&crop=faces')"></div>Dr. Tanaka</div>
+          <div class="cell day">D 9–5</div><div class="cell day">D 9–5</div><div class="cell day">D 9–5</div><div class="cell off">—</div><div class="cell day">D 9–5</div><div class="cell off">—</div><div class="cell off">—</div>
+
+          <div class="nmcell"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=80&h=80&fit=crop&crop=faces')"></div>Dr. Vasquez</div>
+          <div class="cell night">N 7p–7a</div><div class="cell night">N 7p–7a</div><div class="cell night">N 7p–7a</div><div class="cell off">—</div><div class="cell off">—</div><div class="cell night">N 7p–7a</div><div class="cell night">N 7p–7a</div>
+
+          <div class="nmcell"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1587614382346-4ec70e388b28?w=80&h=80&fit=crop&crop=faces')"></div>Nurse Brooks</div>
+          <div class="cell day">D 7–7</div><div class="cell day">D 7–7</div><div class="cell day">D 7–7</div><div class="cell off">—</div><div class="cell day">D 7–7</div><div class="cell day">D 7–7</div><div class="cell off">—</div>
+
+          <div class="nmcell"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1618498082410-b4aa22193b38?w=80&h=80&fit=crop&crop=faces')"></div>Dr. Olufemi</div>
+          <div class="cell eve">OR 11–9</div><div class="cell eve">OR 11–9</div><div class="cell off">—</div><div class="cell eve">OR 11–9</div><div class="cell eve">OR 11–9</div><div class="cell off">—</div><div class="cell off">—</div>
+
+          <div class="nmcell"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1551884170-09fb70a3a2ed?w=80&h=80&fit=crop&crop=faces')"></div>D. Voss</div>
+          <div class="cell day">L 6–4</div><div class="cell day">L 6–4</div><div class="cell day">L 6–4</div><div class="cell day">L 6–4</div><div class="cell day">L 6–4</div><div class="cell off">—</div><div class="cell off">—</div>
+
+          <div class="nmcell"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=80&h=80&fit=crop&crop=faces')"></div>Dr. Rashidova</div>
+          <div class="cell pto">PTO</div><div class="cell pto">PTO</div><div class="cell pto">PTO</div><div class="cell pto">PTO</div><div class="cell pto">PTO</div><div class="cell off">—</div><div class="cell off">—</div>
+
+          <div class="nmcell"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=80&h=80&fit=crop&crop=faces')"></div>PA Reyes</div>
+          <div class="cell day">UC 8–8</div><div class="cell day">UC 8–8</div><div class="cell day">UC 8–8</div><div class="cell off">—</div><div class="cell day">UC 8–8</div><div class="cell day">UC 8–8</div><div class="cell off">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card credentials">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:700">Credentials renewing</div><span class="pill warn"><span class="pdot"></span>6 due</span></div>
+        <div class="cr-row"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=80&h=80&fit=crop&crop=faces')"></div><div style="flex:1"><div class="nm">Dr. Park · DEA</div><div class="sub">Expires May 14 · 12 days</div></div><span class="pill bad"><span class="pdot"></span>12d</span></div>
+        <div class="cr-row"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=80&h=80&fit=crop&crop=faces')"></div><div style="flex:1"><div class="nm">Dr. Achebe · BLS</div><div class="sub">Expires May 22</div></div><span class="pill warn"><span class="pdot"></span>20d</span></div>
+        <div class="cr-row"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1587614382346-4ec70e388b28?w=80&h=80&fit=crop&crop=faces')"></div><div style="flex:1"><div class="nm">Nurse Brooks · ACLS</div><div class="sub">Expires Jun 02</div></div><span class="pill warn"><span class="pdot"></span>30d</span></div>
+        <div class="cr-row"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=80&h=80&fit=crop&crop=faces')"></div><div style="flex:1"><div class="nm">Dr. Tanaka · State license</div><div class="sub">Expires Jun 08</div></div><span class="pill warn"><span class="pdot"></span>37d</span></div>
+        <div class="cr-row"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=80&h=80&fit=crop&crop=faces')"></div><div style="flex:1"><div class="nm">PA Reyes · PALS</div><div class="sub">Expires Jun 18</div></div><span class="pill"><span class="pdot"></span>47d</span></div>
+      </div>
+
+      <div class="card rank">
+        <div style="font-weight:700;margin-bottom:6px">Top performers · April</div>
+        <div style="font-size:11px;color:var(--ink-mute);margin-bottom:6px">By patient satisfaction · NPS</div>
+        <div class="rk-row"><div class="l"><span class="num">1</span><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=80&h=80&fit=crop&crop=faces')"></div><div><div class="nm">Dr. Achebe</div><div class="sub">142 surveys</div></div></div><b>+78</b></div>
+        <div class="rk-row"><div class="l"><span class="num">2</span><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1551884170-09fb70a3a2ed?w=80&h=80&fit=crop&crop=faces')"></div><div><div class="nm">D. Voss, MLS</div><div class="sub">98 surveys</div></div></div><b>+74</b></div>
+        <div class="rk-row"><div class="l"><span class="num">3</span><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=80&h=80&fit=crop&crop=faces')"></div><div><div class="nm">Dr. Tanaka</div><div class="sub">88 surveys</div></div></div><b>+71</b></div>
+        <div class="rk-row"><div class="l"><span class="num">4</span><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=80&h=80&fit=crop&crop=faces')"></div><div><div class="nm">Dr. Park</div><div class="sub">112 surveys</div></div></div><b>+68</b></div>
+        <div class="rk-row"><div class="l"><span class="num">5</span><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1587614382346-4ec70e388b28?w=80&h=80&fit=crop&crop=faces')"></div><div><div class="nm">Nurse Brooks</div><div class="sub">66 surveys</div></div></div><b>+65</b></div>
+      </div>
+
+      <div class="card" style="padding:18px;background:#0e1116;color:#fff">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-weight:700">Open shifts</div><span class="pill" style="background:rgba(255,255,255,.12);color:#fff"><span class="pdot" style="background:#ffb84d"></span>4 unfilled</span></div>
+        <div style="font-family:'Instrument Serif',serif;font-size:34px;letter-spacing:-.02em;line-height:1">4</div>
+        <div style="font-size:12px;color:#9aa0ad;margin-top:6px">ICU night Sat · ED day Sun · OR-2 Mon · Lab Tue</div>
+        <div style="margin-top:14px;display:flex;gap:8px"><button class="btn" style="background:#fff;color:#0e1116;flex:1">Post shifts</button><button class="btn" style="background:rgba(255,255,255,.12);color:#fff;flex:1">Auto-fill</button></div>
+      </div>
+    </div>
+  </div>
+</div></div>
+<script src="../scripts/nav.js"></script>
+
+<script>window.MC_ROUTES = [{"sel":".staff-card, .doc-card, tbody tr, .provider-card","href":"PatientChart.html","title":"View schedule"},{"sel":".btn.primary, button.primary","href":"Settings.html","title":"Add staff"},{"sel":".msg-btn, button[title=\"Message\"]","href":"Messages.html"}];</script>
+<script src="../scripts/router.js"></script>
+</body></html>

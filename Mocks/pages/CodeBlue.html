@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Code Blue</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  body{background:#1a0708;background-image:radial-gradient(ellipse at top,rgba(255,40,40,.15),transparent 60%)}
+  .page{color:#fff}
+  .frame{background:#1a0a0c;border:1px solid rgba(255,40,40,.2);box-shadow:0 0 60px rgba(255,40,40,.15)}
+  :root{--ink:#fff;--ink-soft:rgba(255,255,255,.7);--ink-mute:rgba(255,255,255,.45);--line:rgba(255,255,255,.08)}
+
+  .alert-bar{background:#c43c3c;color:#fff;padding:10px 18px;display:flex;justify-content:space-between;align-items:center;font:800 12px "Plus Jakarta Sans";text-transform:uppercase;letter-spacing:.06em;border-radius:14px 14px 0 0;margin:-1px -1px 0}
+  .alert-bar .dot{width:10px;height:10px;background:#fff;border-radius:50%;animation:flash .8s infinite}
+  @keyframes flash{0%,100%{opacity:1}50%{opacity:0}}
+
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin:18px 4px 22px;flex-wrap:wrap;gap:14px}
+  .head .h1{font-size:46px;color:#fff}
+  .head .meta{color:rgba(255,255,255,.7);font-size:13px;margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}
+  .head .meta b{color:#fff}
+
+  .timer-block{background:#1a0a0c;border:2px solid #c43c3c;border-radius:14px;padding:12px 22px;text-align:center}
+  .timer-block .l{font-size:9.5px;color:#f4a4a4;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+  .timer-block .v{font-family:"Instrument Serif",serif;font-size:46px;letter-spacing:-.02em;line-height:1;color:#fff}
+
+  .layout{display:grid;grid-template-columns:1fr 360px;gap:14px;align-items:start}
+
+  .panel{background:#23090c;border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:0;overflow:hidden}
+  .panel .h{padding:13px 16px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-between;align-items:center}
+  .panel .h .t{font-weight:800;font-size:13px;letter-spacing:.02em}
+  .panel .h .s{font-size:10.5px;color:rgba(255,255,255,.45);font-family:"JetBrains Mono",monospace}
+
+  /* CPR cycle indicator */
+  .cycle-card{padding:18px;display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:18px;background:linear-gradient(135deg,#3a0e12,#1a0708)}
+  .cycle-block{background:rgba(0,0,0,.35);border-radius:12px;padding:14px;border:1px solid rgba(255,255,255,.08)}
+  .cycle-block .l{font-size:9.5px;color:#f4a4a4;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+  .cycle-block .v{font-family:"Instrument Serif",serif;font-size:38px;letter-spacing:-.02em;line-height:1;margin-top:6px;color:#fff}
+  .cycle-block .delta{font-size:11px;color:rgba(255,255,255,.6);margin-top:4px;font-family:"JetBrains Mono",monospace}
+
+  .cpr-pulse{width:12px;height:12px;border-radius:50%;background:#27c26b;display:inline-block;margin-right:6px;animation:pulse 1s infinite}
+  @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:.5}}
+
+  /* Rhythm strip */
+  .rhythm-row{padding:14px 16px;border-top:1px solid rgba(255,255,255,.06)}
+  .rhythm-row.h{padding:9px 16px}
+  .rhythm-strip{height:60px;background:#000;border-radius:6px;margin-top:8px;display:flex;align-items:center;padding:0 10px;position:relative;overflow:hidden}
+  .rhythm-strip svg{width:100%;height:100%}
+  .rhythm-strip .lbl-rs{position:absolute;top:6px;right:8px;font-size:9.5px;font-family:"JetBrains Mono",monospace;color:#27c26b;font-weight:800}
+
+  /* Event log */
+  .ev-row{display:grid;grid-template-columns:80px 1fr;gap:14px;padding:12px 16px;border-top:1px solid rgba(255,255,255,.06);font-size:12px;align-items:start;position:relative}
+  .ev-row.h{font-size:9.5px;font-weight:800;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.05em;border-top:0;background:rgba(255,255,255,.03)}
+  .ev-row .dt{font-family:"JetBrains Mono",monospace;color:#fff;font-size:13px;font-weight:800}
+  .ev-row .et{font-size:9.5px;color:rgba(255,255,255,.45);margin-top:2px;font-family:"JetBrains Mono",monospace}
+  .ev-row .ev{font-weight:600;line-height:1.5}
+  .ev-row .who{font-size:10.5px;color:rgba(255,255,255,.5);margin-top:3px;font-family:"JetBrains Mono",monospace}
+  .ev-row .tag{display:inline-block;font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;text-transform:uppercase;letter-spacing:.05em;margin-right:6px;vertical-align:1px}
+  .tag.shock{background:#c43c3c;color:#fff}
+  .tag.drug{background:#a07ddc;color:#fff}
+  .tag.cpr{background:#3a86ff;color:#fff}
+  .tag.rhy{background:#27c26b;color:#0e1116}
+  .tag.air{background:#f0d99c;color:#0e1116}
+  .tag.note{background:rgba(255,255,255,.1);color:#fff}
+
+  /* Quick actions */
+  .qa-grid{padding:14px 16px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .qa{padding:14px 12px;border-radius:10px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.08);cursor:pointer;text-align:center;transition:.1s}
+  .qa:hover{background:rgba(255,255,255,.1)}
+  .qa.shock{background:#c43c3c;border-color:#c43c3c;color:#fff}
+  .qa.shock:hover{background:#d65555}
+  .qa .ic{font-size:18px;margin-bottom:6px;display:block}
+  .qa .nm{font-weight:800;font-size:12px}
+  .qa .sub{font-size:10px;color:rgba(255,255,255,.6);margin-top:2px}
+  .qa.shock .sub{color:rgba(255,255,255,.85)}
+
+  /* Roles */
+  .role-row{display:grid;grid-template-columns:32px 1fr auto;gap:10px;padding:10px 16px;border-top:1px solid rgba(255,255,255,.06);align-items:center}
+  .role-row:first-of-type{border-top:0}
+  .role-row .av{width:30px;height:30px;border-radius:8px;background-size:cover;background-position:center}
+  .role-row .role{font-size:10.5px;color:#f4a4a4;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+  .role-row .nm{font-weight:700;font-size:12.5px;margin-top:2px}
+  .role-row .stat{font-size:9px;font-weight:800;padding:3px 7px;border-radius:5px;text-transform:uppercase}
+  .stat.act{background:#c43c3c;color:#fff}
+  .stat.pres{background:#27c26b;color:#0e1116}
+  .stat.enr{background:#f0d99c;color:#0e1116}
+
+  /* Vitals strip */
+  .vstrip{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:rgba(255,255,255,.06);padding:1px}
+  .vc{background:#1a0a0c;padding:11px 12px}
+  .vc .l{font-size:9px;color:rgba(255,255,255,.5);font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+  .vc .v{font-family:"JetBrains Mono",monospace;font-weight:800;font-size:18px;margin-top:3px}
+  .vc.warn .v{color:#f0d99c}
+  .vc.crit .v{color:#c43c3c}
+  .vc.ok .v{color:#27c26b}
+
+  .timeline-bar{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;padding:14px 16px;border-top:1px solid rgba(255,255,255,.06)}
+  .tb-cell{padding:8px;background:rgba(255,255,255,.04);border-radius:6px;text-align:center;font-size:10px;color:rgba(255,255,255,.6)}
+  .tb-cell .num{font-family:"JetBrains Mono",monospace;font-weight:800;font-size:13px;color:#fff;display:block;margin-bottom:2px}
+  .tb-cell.act{background:#c43c3c}
+</style></head>
+<body data-page="overview" data-base="../">
+
+<div class="page" style="max-width:1500px"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div class="alert-bar"><span><span class="dot"></span>Code Blue · ICU-08 · Bed 12 · activated 14:08</span><span>4 min 22 sec elapsed</span></div>
+
+  <div data-bc='[{"label":"Telemetry","href":"Telemetry.html"},{"label":"Code Blue · ICU-08"}]'></div>
+
+  <div class="head">
+    <div>
+      <h1 class="h1">Code Blue · J. Whitfield</h1>
+      <div class="meta">
+        <span><b>James Whitfield</b> · M · 67 yo · MRN 002-441-22</span>
+        <span>Adm Dx · MI inferior · POD 2</span>
+        <span>Code status · <b>Full</b></span>
+        <span>Allergy · <b>Penicillin (rash)</b></span>
+      </div>
+    </div>
+    <div style="display:flex;gap:14px;align-items:center">
+      <div class="timer-block"><div class="l">CPR cycle</div><div class="v">2:08</div></div>
+      <div class="timer-block"><div class="l">Total elapsed</div><div class="v" style="color:#f0d99c">04:22</div></div>
+    </div>
+  </div>
+
+  <div class="layout">
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+
+      <div class="panel">
+        <div class="cycle-card">
+          <div class="cycle-block">
+            <div class="l"><span class="cpr-pulse"></span>CPR · in progress</div>
+            <div class="v">112 / min</div>
+            <div class="delta">Compression rate · target 100–120 ✓</div>
+            <div style="font-size:10.5px;color:rgba(255,255,255,.55);margin-top:6px">Depth: <b style="color:#27c26b">5.4 cm ✓</b> · Recoil: <b style="color:#27c26b">95% ✓</b> · CCF: <b style="color:#27c26b">88%</b></div>
+          </div>
+          <div class="cycle-block">
+            <div class="l">Current rhythm</div>
+            <div class="v" style="color:#c43c3c">VFib</div>
+            <div class="delta">Coarse · shockable ✓</div>
+          </div>
+          <div class="cycle-block">
+            <div class="l">Last shock</div>
+            <div class="v">200 J</div>
+            <div class="delta">14:11 · biphasic · #2</div>
+          </div>
+        </div>
+
+        <div class="vstrip">
+          <div class="vc crit"><div class="l">HR · ECG</div><div class="v">VF</div></div>
+          <div class="vc warn"><div class="l">SpO2</div><div class="v">—</div></div>
+          <div class="vc warn"><div class="l">A-line BP</div><div class="v">— / —</div></div>
+          <div class="vc"><div class="l">EtCO2</div><div class="v">14</div></div>
+          <div class="vc warn"><div class="l">Temp</div><div class="v">36.8°C</div></div>
+        </div>
+
+        <div class="rhythm-row">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="font-weight:800;font-size:12px">Lead II · live</div>
+            <div style="font-size:10.5px;color:rgba(255,255,255,.5);font-family:'JetBrains Mono',monospace">paper speed 25 mm/s · gain 10 mm/mV</div>
+          </div>
+          <div class="rhythm-strip">
+            <span class="lbl-rs">VFib</span>
+            <svg viewBox="0 0 600 60" preserveAspectRatio="none">
+              <path d="M0,30 L20,30 L25,5 L30,55 L35,15 L42,45 L50,28 L65,30 L70,10 L78,50 L85,18 L94,42 L102,30 L120,32 L128,8 L135,52 L143,20 L152,40 L160,30 L180,30 L188,12 L196,48 L204,22 L212,38 L220,30 L240,30 L248,4 L256,56 L262,18 L272,42 L280,30 L300,30 L308,10 L316,50 L324,20 L332,40 L340,30 L360,30 L368,16 L376,46 L384,24 L392,36 L400,30 L420,30 L428,8 L436,52 L444,18 L452,42 L460,30 L480,30 L488,12 L496,48 L504,20 L512,40 L520,30 L540,30 L548,16 L556,46 L564,22 L572,38 L580,30 L600,30" stroke="#27c26b" stroke-width="1.6" fill="none"/>
+            </svg>
+          </div>
+          <div style="font-size:10.5px;color:rgba(255,255,255,.55);margin-top:6px;font-family:'JetBrains Mono',monospace">Rhythm interp: coarse VF · pulseless · shockable · continue ACLS</div>
+        </div>
+
+        <div class="timeline-bar">
+          <div class="tb-cell"><span class="num">14:08</span>Code called</div>
+          <div class="tb-cell"><span class="num">14:09</span>CPR start</div>
+          <div class="tb-cell"><span class="num">14:09</span>Pads on</div>
+          <div class="tb-cell act"><span class="num">14:10</span>Shock #1 · 200J</div>
+          <div class="tb-cell"><span class="num">14:10</span>Epi 1mg</div>
+          <div class="tb-cell"><span class="num">14:11</span>Shock #2 · 200J</div>
+          <div class="tb-cell"><span class="num">14:12</span>Amio 300mg</div>
+          <div class="tb-cell" style="background:#1a4fb3"><span class="num">14:13</span>NOW · cycle 3</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="h"><span class="t">Event log · ACLS-tagged</span><span class="s">14 events · 04:22 elapsed</span></div>
+
+        <div class="ev-row">
+          <div><div class="dt">+04:22</div><div class="et">14:12:22</div></div>
+          <div>
+            <span class="tag drug">Drug</span>
+            <span class="ev">Amiodarone <b>300 mg IV push</b> via right AC line · followed by 20 mL NS flush</span>
+            <div class="who">Given by · J. Park RN · documented K. Liu</div>
+          </div>
+        </div>
+        <div class="ev-row">
+          <div><div class="dt">+03:38</div><div class="et">14:11:38</div></div>
+          <div>
+            <span class="tag shock">Shock</span>
+            <span class="ev">Defib #2 · <b>200 J biphasic</b> · pulse check after — pulseless · CPR resumed</span>
+            <div class="who">Operator · Dr. R. Drobo (recorder K. Liu)</div>
+          </div>
+        </div>
+        <div class="ev-row">
+          <div><div class="dt">+02:15</div><div class="et">14:10:15</div></div>
+          <div>
+            <span class="tag drug">Drug</span>
+            <span class="ev">Epinephrine <b>1 mg IV push</b> 1:10,000 · expect repeat q3–5 min</span>
+            <div class="who">Given by · J. Park RN</div>
+          </div>
+        </div>
+        <div class="ev-row">
+          <div><div class="dt">+01:52</div><div class="et">14:09:52</div></div>
+          <div>
+            <span class="tag shock">Shock</span>
+            <span class="ev">Defib #1 · <b>200 J biphasic</b> · pads anterior-lateral · all clear ×3</span>
+            <div class="who">Operator · Dr. R. Drobo</div>
+          </div>
+        </div>
+        <div class="ev-row">
+          <div><div class="dt">+01:30</div><div class="et">14:09:30</div></div>
+          <div>
+            <span class="tag rhy">Rhythm</span>
+            <span class="ev">Initial rhythm: <b>Ventricular fibrillation</b> · pulseless · CPR continued · pads applied</span>
+            <div class="who">Identified by · Dr. R. Drobo</div>
+          </div>
+        </div>
+        <div class="ev-row">
+          <div><div class="dt">+01:18</div><div class="et">14:09:18</div></div>
+          <div>
+            <span class="tag air">Airway</span>
+            <span class="ev">BVM started w/ O2 15 L/min · 2-person seal · 30:2 ratio</span>
+            <div class="who">RT · M. Tao</div>
+          </div>
+        </div>
+        <div class="ev-row">
+          <div><div class="dt">+00:45</div><div class="et">14:08:45</div></div>
+          <div>
+            <span class="tag cpr">CPR</span>
+            <span class="ev">Compressions started · backboard placed · 30:2 cycle · rotate every 2 min</span>
+            <div class="who">Compressor #1 · L. Chen RN</div>
+          </div>
+        </div>
+        <div class="ev-row">
+          <div><div class="dt">+00:30</div><div class="et">14:08:30</div></div>
+          <div>
+            <span class="tag note">Note</span>
+            <span class="ev">Code Blue activated overhead · ICU-08 bed 12 · ACLS team paged</span>
+            <div class="who">First on scene · L. Chen RN</div>
+          </div>
+        </div>
+        <div class="ev-row">
+          <div><div class="dt">+00:00</div><div class="et">14:08:00</div></div>
+          <div>
+            <span class="tag note">Trigger</span>
+            <span class="ev">Pt found unresponsive · no pulse · no respirations · monitor showing wide complex → VF</span>
+            <div class="who">Witnessed by · L. Chen RN (1° nurse)</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div style="display:flex;flex-direction:column;gap:14px">
+
+      <div class="panel">
+        <div class="h"><span class="t">Quick actions · ACLS</span></div>
+        <div class="qa-grid">
+          <div class="qa shock"><span class="ic">⚡</span><div class="nm">Charge defib · 200J</div><div class="sub">Shock #3 ready</div></div>
+          <div class="qa"><span class="ic">💉</span><div class="nm">Epi 1 mg</div><div class="sub">3 min since last</div></div>
+          <div class="qa"><span class="ic">💊</span><div class="nm">Amio 150 mg</div><div class="sub">2nd dose · refractory</div></div>
+          <div class="qa"><span class="ic">🫁</span><div class="nm">Intubate</div><div class="sub">Switch from BVM</div></div>
+          <div class="qa"><span class="ic">📍</span><div class="nm">IO access</div><div class="sub">If IV fails</div></div>
+          <div class="qa"><span class="ic">🩸</span><div class="nm">ABG · panel</div><div class="sub">Acid-base</div></div>
+          <div class="qa"><span class="ic">⏸</span><div class="nm">Pulse check</div><div class="sub">@ 14:13:08</div></div>
+          <div class="qa"><span class="ic">✕</span><div class="nm">Call code</div><div class="sub">End resuscitation</div></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="h"><span class="t">Code team roles</span><span class="s">7 active</span></div>
+        <div class="role-row">
+          <div class="av" style="background-image:url('https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=80&h=80&fit=crop&crop=faces')"></div>
+          <div><div class="role">Code leader</div><div class="nm">Dr. R. Drobo</div></div>
+          <span class="stat act">Leading</span>
+        </div>
+        <div class="role-row">
+          <div class="av" style="background-image:url('https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=80&h=80&fit=crop&crop=faces')"></div>
+          <div><div class="role">Recorder</div><div class="nm">K. Liu CRNA</div></div>
+          <span class="stat act">Documenting</span>
+        </div>
+        <div class="role-row">
+          <div class="av" style="background-image:url('https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=80&h=80&fit=crop&crop=faces')"></div>
+          <div><div class="role">Compressor #1</div><div class="nm">L. Chen RN</div></div>
+          <span class="stat act">CPR</span>
+        </div>
+        <div class="role-row">
+          <div class="av" style="background-image:url('https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=80&h=80&fit=crop&crop=faces')"></div>
+          <div><div class="role">Compressor #2</div><div class="nm">M. Patel RN</div></div>
+          <span class="stat enr">Rotate &lt; 1m</span>
+        </div>
+        <div class="role-row">
+          <div class="av" style="background-image:url('https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=80&h=80&fit=crop&crop=faces')"></div>
+          <div><div class="role">Airway / RT</div><div class="nm">M. Tao RT</div></div>
+          <span class="stat act">BVM</span>
+        </div>
+        <div class="role-row">
+          <div class="av" style="background-image:url('https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80&h=80&fit=crop&crop=faces')"></div>
+          <div><div class="role">Meds / IV</div><div class="nm">J. Park RN</div></div>
+          <span class="stat act">Pushing</span>
+        </div>
+        <div class="role-row">
+          <div class="av" style="background-image:url('https://images.unsplash.com/photo-1622902046580-2b47f47f5471?w=80&h=80&fit=crop&crop=faces')"></div>
+          <div><div class="role">Pharmacy</div><div class="nm">D. Foster PharmD</div></div>
+          <span class="stat pres">Bedside</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="h"><span class="t">H's &amp; T's · reversible causes</span></div>
+        <div style="padding:12px 16px;display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px">
+          <div style="padding:8px;background:rgba(255,255,255,.04);border-radius:6px"><b style="color:#fff">Hypoxia</b> · <span style="color:rgba(255,255,255,.6)">↑ FiO2 ✓</span></div>
+          <div style="padding:8px;background:rgba(255,255,255,.04);border-radius:6px"><b style="color:#fff">Hypovolemia</b> · <span style="color:rgba(255,255,255,.6)">NS bolus 1L</span></div>
+          <div style="padding:8px;background:rgba(255,255,255,.04);border-radius:6px"><b style="color:#fff">H+</b> · <span style="color:rgba(255,255,255,.6)">ABG pending</span></div>
+          <div style="padding:8px;background:rgba(255,255,255,.04);border-radius:6px"><b style="color:#fff">Hypo/hyperK</b> · <span style="color:rgba(255,255,255,.6)">iSTAT pending</span></div>
+          <div style="padding:8px;background:rgba(255,255,255,.04);border-radius:6px"><b style="color:#fff">Hypothermia</b> · <span style="color:#27c26b">36.8 ✓</span></div>
+          <div style="padding:8px;background:rgba(255,255,255,.04);border-radius:6px"><b style="color:#fff">Tension PTX</b> · <span style="color:rgba(255,255,255,.6)">— assess</span></div>
+          <div style="padding:8px;background:rgba(255,255,255,.04);border-radius:6px"><b style="color:#fff">Tamponade</b> · <span style="color:rgba(255,255,255,.6)">— assess</span></div>
+          <div style="padding:8px;background:rgba(255,255,255,.04);border-radius:6px;background:#3a0e12;border:1px solid #c43c3c"><b style="color:#fff">Thrombosis MI</b> · <span style="color:#f4a4a4">⚠ POD 2 inf MI</span></div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div></div>
+
+<script src="../scripts/nav.js"></script>
+<script src="../scripts/breadcrumbs.js"></script>
+</body>
+</html>

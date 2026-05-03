@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Order detail · Vancomycin</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .crumb{font-size:11px;color:var(--ink-mute);margin:4px 0 14px;display:flex;gap:6px;align-items:center}
+  .crumb a{color:var(--ink-soft);text-decoration:none}
+  .crumb a:hover{color:var(--ink)}
+  .head{display:flex;justify-content:space-between;align-items:flex-end;margin:0 4px 18px;flex-wrap:wrap;gap:12px}
+  .head .h1{font-size:54px}
+  .layout{display:grid;grid-template-columns:1fr 360px;gap:14px;align-items:start}
+
+  .form{background:#fff;border-radius:18px;padding:22px;box-shadow:var(--shadow)}
+  .form h3{font-family:"Instrument Serif",serif;font-size:24px;letter-spacing:-.02em;margin:0 0 14px;display:flex;justify-content:space-between;align-items:center}
+  .form h3 .pill{font-family:"Plus Jakarta Sans"}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+  .field label{font-size:10px;text-transform:uppercase;font-weight:800;letter-spacing:.05em;color:var(--ink-mute)}
+  .field input,.field select,.field textarea{padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#fafbfc;font:600 13px "Plus Jakarta Sans";color:var(--ink)}
+  .field input:focus,.field select:focus{outline:2px solid #0e1116;background:#fff}
+  .field .hint{font-size:10px;color:var(--ink-mute)}
+
+  .section{padding-top:14px;border-top:1px solid var(--line);margin-top:14px}
+  .section .l{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-mute);font-weight:800;margin-bottom:8px}
+
+  .alert{padding:12px 14px;border-radius:12px;margin-bottom:8px;font-size:12px;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
+  .alert.crit{background:#ffe7eb;border:1px solid #ff4d6b;color:#a01032}
+  .alert.warn{background:#fff3df;border:1px solid #ffb84d;color:#7a4400}
+  .alert.info{background:#e6efff;border:1px solid #3a86ff;color:#1a4fb3}
+  .alert .ic{width:28px;height:28px;border-radius:50%;background:#fff;display:grid;place-items:center;font-weight:800;font-size:13px;flex:none}
+  .alert .t{font-weight:800;font-size:12px}
+  .alert .b{font-size:11px;line-height:1.45;margin-top:2px;opacity:.85}
+  .alert .act{font:700 11px "Plus Jakarta Sans";padding:6px 10px;border-radius:8px;border:0;background:#fff;cursor:pointer}
+
+  /* Right rail */
+  .panel{background:#fff;border-radius:18px;padding:18px;box-shadow:var(--shadow);margin-bottom:12px}
+  .panel h4{margin:0 0 10px;font-size:13px;font-weight:700}
+  .pt-mini{display:grid;grid-template-columns:auto 1fr;gap:10px;margin-bottom:10px}
+  .pt-mini .pic{width:48px;height:48px;border-radius:14px;background:#888 center/cover}
+  .pt-mini .nm{font-weight:800;font-size:15px;line-height:1}
+  .pt-mini .sub{font-size:10px;color:var(--ink-mute);margin-top:3px}
+
+  .row{display:flex;justify-content:space-between;font-size:11px;padding:6px 0;border-top:1px solid var(--line)}
+  .row:first-of-type{border-top:0}
+  .row .k{color:var(--ink-mute)}.row .v{font-weight:700}
+
+  .sticky-cta{position:sticky;bottom:14px;background:#0e1116;color:#fff;border-radius:14px;padding:14px;display:flex;justify-content:space-between;align-items:center;z-index:9}
+  .sticky-cta .l{font-size:11px;color:#9aa0ad;font-weight:600}
+  .sticky-cta .v{font-family:"Instrument Serif",serif;font-size:22px;line-height:1;margin-top:2px}
+  .sticky-cta .actions{display:flex;gap:6px}
+  .sticky-cta .actions .btn{background:rgba(255,255,255,.1);color:#fff}
+  .sticky-cta .actions .btn:hover{background:rgba(255,255,255,.2)}
+  .sticky-cta .actions .btn.primary{background:#ffd633;color:#0e1116}
+
+  /* Order set chip */
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .chip{padding:6px 10px;border-radius:999px;font:700 10px "Plus Jakarta Sans";background:#f4f6f9;color:var(--ink-soft);cursor:pointer;border:1px solid transparent}
+  .chip.active{background:#0e1116;color:#fff}
+
+  /* Audit log */
+  .log{font-size:11px;line-height:1.5}
+  .log .item{display:grid;grid-template-columns:80px 1fr;gap:10px;padding:6px 0;border-top:1px solid var(--line)}
+  .log .item:first-child{border-top:0}
+  .log .t{font-family:'SF Mono',monospace;color:var(--ink-mute)}
+</style></head>
+<body data-page="patients" data-base="../">
+
+<div class="page"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div class="crumb">
+    <a href="Patients.html">Patients</a> <span>›</span>
+    <a href="PatientChart.html">Aria Chen</a> <span>›</span>
+    <a href="CPOE.html">CPOE</a> <span>›</span>
+    <span style="color:var(--ink)">Vancomycin IV</span>
+  </div>
+
+  <div class="head">
+    <div><h1 class="h1">New medication order</h1><div style="font-size:13px;color:var(--ink-soft);margin-top:4px">CPOE · 7-step verified workflow · CDS active</div></div>
+    <div style="display:flex;gap:8px"><button class="btn">Cancel</button><button class="btn">Save draft</button><button class="btn">Sign + hold</button><button class="btn primary">Sign + send</button></div>
+  </div>
+
+  <div class="layout">
+    <!-- Form -->
+    <div>
+      <div class="form">
+        <h3>Vancomycin IV <span class="pill warn"><span class="pdot"></span>Renal-dose</span></h3>
+
+        <div class="chips">
+          <span class="chip active">Standard</span>
+          <span class="chip">Sepsis order set</span>
+          <span class="chip">MRSA bacteremia</span>
+          <span class="chip">Endocarditis</span>
+          <span class="chip">Custom</span>
+        </div>
+
+        <div class="grid2">
+          <div class="field"><label>Drug</label><input value="Vancomycin HCl IV"/><div class="hint">Generic · formulary tier 1</div></div>
+          <div class="field"><label>Indication</label><select><option>MRSA bacteremia (suspected)</option><option>SSTI</option><option>Pneumonia</option><option>Other</option></select></div>
+        </div>
+
+        <div class="grid3">
+          <div class="field"><label>Dose</label><input value="1500 mg"/><div class="hint">15 mg/kg · wt 100 kg</div></div>
+          <div class="field"><label>Route</label><select><option>IV piggyback</option></select></div>
+          <div class="field"><label>Frequency</label><select><option>q12h</option><option>q8h</option><option>q24h</option></select></div>
+        </div>
+
+        <div class="grid3">
+          <div class="field"><label>Infusion rate</label><input value="1 g/hr (90 min)"/><div class="hint">Slow rate to avoid red-man</div></div>
+          <div class="field"><label>Duration</label><select><option>14 days</option><option>7 days</option><option>Until d/c</option></select></div>
+          <div class="field"><label>Start</label><input value="Today 14:00"/></div>
+        </div>
+
+        <div class="section">
+          <div class="l">Therapeutic monitoring</div>
+          <div class="grid2">
+            <div class="field"><label>Trough level</label><select><option>Before 4th dose</option></select></div>
+            <div class="field"><label>Goal range</label><input value="15–20 mg/L"/></div>
+            <div class="field"><label>Renal panel</label><select><option>Daily ×3, then q48h</option></select></div>
+            <div class="field"><label>Pharmacy consult</label><select><option>AUC dosing — auto consult</option></select></div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="l">Notes to pharmacy</div>
+          <div class="field"><textarea rows="3">Patient with AKI baseline. Use AUC-guided dosing protocol. RN to draw trough 30 min prior to 4th dose.</textarea></div>
+        </div>
+      </div>
+
+      <!-- CDS alerts -->
+      <div class="form" style="margin-top:14px">
+        <h3>Clinical decision support <span class="pill bad"><span class="pdot"></span>4 alerts</span></h3>
+
+        <div class="alert crit">
+          <div class="ic">⚠</div>
+          <div>
+            <div class="t">Renal dose adjustment required</div>
+            <div class="b">CrCl 38 mL/min (calculated from SCr 1.8 mg/dL, age 34, wt 100 kg). Standard 15 mg/kg q12h would exceed safe AUC. Pharmacy auto-consult triggered for AUC-guided dosing.</div>
+          </div>
+          <button class="act">Apply</button>
+        </div>
+
+        <div class="alert warn">
+          <div class="ic">!</div>
+          <div>
+            <div class="t">Drug interaction · piperacillin-tazobactam</div>
+            <div class="b">Concomitant vancomycin + pip-tazo increases AKI risk by 22%. Consider alternative gram-negative coverage (cefepime). Monitor SCr daily.</div>
+          </div>
+          <button class="act">Acknowledge</button>
+        </div>
+
+        <div class="alert info">
+          <div class="ic">i</div>
+          <div>
+            <div class="t">Order-set companion</div>
+            <div class="b">Recommended: blood culture ×2 (different sites), CBC, CMP, lactate, procalcitonin. Add as bundle?</div>
+          </div>
+          <button class="act">Add bundle</button>
+        </div>
+
+        <div class="alert info">
+          <div class="ic">i</div>
+          <div>
+            <div class="t">Allergy check passed</div>
+            <div class="b">No documented allergy to vancomycin or glycopeptides. Sulfa-allergy noted but not relevant here.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Audit log -->
+      <div class="form" style="margin-top:14px">
+        <h3>Order audit trail</h3>
+        <div class="log">
+          <div class="item"><span class="t">Now</span><div><b>Draft created</b> by Dr. M. Achebe · CPOE · CDS engine v2.4 evaluating</div></div>
+          <div class="item"><span class="t">−2 min</span><div><b>Indication selected</b> · MRSA bacteremia (suspected) · ICD-10 A41.02</div></div>
+          <div class="item"><span class="t">−3 min</span><div><b>Patient context loaded</b> · MRN 5520 · 100 kg · CrCl 38 · 2 active anti-infectives</div></div>
+          <div class="item"><span class="t">−4 min</span><div><b>Order initiated</b> · navigated from progress note · "Day 2 sepsis worsening"</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right rail -->
+    <div>
+      <div class="panel">
+        <h4>Patient</h4>
+        <div class="pt-mini">
+          <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&h=120&fit=crop&crop=faces')"></div>
+          <div><div class="nm">Aria Chen</div><div class="sub">F · 34 · MRN 5520 · ICU-12 · day 2</div></div>
+        </div>
+        <div class="row"><span class="k">Wt / Ht</span><span class="v">100 kg / 168 cm</span></div>
+        <div class="row"><span class="k">SCr</span><span class="v">1.8 ↑</span></div>
+        <div class="row"><span class="k">CrCl (Cockcroft)</span><span class="v">38 mL/min</span></div>
+        <div class="row"><span class="k">Allergies</span><span class="v">Sulfa</span></div>
+        <div class="row"><span class="k">Code status</span><span class="v">Full</span></div>
+      </div>
+
+      <div class="panel">
+        <h4>Active anti-infectives</h4>
+        <div class="row"><span class="k">Cefepime IV</span><span class="v">2 g q8h</span></div>
+        <div class="row"><span class="k">Pip-tazo IV</span><span class="v">3.375 g q6h</span></div>
+        <div class="row"><span class="k">Fluconazole PO</span><span class="v">200 mg daily</span></div>
+        <div style="margin-top:10px;padding:10px;background:#fff3df;border-radius:10px;font-size:11px;color:#7a4400"><b>⚠ Double gram-neg coverage</b> — consider de-escalating pip-tazo when culture results return.</div>
+      </div>
+
+      <div class="panel">
+        <h4>Cost & supply</h4>
+        <div class="row"><span class="k">Drug cost / dose</span><span class="v">$8.40</span></div>
+        <div class="row"><span class="k">14-day course</span><span class="v">$235.20</span></div>
+        <div class="row"><span class="k">Insurance auth</span><span class="v" style="color:var(--good)">Covered</span></div>
+        <div class="row"><span class="k">Stock on hand</span><span class="v">142 vials</span></div>
+        <div class="row"><span class="k">Pharmacy turnaround</span><span class="v">~22 min</span></div>
+      </div>
+
+      <div class="panel">
+        <h4>Recent vitals</h4>
+        <div class="row"><span class="k">HR</span><span class="v">118</span></div>
+        <div class="row"><span class="k">BP</span><span class="v">88/52 ↓</span></div>
+        <div class="row"><span class="k">T</span><span class="v">39.2 °C</span></div>
+        <div class="row"><span class="k">Lactate</span><span class="v">3.2 mmol/L ↑</span></div>
+        <div class="row"><span class="k">qSOFA</span><span class="v" style="color:var(--bad)">2 — sepsis</span></div>
+      </div>
+
+      <div class="sticky-cta">
+        <div><div class="l">Total · 14d course</div><div class="v">$235.20</div></div>
+        <div class="actions"><button class="btn">Hold</button><button class="btn primary">Sign + send</button></div>
+      </div>
+    </div>
+  </div>
+</div></div>
+<script src="../scripts/nav.js"></script>
+
+<script>window.MC_ROUTES = [{"sel":".btn.primary, button.primary","href":"PharmacyVerify.html","title":"Sign & send"},{"sel":".audit-row","href":"#","soft":true}];</script>
+<script src="../scripts/router.js"></script>
+</body></html>

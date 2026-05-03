@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Consult Request · Cardiology</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;justify-content:space-between;align-items:flex-end;margin:8px 4px 18px;flex-wrap:wrap;gap:14px}
+  .head .h1{font-size:48px}
+  .ctx{display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;background:#fff;border-radius:18px;padding:14px 18px;box-shadow:var(--shadow);margin-bottom:14px}
+  .ctx .pic{width:48px;height:48px;border-radius:14px;background:#888 center/cover}
+  .ctx .nm{font-weight:700}
+  .ctx .meta{font-size:11px;color:var(--ink-soft);display:flex;gap:14px;flex-wrap:wrap;margin-top:3px}
+
+  .layout{display:grid;grid-template-columns:1fr 360px;gap:14px;align-items:start}
+  .panel{padding:22px}
+  .panel h2{font-family:"Instrument Serif",serif;font-size:28px;letter-spacing:-.02em;margin:0 0 4px;font-weight:400}
+  .panel .sub{font-size:12px;color:var(--ink-soft);margin-bottom:14px}
+
+  /* Specialty picker */
+  .spec-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .spec{padding:14px;background:#fafbfc;border:1.5px solid var(--line);border-radius:14px;cursor:pointer;text-align:center;transition:.15s}
+  .spec:hover{border-color:#0e1116}
+  .spec.sel{background:#0e1116;color:#fff;border-color:#0e1116}
+  .spec.sel .sub{color:rgba(255,255,255,.6)}
+  .spec .ic{font-size:22px;margin-bottom:4px;font-family:"Instrument Serif",serif;font-weight:400}
+  .spec .nm{font-weight:800;font-size:12px}
+  .spec .sub{font-size:9px;color:var(--ink-mute);margin-top:2px}
+  .spec .resp{font-size:9px;font-weight:800;margin-top:5px;padding:2px 6px;border-radius:5px;background:var(--good);color:#fff;display:inline-block}
+  .spec .resp.slow{background:var(--warn);color:#0e1116}
+
+  /* Urgency */
+  .urg-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .urg{padding:14px;background:#fafbfc;border:1.5px solid var(--line);border-radius:14px;cursor:pointer;text-align:center}
+  .urg .nm{font-weight:800;font-size:13px}
+  .urg .sub{font-size:10px;color:var(--ink-mute);margin-top:3px}
+  .urg.sel-stat{background:var(--bad);color:#fff;border-color:var(--bad)}
+  .urg.sel-stat .sub{color:rgba(255,255,255,.7)}
+  .urg.sel-urg{background:var(--warn);color:#0e1116;border-color:var(--warn)}
+  .urg.sel-rout{background:#0e1116;color:#fff;border-color:#0e1116}
+  .urg.sel-rout .sub{color:rgba(255,255,255,.6)}
+  .urg.sel-fyi{background:var(--info);color:#fff;border-color:var(--info)}
+  .urg.sel-fyi .sub{color:rgba(255,255,255,.7)}
+
+  .form-row{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+  .form-row label{font-size:10px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;font-weight:800}
+  .form-row input,.form-row select,.form-row textarea{border:1px solid var(--line);border-radius:8px;padding:9px 10px;font:600 12px "Plus Jakarta Sans";background:#fff;width:100%}
+  .form-row textarea{resize:vertical;min-height:80px;font-family:"Lora",Georgia,serif;font-size:13px;line-height:1.6;font-weight:500}
+
+  /* Question prompts */
+  .q-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+  .q-chips .c{padding:5px 10px;background:#fafbfc;border:1px solid var(--line);border-radius:999px;font:600 11px "Plus Jakarta Sans";color:var(--ink-soft);cursor:pointer}
+  .q-chips .c:hover{border-color:#0e1116;color:var(--ink)}
+  .q-chips .c.sel{background:#0e1116;color:#fff;border-color:#0e1116}
+
+  /* Side */
+  .side-card{background:#fff;border-radius:14px;padding:14px;box-shadow:var(--shadow)}
+  .side-card h4{margin:0 0 8px;font-size:11px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;font-weight:800}
+
+  .consultant{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:10px;background:#fafbfc;border-radius:10px;margin-bottom:5px;border:1px solid var(--line);cursor:pointer}
+  .consultant:hover{border-color:#0e1116}
+  .consultant.sel{background:#fff;border-color:#0e1116;box-shadow:0 4px 14px rgba(0,0,0,.06)}
+  .consultant .pic{width:36px;height:36px;border-radius:50%;background:#888 center/cover;flex:none}
+  .consultant .nm{font-weight:700;font-size:13px}
+  .consultant .role{font-size:10px;color:var(--ink-mute)}
+  .consultant .stat{font-size:9px;font-weight:800;padding:3px 7px;border-radius:5px;text-transform:uppercase}
+  .consultant .stat.on{background:var(--good);color:#fff}
+  .consultant .stat.off{background:var(--ink-mute);color:#fff}
+
+  /* Active consults list */
+  .active-list{margin-top:8px}
+  .ac-row{padding:10px 12px;background:#fafbfc;border-radius:10px;margin-bottom:5px;font-size:12px;border-left:3px solid var(--info)}
+  .ac-row.ans{border-left-color:var(--good)}
+  .ac-row.over{border-left-color:var(--bad)}
+  .ac-row .top{display:flex;justify-content:space-between;align-items:center}
+  .ac-row .nm{font-weight:700}
+  .ac-row .sub{font-size:10px;color:var(--ink-mute);margin-top:1px}
+  .ac-row .age{font-size:10px;font-weight:700;color:var(--ink-soft)}
+</style></head>
+<body data-page="patients" data-base="../">
+
+<div class="page" style="max-width:1500px"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div data-bc='[{"label":"Patients","href":"Patients.html"},{"label":"Marcus Wei","href":"PatientChart.html"},{"label":"Request consult"}]'></div>
+
+  <div class="head">
+    <div><h1 class="h1">Request consult</h1><div style="font-size:13px;color:var(--ink-soft);margin-top:4px">New inpatient consult · choose specialty, frame the question, page the consultant</div></div>
+    <div style="display:flex;gap:8px"><button class="btn">Cancel</button><button class="btn">Save draft</button><button class="btn primary">Page consultant <span class="arrow">→</span></button></div>
+  </div>
+
+  <div class="ctx">
+    <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=160&h=160&fit=crop&crop=faces')"></div>
+    <div>
+      <div class="nm">Marcus Wei · MRN 08188 · 58M</div>
+      <div class="meta"><span><b>CCU / 13</b></span><span><b>Dx</b> CHF exacerbation, day 2</span><span><b>Attending</b> Dr. Drobo</span><span><b>Allergies</b> NKDA</span></div>
+    </div>
+    <div style="display:flex;gap:6px"><span class="pill warn"><span class="pdot"></span>Watcher</span></div>
+  </div>
+
+  <div class="layout">
+    <div style="display:flex;flex-direction:column;gap:14px">
+
+      <!-- 1. Specialty -->
+      <div class="card panel">
+        <h2>1 · Specialty</h2>
+        <div class="sub">Average response time shown · live availability from on-call schedule</div>
+
+        <div class="spec-grid">
+          <div class="spec sel">
+            <div class="ic">♥</div>
+            <div class="nm">Cardiology</div>
+            <div class="sub">Dr. M. Cole on call</div>
+            <div class="resp">~12 min</div>
+          </div>
+          <div class="spec">
+            <div class="ic">⚯</div>
+            <div class="nm">Pulm / CCM</div>
+            <div class="sub">Dr. K. Reza on call</div>
+            <div class="resp">~18 min</div>
+          </div>
+          <div class="spec">
+            <div class="ic">𝛂</div>
+            <div class="nm">Nephrology</div>
+            <div class="sub">Dr. P. Singh</div>
+            <div class="resp slow">~45 min</div>
+          </div>
+          <div class="spec">
+            <div class="ic">★</div>
+            <div class="nm">Infectious dz</div>
+            <div class="sub">Dr. A. Lopez</div>
+            <div class="resp">~22 min</div>
+          </div>
+          <div class="spec">
+            <div class="ic">⏧</div>
+            <div class="nm">GI / hepatology</div>
+            <div class="sub">Dr. R. Park</div>
+            <div class="resp">~30 min</div>
+          </div>
+          <div class="spec">
+            <div class="ic">⚿</div>
+            <div class="nm">Neurology</div>
+            <div class="sub">Dr. C. Vega</div>
+            <div class="resp slow">~1 hr</div>
+          </div>
+          <div class="spec">
+            <div class="ic">⚛</div>
+            <div class="nm">Endocrine</div>
+            <div class="sub">Dr. L. Mendez</div>
+            <div class="resp">~25 min</div>
+          </div>
+          <div class="spec">
+            <div class="ic">✚</div>
+            <div class="nm">Surgery</div>
+            <div class="sub">Dr. T. Achebe</div>
+            <div class="resp">~15 min</div>
+          </div>
+          <div class="spec">
+            <div class="ic">𝛗</div>
+            <div class="nm">Psychiatry</div>
+            <div class="sub">Dr. M. Brooks</div>
+            <div class="resp slow">~2 hr</div>
+          </div>
+          <div class="spec">
+            <div class="ic">⚘</div>
+            <div class="nm">Palliative</div>
+            <div class="sub">Dr. J. Patel</div>
+            <div class="resp">~30 min</div>
+          </div>
+          <div class="spec">
+            <div class="ic">⚗</div>
+            <div class="nm">Heme / onc</div>
+            <div class="sub">Dr. E. Wei</div>
+            <div class="resp">~40 min</div>
+          </div>
+          <div class="spec">
+            <div class="ic">+</div>
+            <div class="nm">Other / search</div>
+            <div class="sub">Choose service</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Urgency -->
+      <div class="card panel">
+        <h2>2 · Urgency</h2>
+        <div class="sub">Determines pager / phone routing &amp; SLA</div>
+        <div class="urg-grid">
+          <div class="urg"><div class="nm">⚠ STAT</div><div class="sub">Bedside &lt; 15 min · phone</div></div>
+          <div class="urg sel-rout"><div class="nm">Urgent</div><div class="sub">Same day · text + page</div></div>
+          <div class="urg"><div class="nm">Routine</div><div class="sub">Within 24 hrs · inbox</div></div>
+          <div class="urg"><div class="nm">FYI / curbside</div><div class="sub">Async question · no SLA</div></div>
+        </div>
+      </div>
+
+      <!-- 3. Question -->
+      <div class="card panel">
+        <h2>3 · Frame the question</h2>
+        <div class="sub">Single-question consults get faster, better answers. Be specific.</div>
+
+        <div class="form-row">
+          <label>Reason for consult (one sentence)</label>
+          <input value="Eval &amp; recommendations on diuresis strategy and rate-control optimization in CHF exac on background AFib." />
+        </div>
+
+        <div class="form-row">
+          <label>Clinical context · what you've already tried</label>
+          <textarea>58M with HFrEF (EF 30%), AFib on apixaban + diltiazem, admitted Day 2 for CHF exacerbation. Currently:
+• Lasix 80mg IV BID — net -1.2L over 24h, suboptimal
+• Restarted home diltiazem; HR remains 95–110 in AFib
+• BNP 1,840 (admit 2,400)
+• Cr stable at 1.4
+• Wt up 8 kg from dry weight
+
+Question: would you (1) escalate diuresis (drip vs bolus, add metolazone), and (2) is rate vs rhythm control preferred for this patient given EF and prior failed cardioversion?</textarea>
+        </div>
+
+        <div class="form-row">
+          <label>Specific questions</label>
+          <div class="q-chips">
+            <span class="c sel">Diuresis strategy</span>
+            <span class="c sel">Rate vs rhythm</span>
+            <span class="c">Cath indicated?</span>
+            <span class="c">Echo recommendation</span>
+            <span class="c">GDMT optimization</span>
+            <span class="c">Discharge planning</span>
+            <span class="c">+ Custom</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label>How will the answer change management?</label>
+          <input value="Will guide diuresis escalation today; rate/rhythm decision affects d/c plan." />
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="form-row">
+            <label>Bedside eval needed?</label>
+            <select><option>Yes — please see patient</option><option>Phone curbside OK</option><option>Chart review only</option></select>
+          </div>
+          <div class="form-row">
+            <label>Best time to evaluate</label>
+            <select><option>ASAP / today</option><option>This morning</option><option>This afternoon</option><option>After 17:00</option></select>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Side -->
+    <div style="display:flex;flex-direction:column;gap:12px;position:sticky;top:14px">
+      <div class="side-card">
+        <h4>On-call · Cardiology</h4>
+        <div class="consultant sel">
+          <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=80&h=80&fit=crop&crop=faces')"></div>
+          <div><div class="nm">Dr. M. Cole</div><div class="role">Attending · CHF specialist</div></div>
+          <span class="stat on">on</span>
+        </div>
+        <div class="consultant">
+          <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=80&h=80&fit=crop&crop=faces')"></div>
+          <div><div class="nm">Dr. R. Vega</div><div class="role">Fellow · 2nd call</div></div>
+          <span class="stat on">on</span>
+        </div>
+        <div class="consultant">
+          <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=80&h=80&fit=crop&crop=faces') center/cover"></div>
+          <div><div class="nm">Dr. P. Mehta</div><div class="role">EP · arrhythmias</div></div>
+          <span class="stat off">off</span>
+        </div>
+        <button class="btn" style="margin-top:8px;width:100%;font-size:11px">Override · choose any consultant</button>
+      </div>
+
+      <div class="side-card">
+        <h4>Active consults · 4</h4>
+        <div class="active-list">
+          <div class="ac-row ans">
+            <div class="top"><span class="nm">Cardiology · Liu</span><span class="age">2h</span></div>
+            <div class="sub">✓ Answered · "OK to d/c on metoprolol XL 50"</div>
+          </div>
+          <div class="ac-row">
+            <div class="top"><span class="nm">ID · Hernandez</span><span class="age">4h</span></div>
+            <div class="sub">In progress · awaiting culture speciation</div>
+          </div>
+          <div class="ac-row over">
+            <div class="top"><span class="nm">Allergy · Smith</span><span class="age">8h</span></div>
+            <div class="sub">⚠ Outpt referral pending — past SLA</div>
+          </div>
+          <div class="ac-row">
+            <div class="top"><span class="nm">Pulm · Reyes</span><span class="age">1h</span></div>
+            <div class="sub">Bedside eval requested</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="side-card">
+        <h4>Auto-attached</h4>
+        <div style="font-size:11.5px;color:var(--ink-soft);line-height:1.6">
+          • Last 24h vitals trend<br>
+          • Active med list (14)<br>
+          • Recent labs (BNP, lytes, BMP)<br>
+          • Echo Jan 18 (LVEF 30%)<br>
+          • CXR Jan 19 (pulmonary edema)<br>
+          • Active problem list
+        </div>
+      </div>
+
+      <div class="side-card">
+        <h4>Quick links</h4>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <a href="PatientChart.html" class="btn" style="justify-content:flex-start;text-decoration:none">→ Open chart</a>
+          <a href="OrderEntry.html" class="btn" style="justify-content:flex-start;text-decoration:none">→ Place new order</a>
+          <a href="NoteComposer.html" class="btn" style="justify-content:flex-start;text-decoration:none">→ Write progress note</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div></div>
+
+<script src="../scripts/nav.js"></script>
+<script src="../scripts/breadcrumbs.js"></script>
+<script>
+document.querySelectorAll('.spec').forEach(s => s.addEventListener('click', () => {
+  document.querySelectorAll('.spec').forEach(x => x.classList.remove('sel'));
+  s.classList.add('sel');
+}));
+document.querySelectorAll('.urg').forEach(u => u.addEventListener('click', () => {
+  document.querySelectorAll('.urg').forEach(x => {x.className = 'urg';});
+  // cycle 4 visual states based on click pos
+  const v = ['sel-stat','sel-urg','sel-rout','sel-fyi'];
+  const idx = [...document.querySelectorAll('.urg')].indexOf(u);
+  u.classList.add(v[idx]);
+}));
+document.querySelectorAll('.q-chips .c').forEach(c => c.addEventListener('click', () => c.classList.toggle('sel')));
+document.querySelectorAll('.consultant').forEach(c => c.addEventListener('click', () => {
+  document.querySelectorAll('.consultant').forEach(x => x.classList.remove('sel'));
+  c.classList.add('sel');
+}));
+</script>
+<script>
+window.MC_ROUTES = [{sel:'.btn.primary', href:'PatientChart.html', title:'Send consult & return'}];
+</script>
+<script src="../scripts/router.js"></script>
+</body>
+</html>

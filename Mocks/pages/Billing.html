@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Billing</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin:8px 4px 22px;gap:20px;flex-wrap:wrap}
+  .head .h1{font-size:56px}.head .meta{color:var(--ink-soft);font-size:13px;margin-top:6px}
+  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+  .stat-card{background:#fff;border-radius:20px;padding:18px;box-shadow:var(--shadow)}
+  .stat-card .lbl{display:flex;align-items:center;gap:8px;color:var(--ink-soft);font-size:12px;font-weight:600}
+  .stat-card .num{font-family:"Instrument Serif",serif;font-size:38px;letter-spacing:-.02em;line-height:1;margin-top:8px}
+  .stat-card .num small{font-size:14px;font-family:"Plus Jakarta Sans";color:var(--ink-mute);font-weight:600;margin-left:2px}
+  .stat-card .delta{font-size:11px;color:var(--ink-mute);margin-top:4px}
+  .stat-card .delta b.up{color:var(--good)}.stat-card .delta b.dn{color:var(--bad)}
+  .si{width:24px;height:24px;border-radius:8px;display:grid;place-items:center;font-weight:700;font-size:12px}
+  .si.r{background:#fde7eb;color:#e15670}.si.b{background:#e6efff;color:#3a86ff}.si.g{background:#e6f8ec;color:#27c26b}.si.y{background:#fff3df;color:#c98a00}
+
+  .grid{display:grid;grid-template-columns:1fr 360px;gap:18px;align-items:start}
+  .ar-card{padding:20px}
+  .ar-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+  .ar-bars{display:flex;gap:10px;align-items:flex-end;height:160px;padding:6px 0;border-bottom:1px solid var(--line)}
+  .ar-bars .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+  .ar-bars .stack{width:100%;display:flex;flex-direction:column-reverse;gap:2px;height:100%}
+  .ar-bars .seg{border-radius:3px}
+  .ar-bars .lbl{font-size:11px;color:var(--ink-mute);font-weight:600;margin-top:6px}
+  .legend2{display:flex;gap:14px;margin-top:12px;font-size:11px;color:var(--ink-soft)}
+  .legend2 .lr{display:flex;align-items:center;gap:6px}
+  .legend2 .sw{width:10px;height:10px;border-radius:3px}
+
+  .claims{padding:0;overflow:hidden;margin-top:14px}
+  .ch{padding:16px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line)}
+  .c-tabs{display:flex;gap:4px;background:#f4f6f9;border-radius:999px;padding:4px}
+  .c-tabs .t{padding:6px 12px;border-radius:999px;font:600 11px "Plus Jakarta Sans";color:var(--ink-soft);cursor:pointer}
+  .c-tabs .t.active{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+  .clm-row{display:grid;grid-template-columns:1fr 1.2fr 0.9fr 0.9fr 0.9fr 90px;gap:12px;padding:14px 20px;border-top:1px solid var(--line);align-items:center;font-size:13px}
+  .clm-row .nm{font-weight:700}.clm-row .sub{font-size:11px;color:var(--ink-mute)}
+  .clm-row .amt{font-family:"Instrument Serif",serif;font-size:18px;letter-spacing:-.01em}
+  .clm-row button{padding:8px 12px;border-radius:999px;border:0;background:#0e1116;color:#fff;font:600 11px "Plus Jakarta Sans";cursor:pointer;width:100%}
+
+  .donut-card{padding:18px}
+  .donut{width:100%;aspect-ratio:1;max-width:200px;margin:0 auto}
+  .pay-row{display:flex;justify-content:space-between;padding:8px 0;font-size:12px;border-top:1px solid var(--line)}
+  .pay-row:first-of-type{border-top:0}
+  .pay-row .l{display:flex;align-items:center;gap:8px;color:var(--ink-soft)}
+  .pay-row .d{width:8px;height:8px;border-radius:50%}
+  .deny-card{padding:18px}
+  .deny-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+  .deny-row:first-of-type{border-top:0}
+  .deny-row .code{width:42px;height:42px;border-radius:12px;background:#ffe7eb;color:#b3263d;display:grid;place-items:center;font-weight:700;font-size:11px;flex:none}
+</style></head>
+<body data-page="billing" data-base="../">
+
+<div class="page"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div class="head">
+    <div><h1 class="h1">Billing</h1><div class="meta">$1.42M outstanding · 28 claims awaiting submission · DNFB cleared 92%</div></div>
+    <div style="display:flex;gap:10px">
+      <div class="searchbox"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input placeholder="Claim, MRN or invoice..."/></div>
+      <button class="btn primary">+ New Claim <span class="arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></span></button>
+    </div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-card"><div class="lbl"><span class="si g">$</span>Collected MTD</div><div class="num">$684K</div><div class="delta"><b class="up">+8.2%</b> vs last month</div></div>
+    <div class="stat-card"><div class="lbl"><span class="si y">⏱</span>Days in A/R</div><div class="num">38<small>days</small></div><div class="delta">Target ≤ 40</div></div>
+    <div class="stat-card"><div class="lbl"><span class="si r">✕</span>Denial rate</div><div class="num">6.4<small>%</small></div><div class="delta"><b class="dn">+0.6</b> last week</div></div>
+    <div class="stat-card"><div class="lbl"><span class="si b">⚡</span>Clean-claim</div><div class="num">94.1<small>%</small></div><div class="delta"><b class="up">+1.4</b> WTD</div></div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card ar-card">
+        <div class="ar-head">
+          <div><div style="font-weight:700;font-size:15px">A/R Aging</div><div style="font-size:12px;color:var(--ink-mute);margin-top:4px">Outstanding by bucket — Apr 2026</div></div>
+          <div style="font-family:'Instrument Serif',serif;font-size:32px;letter-spacing:-.02em">$1.42M</div>
+        </div>
+        <div class="ar-bars">
+          <div class="col"><div class="stack"><div class="seg" style="height:8%;background:#ff4d6b"></div><div class="seg" style="height:10%;background:#ffb84d"></div><div class="seg" style="height:14%;background:#3a86ff"></div><div class="seg" style="height:38%;background:#0e1116"></div></div></div>
+          <div class="col"><div class="stack"><div class="seg" style="height:14%;background:#ff4d6b"></div><div class="seg" style="height:18%;background:#ffb84d"></div><div class="seg" style="height:22%;background:#3a86ff"></div><div class="seg" style="height:18%;background:#0e1116"></div></div></div>
+          <div class="col"><div class="stack"><div class="seg" style="height:22%;background:#ff4d6b"></div><div class="seg" style="height:24%;background:#ffb84d"></div><div class="seg" style="height:14%;background:#3a86ff"></div><div class="seg" style="height:8%;background:#0e1116"></div></div></div>
+          <div class="col"><div class="stack"><div class="seg" style="height:34%;background:#ff4d6b"></div><div class="seg" style="height:14%;background:#ffb84d"></div><div class="seg" style="height:6%;background:#3a86ff"></div></div></div>
+          <div class="col"><div class="stack"><div class="seg" style="height:48%;background:#ff4d6b"></div><div class="seg" style="height:8%;background:#ffb84d"></div></div></div>
+        </div>
+        <div style="display:flex;justify-content:space-around;margin-top:6px;font-size:11px;color:var(--ink-mute);font-weight:600">
+          <span>0–30</span><span>31–60</span><span>61–90</span><span>91–120</span><span>120+</span>
+        </div>
+        <div class="legend2">
+          <div class="lr"><span class="sw" style="background:#0e1116"></span>Current</div>
+          <div class="lr"><span class="sw" style="background:#3a86ff"></span>30+</div>
+          <div class="lr"><span class="sw" style="background:#ffb84d"></span>60+</div>
+          <div class="lr"><span class="sw" style="background:#ff4d6b"></span>90+</div>
+        </div>
+      </div>
+
+      <div class="card claims">
+        <div class="ch"><div style="font-weight:700">Open Claims</div>
+          <div class="c-tabs"><div class="t active">All (124)</div><div class="t">Submitted (62)</div><div class="t">Denied (18)</div><div class="t">Paid (44)</div></div></div>
+        <div style="padding:10px 20px 6px;display:grid;grid-template-columns:1fr 1.2fr 0.9fr 0.9fr 0.9fr 90px;gap:12px;font-size:10px;color:var(--ink-mute);font-weight:600;text-transform:uppercase;letter-spacing:.05em">
+          <div>Patient / Claim</div><div>Service</div><div>Payer</div><div>Amount</div><div>Status</div><div></div></div>
+        <div class="clm-row"><div><div class="nm">Albert Smith · CL-44210</div><div class="sub">DOS Apr 28 · MRN 4421-08</div></div><div><div>99213 — Office visit, est.</div><div class="sub">+ 80048 BMP</div></div><div><div>Aetna PPO</div><div class="sub">Auth 88421</div></div><div class="amt">$248.00</div><span class="pill warn"><span class="pdot"></span>Submitted</span><button>Track</button></div>
+        <div class="clm-row"><div><div class="nm">Priya Iyer · CL-44211</div><div class="sub">DOS Apr 27 · MRN 7710-22</div></div><div><div>93306 — Echo, complete</div></div><div><div>BCBS</div><div class="sub">Auth 12099</div></div><div class="amt">$1,420.50</div><span class="pill bad"><span class="pdot"></span>Denied · CO-50</span><button>Appeal</button></div>
+        <div class="clm-row"><div><div class="nm">Tomás Bauer · CL-44212</div><div class="sub">DOS Apr 26 · MRN 9988-15</div></div><div><div>95800 — Sleep study</div></div><div><div>UHC Choice</div><div class="sub">Auth 70912</div></div><div class="amt">$3,860.00</div><span class="pill good"><span class="pdot"></span>Paid</span><button>EOB</button></div>
+        <div class="clm-row"><div><div class="nm">Marisol Reyes · CL-44213</div><div class="sub">DOS Apr 25 · MRN 6633-91</div></div><div><div>47562 — Lap chole</div><div class="sub">+ anesthesia, OR</div></div><div><div>Medicaid</div></div><div class="amt">$8,242.00</div><span class="pill warn"><span class="pdot"></span>Pending</span><button>Track</button></div>
+        <div class="clm-row"><div><div class="nm">Kayode Adeyemi · CL-44214</div><div class="sub">DOS Apr 24 · MRN 3320-04</div></div><div><div>71046 — Chest XR, 2 view</div></div><div><div>Cigna</div></div><div class="amt">$184.00</div><span class="pill bad"><span class="pdot"></span>Denied · CO-16</span><button>Appeal</button></div>
+        <div class="clm-row"><div><div class="nm">Lin Chen · CL-44215</div><div class="sub">DOS Apr 23 · MRN 1102-77</div></div><div><div>80053 — CMP</div><div class="sub">+ 85025 CBC</div></div><div><div>Self-pay</div></div><div class="amt">$92.00</div><span class="pill info"><span class="pdot"></span>Patient bal</span><button>Send</button></div>
+        <div class="clm-row"><div><div class="nm">Naomi Whitfield · CL-44216</div><div class="sub">DOS Apr 22 · MRN 8801-44</div></div><div><div>93000 — ECG, 12-lead</div></div><div><div>Medicare A/B</div></div><div class="amt">$112.00</div><span class="pill good"><span class="pdot"></span>Paid</span><button>EOB</button></div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card donut-card">
+        <div style="font-weight:700;margin-bottom:4px">Payer mix</div>
+        <div style="font-size:11px;color:var(--ink-mute);margin-bottom:8px">Last 30 days</div>
+        <svg class="donut" viewBox="0 0 42 42">
+          <circle cx="21" cy="21" r="15.9" fill="none" stroke="#f4f6f9" stroke-width="6"/>
+          <circle cx="21" cy="21" r="15.9" fill="none" stroke="#0e1116" stroke-width="6" stroke-dasharray="34 100" transform="rotate(-90 21 21)"/>
+          <circle cx="21" cy="21" r="15.9" fill="none" stroke="#3a86ff" stroke-width="6" stroke-dasharray="22 100" stroke-dashoffset="-34" transform="rotate(-90 21 21)"/>
+          <circle cx="21" cy="21" r="15.9" fill="none" stroke="#27c26b" stroke-width="6" stroke-dasharray="18 100" stroke-dashoffset="-56" transform="rotate(-90 21 21)"/>
+          <circle cx="21" cy="21" r="15.9" fill="none" stroke="#ffb84d" stroke-width="6" stroke-dasharray="14 100" stroke-dashoffset="-74" transform="rotate(-90 21 21)"/>
+          <circle cx="21" cy="21" r="15.9" fill="none" stroke="#ff4d6b" stroke-width="6" stroke-dasharray="12 100" stroke-dashoffset="-88" transform="rotate(-90 21 21)"/>
+          <text x="21" y="20" text-anchor="middle" font-family="Instrument Serif" font-size="6">$2.1M</text>
+          <text x="21" y="25" text-anchor="middle" font-size="2.6" fill="#9aa0ad" font-weight="600">total billed</text>
+        </svg>
+        <div style="margin-top:14px">
+          <div class="pay-row"><div class="l"><span class="d" style="background:#0e1116"></span>Commercial</div><b>34%</b></div>
+          <div class="pay-row"><div class="l"><span class="d" style="background:#3a86ff"></span>BCBS</div><b>22%</b></div>
+          <div class="pay-row"><div class="l"><span class="d" style="background:#27c26b"></span>Medicare</div><b>18%</b></div>
+          <div class="pay-row"><div class="l"><span class="d" style="background:#ffb84d"></span>Medicaid</div><b>14%</b></div>
+          <div class="pay-row"><div class="l"><span class="d" style="background:#ff4d6b"></span>Self-pay</div><b>12%</b></div>
+        </div>
+      </div>
+
+      <div class="card deny-card">
+        <div style="font-weight:700;margin-bottom:8px">Top denial reasons</div>
+        <div class="deny-row"><div class="code">CO-50</div><div style="flex:1"><div style="font-weight:700;font-size:13px">Not medically necessary</div><div style="font-size:11px;color:var(--ink-mute)">14 claims · $42.6K</div></div><b>23%</b></div>
+        <div class="deny-row"><div class="code">CO-16</div><div style="flex:1"><div style="font-weight:700;font-size:13px">Missing information</div><div style="font-size:11px;color:var(--ink-mute)">11 claims · $28.4K</div></div><b>18%</b></div>
+        <div class="deny-row"><div class="code">CO-97</div><div style="flex:1"><div style="font-weight:700;font-size:13px">Bundled service</div><div style="font-size:11px;color:var(--ink-mute)">8 claims · $14.2K</div></div><b>14%</b></div>
+        <div class="deny-row"><div class="code">CO-29</div><div style="flex:1"><div style="font-weight:700;font-size:13px">Time-limit expired</div><div style="font-size:11px;color:var(--ink-mute)">5 claims · $8.6K</div></div><b>9%</b></div>
+        <div class="deny-row"><div class="code">PR-1</div><div style="flex:1"><div style="font-weight:700;font-size:13px">Deductible</div><div style="font-size:11px;color:var(--ink-mute)">22 claims · $11.0K</div></div><b>−</b></div>
+      </div>
+
+      <div class="card" style="padding:18px;background:#0e1116;color:#fff">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-weight:700">Patient statements</div><span class="pill" style="background:rgba(255,255,255,.12);color:#fff"><span class="pdot" style="background:#ffb84d"></span>Batch ready</span></div>
+        <div style="font-family:'Instrument Serif',serif;font-size:34px;letter-spacing:-.02em;line-height:1">312</div>
+        <div style="font-size:12px;color:#9aa0ad;margin-top:6px">$184K total · avg $589 / patient</div>
+        <div style="margin-top:14px;display:flex;gap:8px"><button class="btn" style="background:#fff;color:#0e1116;flex:1">Send batch</button><button class="btn" style="background:rgba(255,255,255,.12);color:#fff;flex:1">Preview</button></div>
+      </div>
+    </div>
+  </div>
+</div></div>
+<script src="../scripts/nav.js"></script>
+
+<script>window.MC_ROUTES = [{"sel":"tbody tr, .claim-row, .invoice-row","href":"PatientChart.html#billing","title":"Open patient billing"},{"sel":".btn.primary, button.primary","href":"PatientChart.html#billing","title":"New claim"}];</script>
+<script src="../scripts/router.js"></script>
+</body></html>

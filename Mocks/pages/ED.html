@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Medcure — ED Mission Control</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin:8px 4px 18px;gap:20px;flex-wrap:wrap}
+  .head .h1{font-size:56px}
+  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:14px}
+  .kpi{background:#fff;border-radius:18px;padding:16px;box-shadow:var(--shadow);position:relative}
+  .kpi .lbl{font-size:11px;color:var(--ink-mute);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+  .kpi .num{font-family:"Instrument Serif",serif;font-size:36px;line-height:1;margin-top:6px;letter-spacing:-.02em;display:flex;align-items:baseline;gap:6px}
+  .kpi .unit{font-family:"Plus Jakarta Sans";font-size:12px;color:var(--ink-mute);font-weight:600}
+  .kpi .delta{font-size:11px;margin-top:6px;color:var(--ink-mute)}
+  .kpi .delta.up{color:var(--good)} .kpi .delta.dn{color:var(--bad)}
+
+  .grid{display:grid;grid-template-columns:1fr 360px;gap:14px}
+  .board{background:#fff;border-radius:22px;padding:18px;box-shadow:var(--shadow)}
+  .board-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .board-head h3{font-family:"Instrument Serif",serif;font-weight:400;font-size:24px;margin:0}
+  .triage-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+  .col-head{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:8px 10px;border-radius:10px;display:flex;align-items:center;gap:6px;justify-content:space-between}
+  .col-head .ct{background:rgba(255,255,255,.4);padding:2px 7px;border-radius:999px;font-size:10px}
+  .col-1{background:#ffe1e7;color:#a01a37}
+  .col-2{background:#ffe7d6;color:#a04a00}
+  .col-3{background:#fff3a8;color:#7a5a00}
+  .col-4{background:#d8efff;color:#1a4fb3}
+  .col-5{background:#dff5e3;color:#1a8a48}
+  .col{display:flex;flex-direction:column;gap:8px;min-height:380px}
+  .pcard{background:#fafbfd;border:1px solid var(--line);border-radius:12px;padding:10px;cursor:grab;transition:.15s}
+  .pcard:hover{border-color:#0e1116;background:#fff}
+  .pcard .top{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--ink-mute);margin-bottom:4px}
+  .pcard .nm{font-weight:700;font-size:13px;line-height:1.2}
+  .pcard .cc{font-size:11px;color:var(--ink-soft);margin-top:3px;line-height:1.4}
+  .pcard .bot{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+  .pcard .vit{display:flex;gap:6px}
+  .pcard .vit span{font-size:10px;background:#fff;padding:3px 6px;border-radius:6px;font-weight:700;color:var(--ink-soft)}
+  .news{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:6px;font-size:11px;font-weight:800;color:#fff}
+  .news.l{background:var(--good)} .news.m{background:var(--warn)} .news.h{background:var(--bad)}
+  .pcard.crit{border-color:#ff4d6b;border-left-width:3px;background:#fff7f8}
+  .pcard.crit .nm::after{content:'●';color:var(--bad);margin-left:6px;animation:pulse 1.4s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+  /* Bed map */
+  .bedmap{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+  .bed{aspect-ratio:1/1;border-radius:8px;background:#f4f6f9;display:grid;place-items:center;font-size:11px;font-weight:700;color:var(--ink-soft);position:relative;cursor:pointer}
+  .bed.occ{background:#0e1116;color:#fff}
+  .bed.crit{background:var(--bad);color:#fff}
+  .bed.clean{background:var(--accent)}
+  .bed.dirty{background:#fff3df;color:#a05a00}
+  .bed:hover{transform:scale(1.05)}
+  .bed-legend{display:flex;gap:14px;font-size:11px;color:var(--ink-soft);margin-top:14px;flex-wrap:wrap}
+  .bed-legend span{display:inline-flex;align-items:center;gap:6px}
+  .bed-legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+
+  /* Right column */
+  .side{display:flex;flex-direction:column;gap:14px}
+  .arrivals{background:#0e1116;color:#fff;border-radius:22px;padding:18px;box-shadow:var(--shadow)}
+  .arrivals h3{font-family:"Instrument Serif",serif;font-weight:400;font-size:22px;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+  .arrivals h3 .live{width:8px;height:8px;border-radius:50%;background:var(--bad);animation:pulse 1.5s infinite}
+  .arr{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:12px}
+  .arr:last-child{border-bottom:0}
+  .arr .ic{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.06);display:grid;place-items:center;flex:none}
+  .arr .ic.amb{color:var(--bad)} .arr .ic.walk{color:var(--good)}
+  .arr .nm{font-weight:700;font-size:13px;display:flex;justify-content:space-between}
+  .arr .det{color:#bdc3cf;font-size:11px;margin-top:2px}
+
+  .acuity-card{background:#fff;border-radius:22px;padding:18px;box-shadow:var(--shadow)}
+  .acuity-card h3{font-family:"Instrument Serif",serif;font-weight:400;font-size:22px;margin:0 0 12px}
+  .acuity-bars{display:flex;flex-direction:column;gap:10px}
+  .acuity-row{display:grid;grid-template-columns:80px 1fr 40px;gap:10px;align-items:center;font-size:11px}
+  .acuity-row .nm{font-weight:700}
+  .acuity-row .bar{height:8px;background:#f4f6f9;border-radius:999px;position:relative;overflow:hidden}
+  .acuity-row .bar i{position:absolute;left:0;top:0;bottom:0;border-radius:999px}
+  .acuity-row .v{text-align:right;font-weight:700}
+</style>
+</head>
+<body data-page="ed" data-base="../">
+
+<div class="page">
+  <div class="frame">
+    <div class="nav" id="medcure-nav"></div>
+
+    <div class="head">
+      <div>
+        <div class="eyebrow">Live · ED Mission Control</div>
+        <h1 class="h1">Emergency Dept</h1>
+        <div style="color:var(--ink-soft);font-size:13px;margin-top:6px">42 active · 8 awaiting bed · door-to-doc median 24 min · NEDOCS 142</div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn"><span style="width:8px;height:8px;border-radius:50%;background:var(--bad);animation:pulse 1.5s infinite;margin-right:4px"></span>Live</button>
+        <button class="btn">Last 12h <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></button>
+        <button class="btn primary">Triage Patient <span class="arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
+      </div>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><div class="lbl">Active Patients</div><div class="num">42</div><div class="delta up">▲ 6 last hour</div></div>
+      <div class="kpi"><div class="lbl">Door to Doc</div><div class="num">24<span class="unit">min</span></div><div class="delta up">▼ 4 vs target 30</div></div>
+      <div class="kpi"><div class="lbl">Median LOS</div><div class="num">3.8<span class="unit">hrs</span></div><div class="delta">target ≤ 4h</div></div>
+      <div class="kpi"><div class="lbl">Boarding</div><div class="num">8</div><div class="delta dn">▲ 2 awaiting bed</div></div>
+      <div class="kpi"><div class="lbl">LWBS</div><div class="num">1.2<span class="unit">%</span></div><div class="delta up">▼ 0.3</div></div>
+    </div>
+
+    <div class="grid">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="board">
+          <div class="board-head">
+            <h3>Triage Board · ESI Levels</h3>
+            <div class="subnav"><a class="active">Active</a><a>Resus</a><a>Fast Track</a><a>Behavioral</a></div>
+          </div>
+          <div class="triage-grid">
+            <div>
+              <div class="col-head col-1">ESI 1 · Resus <span class="ct">2</span></div>
+              <div class="col" id="c1"></div>
+            </div>
+            <div>
+              <div class="col-head col-2">ESI 2 · Emergent <span class="ct">6</span></div>
+              <div class="col" id="c2"></div>
+            </div>
+            <div>
+              <div class="col-head col-3">ESI 3 · Urgent <span class="ct">14</span></div>
+              <div class="col" id="c3"></div>
+            </div>
+            <div>
+              <div class="col-head col-4">ESI 4 · Less Urgent <span class="ct">12</span></div>
+              <div class="col" id="c4"></div>
+            </div>
+            <div>
+              <div class="col-head col-5">ESI 5 · Non-Urgent <span class="ct">8</span></div>
+              <div class="col" id="c5"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="board">
+          <div class="board-head">
+            <h3>Bed Map · ED South</h3>
+            <div style="font-size:12px;color:var(--ink-soft)">28/32 occupied · 4 EVS in progress</div>
+          </div>
+          <div class="bedmap" id="bedmap"></div>
+          <div class="bed-legend">
+            <span><i style="background:#0e1116"></i>Occupied</span>
+            <span><i style="background:var(--bad)"></i>Critical</span>
+            <span><i style="background:var(--accent)"></i>Clean / Ready</span>
+            <span><i style="background:#fff3df"></i>EVS in progress</span>
+            <span><i style="background:#f4f6f9"></i>Empty</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="side">
+        <div class="arrivals">
+          <h3><span class="live"></span> Incoming · Next 20 min</h3>
+          <div class="arr">
+            <div class="ic amb"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 17h12V5H3z"/><path d="M15 9h4l2 4v4h-2"/><circle cx="7" cy="20" r="2"/><circle cx="17" cy="20" r="2"/></svg></div>
+            <div style="flex:1">
+              <div class="nm">EMS-4421 · 67 M <span style="color:var(--bad);font-weight:700">2 min</span></div>
+              <div class="det">CP, hypotensive, Trop pending · STEMI activation</div>
+            </div>
+          </div>
+          <div class="arr">
+            <div class="ic amb"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 17h12V5H3z"/><path d="M15 9h4l2 4v4h-2"/><circle cx="7" cy="20" r="2"/><circle cx="17" cy="20" r="2"/></svg></div>
+            <div style="flex:1">
+              <div class="nm">EMS-4422 · 34 F <span style="color:var(--warn);font-weight:700">8 min</span></div>
+              <div class="det">MVC, GCS 14, c-spine collar · Trauma alert</div>
+            </div>
+          </div>
+          <div class="arr">
+            <div class="ic walk"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="5" r="2"/><path d="M9 22V11l3-3 3 3v11M9 13l-3 5"/></svg></div>
+            <div style="flex:1">
+              <div class="nm">Walk-in · 8 Y <span style="color:#bdc3cf;font-weight:700">12 min</span></div>
+              <div class="det">Asthma exacerbation · parent reports SOB</div>
+            </div>
+          </div>
+          <div class="arr">
+            <div class="ic walk"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="5" r="2"/><path d="M9 22V11l3-3 3 3v11M9 13l-3 5"/></svg></div>
+            <div style="flex:1">
+              <div class="nm">Transfer · 71 M <span style="color:#bdc3cf;font-weight:700">18 min</span></div>
+              <div class="det">Stroke alert from outside facility · NIHSS 6</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="acuity-card">
+          <h3>Wait Time by Acuity</h3>
+          <div class="acuity-bars">
+            <div class="acuity-row"><div class="nm" style="color:#a01a37">ESI 1</div><div class="bar"><i style="width:8%;background:#a01a37"></i></div><div class="v">0m</div></div>
+            <div class="acuity-row"><div class="nm" style="color:#a04a00">ESI 2</div><div class="bar"><i style="width:18%;background:#e07a14"></i></div><div class="v">6m</div></div>
+            <div class="acuity-row"><div class="nm" style="color:#7a5a00">ESI 3</div><div class="bar"><i style="width:48%;background:#ffd84d"></i></div><div class="v">22m</div></div>
+            <div class="acuity-row"><div class="nm" style="color:#1a4fb3">ESI 4</div><div class="bar"><i style="width:72%;background:#3a86ff"></i></div><div class="v">48m</div></div>
+            <div class="acuity-row"><div class="nm" style="color:#1a8a48">ESI 5</div><div class="bar"><i style="width:90%;background:#27c26b"></i></div><div class="v">1h 12</div></div>
+          </div>
+        </div>
+
+        <div class="acuity-card">
+          <h3>Active Alerts</h3>
+          <div style="display:flex;flex-direction:column;gap:10px;font-size:12px">
+            <div style="display:flex;gap:10px;padding:10px;background:#ffe7eb;border-radius:12px">
+              <span style="color:var(--bad);font-weight:700">●</span>
+              <div><b>STEMI Activation</b><div style="color:var(--ink-soft);margin-top:2px">Bed 14 · Cath lab notified · 4 min ago</div></div>
+            </div>
+            <div style="display:flex;gap:10px;padding:10px;background:#fff3df;border-radius:12px">
+              <span style="color:var(--warn);font-weight:700">●</span>
+              <div><b>Sepsis Bundle Due</b><div style="color:var(--ink-soft);margin-top:2px">Bed 22 · 28 min remaining</div></div>
+            </div>
+            <div style="display:flex;gap:10px;padding:10px;background:#e6efff;border-radius:12px">
+              <span style="color:var(--info);font-weight:700">●</span>
+              <div><b>Stroke Alert Inbound</b><div style="color:var(--ink-soft);margin-top:2px">CT bay reserved · 18 min ETA</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../scripts/nav.js"></script>
+<script>
+const triage = {
+  c1: [
+    {n:'67 M · EMS', cc:'STEMI · cath lab', hr:'118', sp:'92', news:'h', score:9, crit:true},
+    {n:'52 F · transfer', cc:'Septic shock', hr:'132', sp:'88', news:'h', score:8, crit:true},
+  ],
+  c2: [
+    {n:'71 M · Liu', cc:'Hyperkalemia K 6.3', hr:'88', sp:'96', news:'m', score:6},
+    {n:'34 F · MVC', cc:'Trauma — c-spine', hr:'104', sp:'97', news:'m', score:5},
+    {n:'8 Y · Asthma', cc:'SOB, wheeze', hr:'128', sp:'93', news:'m', score:5},
+    {n:'45 M · CP', cc:'Chest pain, EKG nl', hr:'92', sp:'97', news:'l', score:4},
+    {n:'29 F · OB', cc:'Bleeding 2nd tri', hr:'98', sp:'99', news:'l', score:4},
+    {n:'62 M · Stroke', cc:'NIHSS 4', hr:'76', sp:'97', news:'m', score:5},
+  ],
+  c3: [
+    {n:'38 F · Migraine', cc:'Severe HA + N/V', hr:'82', sp:'99', news:'l', score:3},
+    {n:'14 M · Lac', cc:'Hand laceration 4cm', hr:'88', sp:'99', news:'l', score:2},
+    {n:'56 F · Back', cc:'LBP, no red flags', hr:'84', sp:'98', news:'l', score:3},
+    {n:'72 M · CHF', cc:'Vol overload, dyspnea', hr:'94', sp:'92', news:'m', score:4},
+    {n:'41 M · Renal', cc:'Flank pain → stone', hr:'96', sp:'98', news:'l', score:3},
+  ],
+  c4: [
+    {n:'28 F · UTI', cc:'Dysuria, frequency', hr:'80', sp:'99', news:'l', score:1},
+    {n:'9 M · Cough', cc:'Cough x 5d, low fever', hr:'108', sp:'97', news:'l', score:1},
+    {n:'51 F · Rash', cc:'Pruritic rash, no anaphy', hr:'78', sp:'99', news:'l', score:1},
+    {n:'33 M · Ankle', cc:'Inversion injury, x-ray', hr:'82', sp:'99', news:'l', score:1},
+  ],
+  c5: [
+    {n:'24 F · Med refill', cc:'Out of meds', hr:'72', sp:'100', news:'l', score:0},
+    {n:'45 M · Form', cc:'Work note', hr:'78', sp:'99', news:'l', score:0},
+    {n:'19 F · Sutures', cc:'Removal · simple', hr:'76', sp:'99', news:'l', score:0},
+  ],
+};
+Object.entries(triage).forEach(([k,arr]) => {
+  document.getElementById(k).innerHTML = arr.map(p => `
+    <div class="pcard ${p.crit?'crit':''}">
+      <div class="top"><span>${p.n}</span><span class="news ${p.news}">${p.score}</span></div>
+      <div class="cc">${p.cc}</div>
+      <div class="bot"><div class="vit"><span>HR ${p.hr}</span><span>SpO₂ ${p.sp}</span></div></div>
+    </div>
+  `).join('');
+});
+const beds = [];
+const states = ['occ','occ','occ','occ','crit','occ','occ','clean','occ','occ','occ','dirty','occ','crit','occ','occ','occ','occ','occ','clean','dirty','occ','occ','occ','occ','occ','occ','occ','dirty','occ','clean','occ'];
+document.getElementById('bedmap').innerHTML = states.map((s,i)=>`<div class="bed ${s}">${i+1}</div>`).join('');
+</script>
+
+<script>window.MC_ROUTES = [{"sel":".ed-row, .triage-row, tbody tr, .patient-card","href":"EDLive.html","title":"Open ED live"},{"sel":".btn.primary, button.primary","href":"Triage.html","title":"New triage"},{"sel":".bed-card, .bed","href":"BedBoard.html"}];</script>
+<script src="../scripts/router.js"></script>
+</body>
+</html>

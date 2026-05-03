@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Medcure — Patients</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin:8px 4px 22px;gap:20px;flex-wrap:wrap}
+  .head .h1{font-size:56px}
+  .head .meta{color:var(--ink-soft);font-size:13px;margin-top:6px}
+  .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+  .stat-card{background:#fff;border-radius:20px;padding:18px;box-shadow:var(--shadow)}
+  .stat-card .lbl{display:flex;align-items:center;gap:8px;color:var(--ink-soft);font-size:12px;font-weight:600}
+  .stat-card .lbl .si{width:24px;height:24px;border-radius:8px;background:#fde7eb;color:#e15670;display:grid;place-items:center}
+  .stat-card .lbl .si.b{background:#e6efff;color:#3a86ff}
+  .stat-card .lbl .si.g{background:#e6f8ec;color:#27c26b}
+  .stat-card .lbl .si.y{background:#fff3df;color:#c98a00}
+  .stat-card .num{font-family:"Instrument Serif",serif;font-size:38px;letter-spacing:-.02em;line-height:1;margin-top:8px}
+  .stat-card .delta{font-size:11px;color:var(--ink-mute);margin-top:4px}
+  .stat-card .delta .up{color:var(--good);font-weight:700}
+  .stat-card .delta .dn{color:var(--bad);font-weight:700}
+
+  .name-cell{display:flex;align-items:center;gap:12px}
+  .name-cell .pic{width:36px;height:36px;border-radius:50%;background:#eee center/cover;flex:none}
+  .name-cell .nm{font-weight:700}
+  .name-cell .mrn{font-size:11px;color:var(--ink-mute)}
+  .row-actions{display:flex;gap:6px;justify-content:flex-end}
+  .row-actions button{width:32px;height:32px;border-radius:50%;background:#f4f6f9;border:0;display:grid;place-items:center;cursor:pointer;color:var(--ink-soft)}
+  .row-actions button:hover{background:#0e1116;color:#fff}
+  .vital-mini{display:inline-flex;align-items:center;gap:6px;font-size:12px}
+  .vital-mini .v{font-weight:700}
+  .vital-mini .l{color:var(--ink-mute);font-size:10px}
+</style>
+</head>
+<body data-page="patients" data-base="../">
+
+<div class="page">
+  <div class="frame">
+    <div class="nav" id="medcure-nav"></div>
+
+    <div class="head">
+      <div>
+        <div class="eyebrow">Clinical · Active census</div>
+        <h1 class="h1">Patients</h1>
+        <div class="meta">128 admitted · 42 ED · 18 pending discharge — last update 12 sec ago</div>
+      </div>
+      <div class="toolbar">
+        <div class="searchbox">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input placeholder="Search by MRN, name, DOB, phone…"/>
+          <span style="color:var(--ink-mute);font-size:11px;font-weight:600">⌘K</span>
+        </div>
+        <button class="btn">Filters <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M6 12h12M10 18h4"/></svg></button>
+        <button class="btn primary">Admit Patient <span class="arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></span></button>
+      </div>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="lbl"><span class="si">●</span>Total Admitted</div>
+        <div class="num">128</div>
+        <div class="delta"><span class="up">▲ 4.2%</span> vs yesterday</div>
+      </div>
+      <div class="stat-card">
+        <div class="lbl"><span class="si y">●</span>Critical</div>
+        <div class="num">12</div>
+        <div class="delta"><span class="dn">▲ 1</span> in last hour</div>
+      </div>
+      <div class="stat-card">
+        <div class="lbl"><span class="si b">●</span>ED Active</div>
+        <div class="num">42</div>
+        <div class="delta">8 awaiting bed</div>
+      </div>
+      <div class="stat-card">
+        <div class="lbl"><span class="si g">●</span>Discharge Ready</div>
+        <div class="num">18</div>
+        <div class="delta">avg LOS 3.4 days</div>
+      </div>
+    </div>
+
+    <table class="table">
+      <thead>
+        <tr><th>Patient</th><th>Ward</th><th>Status</th><th>Vitals</th><th>Attending</th><th>Admitted</th><th></th></tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+</div>
+
+<script src="../scripts/nav.js"></script>
+<script>
+const rows = [
+  {n:'Albert Smith', mrn:'MRN-08421', age:8, ward:'Pediatrics 4B', status:'good', stTxt:'Stable', hr:'92',bp:'112/72',sp:'98', dr:'Dr. Patel', adm:'Jan 18'},
+  {n:'Adison Reyes', mrn:'MRN-08422', age:6, ward:'Pediatrics 4B', status:'good', stTxt:'Stable', hr:'104',bp:'104/68',sp:'97', dr:'Dr. Patel', adm:'Jan 18'},
+  {n:'Maria Hernandez', mrn:'MRN-08401', age:54, ward:'ICU 2', status:'bad', stTxt:'Critical', hr:'128',bp:'88/54',sp:'91', dr:'Dr. Okafor', adm:'Jan 19'},
+  {n:'James Liu', mrn:'MRN-08410', age:67, ward:'Cardiology 6', status:'warn', stTxt:'Watch', hr:'108',bp:'150/92',sp:'94', dr:'Dr. Cheng', adm:'Jan 17'},
+  {n:'Priya Shah', mrn:'MRN-08433', age:32, ward:'Maternity 3', status:'good', stTxt:'Stable', hr:'84',bp:'118/76',sp:'99', dr:'Dr. Mendez', adm:'Jan 20'},
+  {n:'Robert Kim', mrn:'MRN-08305', age:71, ward:'ICU 2', status:'warn', stTxt:'Watch', hr:'62',bp:'102/64',sp:'93', dr:'Dr. Okafor', adm:'Jan 16'},
+  {n:'Sarah Johnson', mrn:'MRN-08440', age:29, ward:'Surgery 5', status:'good', stTxt:'Post-op', hr:'88',bp:'120/78',sp:'98', dr:'Dr. Park', adm:'Jan 20'},
+  {n:'Daniel Owusu', mrn:'MRN-08299', age:45, ward:'Neurology 7', status:'info', stTxt:'Observation', hr:'76',bp:'124/80',sp:'97', dr:'Dr. Singh', adm:'Jan 15'},
+];
+const pics = [
+  'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=120&h=120&fit=crop&crop=faces',
+  'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&h=120&fit=crop&crop=faces',
+  'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=120&h=120&fit=crop&crop=faces',
+  'https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=120&h=120&fit=crop&crop=faces',
+  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&h=120&fit=crop&crop=faces',
+  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&h=120&fit=crop&crop=faces',
+  'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=120&h=120&fit=crop&crop=faces',
+  'https://images.unsplash.com/photo-1463453091185-61582044d556?w=120&h=120&fit=crop&crop=faces',
+];
+document.getElementById('rows').innerHTML = rows.map((r,i)=>`
+  <tr>
+    <td>
+      <div class="name-cell">
+        <div class="pic" style="background-image:url('${pics[i%pics.length]}')"></div>
+        <div>
+          <div class="nm">${r.n}</div>
+          <div class="mrn">${r.mrn} · ${r.age} yrs</div>
+        </div>
+      </div>
+    </td>
+    <td>${r.ward}</td>
+    <td><span class="pill ${r.status}"><span class="pdot"></span>${r.stTxt}</span></td>
+    <td>
+      <span class="vital-mini"><span class="v">${r.hr}</span><span class="l">HR</span></span> &nbsp;
+      <span class="vital-mini"><span class="v">${r.bp}</span><span class="l">BP</span></span> &nbsp;
+      <span class="vital-mini"><span class="v">${r.sp}%</span><span class="l">SpO₂</span></span>
+    </td>
+    <td>${r.dr}</td>
+    <td style="color:var(--ink-mute)">${r.adm}</td>
+    <td>
+      <div class="row-actions">
+        <button title="Chart"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></button>
+        <button title="Message"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
+        <button title="More"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
+      </div>
+    </td>
+  </tr>
+`).join('');
+</script>
+
+<script>window.MC_ROUTES = [{"sel":"tbody tr","href":"PatientChart.html","title":"Open chart"},{"sel":".btn.primary","href":"Admit.html","title":"Admit new patient"},{"sel":".row-actions button[title=\"Chart\"]","href":"PatientChart.html"},{"sel":".row-actions button[title=\"Message\"]","href":"Messages.html"}];</script>
+<script src="../scripts/router.js"></script>
+</body>
+</html>

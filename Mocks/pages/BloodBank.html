@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Blood bank · transfusion</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin:8px 4px 22px;flex-wrap:wrap;gap:14px}
+  .head .h1{font-size:46px}
+  .head .meta{color:var(--ink-soft);font-size:13px;margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}
+  .head .meta b{color:var(--ink)}
+  .stat-row{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:18px}
+  .stat-card{background:#fff;border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+  .stat-card .lbl{color:var(--ink-soft);font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+  .stat-card .num{font-family:"Instrument Serif",serif;font-size:30px;letter-spacing:-.02em;line-height:1;margin-top:6px}
+  .stat-card .delta{font-size:10px;color:var(--ink-mute);margin-top:3px}
+
+  .layout{display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start}
+  .card{padding:0;overflow:hidden}
+  .ch{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:14px}
+  .ch .t{font-weight:800;font-size:14px}
+  .ch .s{font-size:11px;color:var(--ink-mute);font-family:"JetBrains Mono",monospace}
+
+  /* Hero — big bag */
+  .hero{padding:18px;background:linear-gradient(135deg,#3d0a14,#7a1f2c);color:#fff;display:grid;grid-template-columns:160px 1fr 280px;gap:20px;align-items:center}
+  .bag{position:relative;width:140px;height:200px;background:linear-gradient(180deg,rgba(255,80,90,.85),rgba(150,30,40,.95));border-radius:14px 14px 30px 30px;border:2px solid rgba(255,255,255,.18);overflow:hidden}
+  .bag::before{content:"";position:absolute;left:50%;top:-8px;width:50px;height:14px;background:rgba(255,255,255,.15);border-radius:4px;transform:translateX(-50%)}
+  .bag .lbl{position:absolute;left:8px;right:8px;top:14px;background:rgba(255,255,255,.95);color:#0e1116;padding:8px;border-radius:4px;font-size:8.5px;line-height:1.35;font-family:"JetBrains Mono",monospace}
+  .bag .lbl b{display:block;font-size:11px;letter-spacing:.05em;margin-bottom:2px}
+  .bag .barcode{position:absolute;left:14px;right:14px;bottom:18px;height:28px;background:repeating-linear-gradient(90deg,#fff 0 1px,transparent 1px 3px,#fff 3px 4px,transparent 4px 7px,#fff 7px 9px,transparent 9px 11px);border-radius:2px}
+  .hero h2{font-family:"Instrument Serif",serif;font-size:36px;letter-spacing:-.015em;line-height:1.04;margin:0 0 6px;font-weight:400}
+  .hero .sub{font-size:12px;color:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;line-height:1.6}
+  .hero .timer{background:rgba(0,0,0,.32);border-radius:14px;padding:14px 16px;text-align:center}
+  .hero .timer .l{font-size:9.5px;color:rgba(255,255,255,.6);font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+  .hero .timer .v{font-family:"Instrument Serif",serif;font-size:48px;line-height:1;letter-spacing:-.02em;margin-top:4px}
+  .hero .timer .u{font-size:10.5px;color:rgba(255,255,255,.6);font-family:"JetBrains Mono",monospace;margin-top:6px}
+  .hero .timer .bar{height:6px;background:rgba(255,255,255,.15);border-radius:3px;margin-top:10px;overflow:hidden}
+  .hero .timer .bar .f{height:100%;background:linear-gradient(90deg,#27c26b,#fff)}
+
+  /* Two-RN check */
+  .twocheck{display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid var(--line)}
+  .twocheck > div{padding:14px 18px}
+  .twocheck > div + div{border-left:1px solid var(--line)}
+  .twocheck h4{margin:0 0 10px;font-size:12px;font-weight:800;display:flex;justify-content:space-between}
+  .twocheck h4 .who{font-size:11px;color:var(--ink-mute);font-family:"JetBrains Mono",monospace}
+  .ckline{display:grid;grid-template-columns:140px 1fr 110px;gap:8px;padding:7px 0;font-size:11.5px;align-items:center;border-top:1px dashed var(--line)}
+  .ckline:first-of-type{border-top:0}
+  .ckline .l{color:var(--ink-mute);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+  .ckline .v{font-family:"JetBrains Mono",monospace;font-weight:700}
+  .ckline .v.match{color:#1a8a48}
+  .ckline .ok{font-size:10px;font-weight:800;background:#dff7e7;color:#1a6d3c;padding:3px 7px;border-radius:5px;text-align:center}
+
+  /* Vitals timeline */
+  .vit-tab{padding:0}
+  .vit-tab table{width:100%;border-collapse:collapse;font-size:11.5px;font-family:"JetBrains Mono",monospace}
+  .vit-tab th{padding:9px 12px;text-align:left;font-size:9.5px;color:var(--ink-mute);font-weight:800;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line);background:#fafbfc}
+  .vit-tab td{padding:9px 12px;border-bottom:1px solid var(--line)}
+  .vit-tab td.t{font-weight:800;color:var(--ink);font-size:12px}
+  .vit-tab td.note{font-family:"Plus Jakarta Sans",sans-serif;font-weight:600;color:var(--ink-soft)}
+  .vit-tab tr.now{background:#e6efff}
+  .vit-tab .warn{color:#a06e0d}
+  .vit-tab .bad{color:#c43c3c}
+
+  /* Compatibility / typing panel */
+  .compat{padding:0}
+  .ctop{padding:14px 18px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .cbox{background:#fafbfc;border-radius:10px;padding:12px}
+  .cbox .l{font-size:9.5px;color:var(--ink-mute);font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+  .cbox .v{font-family:"Instrument Serif",serif;font-size:34px;line-height:1;letter-spacing:-.01em;margin-top:6px}
+  .cbox .sub{font-size:11px;color:var(--ink-mute);font-family:"JetBrains Mono",monospace;margin-top:3px}
+  .ab-grid{padding:0 18px 14px}
+  .ab-grid table{width:100%;border-collapse:collapse;font-size:11px;font-family:"JetBrains Mono",monospace}
+  .ab-grid th{padding:6px 8px;text-align:left;font-size:9.5px;color:var(--ink-mute);font-weight:800;text-transform:uppercase}
+  .ab-grid td{padding:6px 8px;border-top:1px solid var(--line)}
+  .ab-grid td.pos{color:#c43c3c;font-weight:800}
+  .ab-grid td.neg{color:#1a8a48;font-weight:700}
+
+  /* Inventory grid */
+  .inv-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:14px}
+  .inv-cell{background:#fafbfc;border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;flex-direction:column;justify-content:space-between;min-height:96px}
+  .inv-cell.low{background:#fff5e2;border-color:#e8c779}
+  .inv-cell.crit{background:#ffe3e3;border-color:#e29292}
+  .inv-cell .ty{font-size:11px;font-weight:800}
+  .inv-cell .ty span{font-family:"JetBrains Mono",monospace;font-size:9.5px;color:var(--ink-mute);font-weight:700;display:block;margin-top:2px}
+  .inv-cell .qty{font-family:"Instrument Serif",serif;font-size:30px;line-height:1;margin-top:6px}
+  .inv-cell .meta{font-size:9.5px;color:var(--ink-mute);font-family:"JetBrains Mono",monospace;margin-top:6px;display:flex;justify-content:space-between}
+
+  /* Crossmatch list */
+  .xmrow{display:grid;grid-template-columns:80px 1fr 80px 80px 70px 100px;gap:8px;padding:11px 18px;border-top:1px solid var(--line);font-size:11.5px;align-items:center}
+  .xmrow.h{font-size:9.5px;color:var(--ink-mute);font-weight:800;text-transform:uppercase;letter-spacing:.05em;background:#fafbfc;border-top:0;padding:8px 18px}
+  .xmrow .un{font-family:"JetBrains Mono",monospace;font-weight:800;font-size:11.5px}
+  .xmrow .pt{font-weight:700}
+  .xmrow .typ{font-family:"JetBrains Mono",monospace;font-weight:800}
+  .xmrow .stat{font-size:9.5px;font-weight:800;padding:4px 8px;border-radius:5px;text-transform:uppercase;text-align:center}
+  .stat.ok{background:#dff7e7;color:#1a6d3c}
+  .stat.run{background:#e6efff;color:#1a4fb3}
+  .stat.held{background:#fff5e2;color:#a06e0d}
+  .stat.exp{background:#ffe3e3;color:#7a1f1f}
+
+  /* Order summary */
+  .ord{padding:0}
+  .ordr{display:grid;grid-template-columns:140px 1fr;gap:14px;padding:9px 18px;border-top:1px solid var(--line);font-size:11.5px}
+  .ordr:first-child{border-top:0}
+  .ordr .l{color:var(--ink-mute);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+  .ordr .v{font-weight:700}
+
+  .badge-stop{background:#ffe3e3;color:#7a1f1f;font-weight:800;padding:5px 10px;border-radius:6px;font-size:11px}
+  .badge-on{background:#dff7e7;color:#1a6d3c;font-weight:800;padding:5px 10px;border-radius:6px;font-size:11px}
+</style></head>
+<body data-page="overview" data-base="../">
+
+<div class="page" style="max-width:1500px"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div data-bc='[{"label":"Lab"},{"label":"Blood bank"},{"label":"Transfusion · MRN 7741281"}]'></div>
+
+  <div class="head">
+    <div>
+      <h1 class="h1">Transfusion</h1>
+      <div class="meta">
+        <span><b>Margaret Voss</b> · F · 71 yo · MRN 7741281</span>
+        <span>Dx · post-op anemia s/p L hemicolectomy</span>
+        <span>Loc · Med-surg 4 · room 421-2</span>
+        <span>Order · <b>2 units PRBC</b> · in series · Dr. Hatcher</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn">⏸ Pause</button>
+      <button class="btn">+ Vitals</button>
+      <button class="btn primary">⚠ Reaction protocol</button>
+    </div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-card"><div class="lbl">Unit running</div><div class="num">1 / 2</div><div class="delta">2nd unit on hold in BB</div></div>
+    <div class="stat-card"><div class="lbl">Time elapsed</div><div class="num">1:48</div><div class="delta">of 4:00 max · 45%</div></div>
+    <div class="stat-card"><div class="lbl">Volume infused</div><div class="num">158</div><div class="delta">of 312 mL · 51%</div></div>
+    <div class="stat-card"><div class="lbl">Rate</div><div class="num">85</div><div class="delta">mL/hr · plan ≤ 125</div></div>
+    <div class="stat-card"><div class="lbl">Pre Hgb</div><div class="num">6.8</div><div class="delta">g/dL · target ≥ 8.0</div></div>
+    <div class="stat-card"><div class="lbl">Reactions</div><div class="num">0</div><div class="delta">no signs / sx</div></div>
+  </div>
+
+  <div class="layout">
+    <!-- LEFT -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <div class="card">
+        <div class="hero">
+          <div class="bag">
+            <div class="lbl">
+              <b>RBC LR</b>
+              ABO/Rh: <b>O POS</b><br/>
+              Unit · W0398 24 113561<br/>
+              Coll · 2026-04-14<br/>
+              Exp · 2026-05-19
+            </div>
+            <div class="barcode"></div>
+          </div>
+          <div>
+            <div style="font-size:10.5px;color:rgba(255,255,255,.6);font-weight:800;text-transform:uppercase;letter-spacing:.05em">Currently transfusing · unit 1</div>
+            <h2>Leukocyte-reduced RBC · O POS · 312 mL</h2>
+            <div class="sub">
+              Donor unit · <b style="color:#fff">W0398 24 113561</b><br/>
+              ABO/Rh recipient · <b style="color:#fff">O POS</b> · compatible ✓<br/>
+              Crossmatch · <b style="color:#fff">electronic XM</b> · cleared 13:42<br/>
+              Issue from BB · 14:08 · clock starts · 4-hr limit
+            </div>
+          </div>
+          <div class="timer">
+            <div class="l">Stop-by clock</div>
+            <div class="v">2:12</div>
+            <div class="u">remaining of 4-hr max</div>
+            <div class="bar"><div class="f" style="width:45%"></div></div>
+          </div>
+        </div>
+
+        <div class="twocheck">
+          <div>
+            <h4>Two-person verification at bedside <span class="who">RN 1 · L. Chen</span></h4>
+            <div class="ckline"><span class="l">Pt name + DOB</span><span class="v match">M. Voss · 1954-03-08</span><span class="ok">✓ MATCH</span></div>
+            <div class="ckline"><span class="l">Pt MRN / band</span><span class="v match">7741281</span><span class="ok">✓ MATCH</span></div>
+            <div class="ckline"><span class="l">Unit number</span><span class="v match">W0398 24 113561</span><span class="ok">✓ MATCH</span></div>
+            <div class="ckline"><span class="l">ABO / Rh donor</span><span class="v match">O POS</span><span class="ok">✓ MATCH</span></div>
+            <div class="ckline"><span class="l">Tag · pt info</span><span class="v match">VOSS, M · 7741281</span><span class="ok">✓ MATCH</span></div>
+            <div class="ckline"><span class="l">Expiry</span><span class="v">2026-05-19 23:59</span><span class="ok">✓ OK</span></div>
+            <div class="ckline"><span class="l">Visual integrity</span><span class="v">no clots · seal intact</span><span class="ok">✓ OK</span></div>
+          </div>
+          <div>
+            <h4>Independent witness <span class="who">RN 2 · M. Patel</span></h4>
+            <div class="ckline"><span class="l">Pt name + DOB</span><span class="v match">M. Voss · 1954-03-08</span><span class="ok">✓ MATCH</span></div>
+            <div class="ckline"><span class="l">Pt MRN / band</span><span class="v match">7741281</span><span class="ok">✓ MATCH</span></div>
+            <div class="ckline"><span class="l">Unit number</span><span class="v match">W0398 24 113561</span><span class="ok">✓ MATCH</span></div>
+            <div class="ckline"><span class="l">ABO / Rh donor</span><span class="v match">O POS</span><span class="ok">✓ MATCH</span></div>
+            <div class="ckline"><span class="l">Consent on chart</span><span class="v">signed 2026-04-22</span><span class="ok">✓ ON FILE</span></div>
+            <div class="ckline"><span class="l">IV patent · 18g</span><span class="v">L AC · brisk</span><span class="ok">✓ OK</span></div>
+            <div class="ckline"><span class="l">Y-tubing · NS prime</span><span class="v">170-µm filter</span><span class="ok">✓ OK</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Vitals · transfusion timeline</span><span class="s">Pre · 15min · q30min · post · 1hr post</span></div>
+        <div class="vit-tab">
+          <table>
+            <thead><tr>
+              <th>Time</th><th>Event</th><th>BP</th><th>HR</th><th>RR</th><th>Temp</th><th>SpO2</th><th>Volume</th><th>Notes</th>
+            </tr></thead>
+            <tbody>
+              <tr><td class="t">15:30</td><td><span class="badge-on">START · pre</span></td><td>118/72</td><td>88</td><td>18</td><td>36.8</td><td>97%</td><td>0 mL</td><td class="note">Slow start at 50 mL/hr · NS prime · pt alert/oriented</td></tr>
+              <tr><td class="t">15:45</td><td>15-min check</td><td>120/74</td><td>86</td><td>18</td><td>36.8</td><td>97%</td><td>14 mL</td><td class="note">No fever / chills / pruritus / dyspnea · rate ↑ 85 mL/hr</td></tr>
+              <tr><td class="t">16:15</td><td>q30min</td><td>122/76</td><td>84</td><td>18</td><td>36.9</td><td>97%</td><td>56 mL</td><td class="note">Tolerating · pt watching TV</td></tr>
+              <tr><td class="t">16:45</td><td>q30min</td><td>124/78</td><td>82</td><td>18</td><td>37.0</td><td>97%</td><td>98 mL</td><td class="note">Asked for water · denies sx</td></tr>
+              <tr class="now"><td class="t">17:18 · NOW</td><td>q30min</td><td>126/76</td><td>80</td><td>18</td><td>37.1</td><td>97%</td><td>158 mL</td><td class="note">Stable · plan to finish unit ~18:30</td></tr>
+              <tr><td class="t">17:45</td><td colspan="7" style="font-style:italic;color:var(--ink-mute)">scheduled</td><td></td></tr>
+              <tr><td class="t">~18:30</td><td colspan="7" style="font-style:italic;color:var(--ink-mute)">END unit 1 · post-vitals · obtain unit 2 · re-verify</td><td></td></tr>
+              <tr><td class="t">~22:30</td><td colspan="7" style="font-style:italic;color:var(--ink-mute)">+1 hr post unit 2 · order post Hgb</td><td></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Inventory on shelf · main blood bank</span><span class="s">live · auto-fed from BBIS</span></div>
+        <div class="inv-grid">
+          <div class="inv-cell"><div class="ty">RBC LR · O POS<span>most-used universal RBC</span></div><div class="qty">28</div><div class="meta"><span>par 25</span><span>3 expire ≤ 7d</span></div></div>
+          <div class="inv-cell low"><div class="ty">RBC LR · O NEG<span>universal donor · ER</span></div><div class="qty">6</div><div class="meta"><span>par 12 · LOW</span><span>1 expire ≤ 3d</span></div></div>
+          <div class="inv-cell"><div class="ty">RBC LR · A POS<span></span></div><div class="qty">14</div><div class="meta"><span>par 12</span><span>0 expiring</span></div></div>
+          <div class="inv-cell"><div class="ty">RBC LR · A NEG<span></span></div><div class="qty">5</div><div class="meta"><span>par 4</span><span>0 expiring</span></div></div>
+          <div class="inv-cell"><div class="ty">RBC LR · B POS<span></span></div><div class="qty">7</div><div class="meta"><span>par 6</span><span>0 expiring</span></div></div>
+          <div class="inv-cell crit"><div class="ty">RBC LR · AB NEG<span>rarest</span></div><div class="qty">1</div><div class="meta"><span>par 2 · CRIT</span><span>order placed</span></div></div>
+          <div class="inv-cell"><div class="ty">FFP · all types<span>thawed pool</span></div><div class="qty">22</div><div class="meta"><span>par 16</span><span>14 frozen</span></div></div>
+          <div class="inv-cell low"><div class="ty">Platelets · pheresis<span>5-day shelf</span></div><div class="qty">3</div><div class="meta"><span>par 6 · LOW</span><span>2 expire ≤ 1d</span></div></div>
+          <div class="inv-cell"><div class="ty">Cryoprecipitate<span>pooled · 5 units</span></div><div class="qty">9</div><div class="meta"><span>par 4</span><span>0 expiring</span></div></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <div class="card">
+        <div class="ch"><span class="t">Type & screen · this admit</span><span class="s">Drawn 04-22 · valid 72hr</span></div>
+        <div class="compat">
+          <div class="ctop">
+            <div class="cbox"><div class="l">Recipient ABO</div><div class="v" style="color:#c43c3c">O POS</div><div class="sub">forward + reverse concord</div></div>
+            <div class="cbox"><div class="l">Antibody screen</div><div class="v" style="color:#1a8a48">Negative</div><div class="sub">3-cell panel · IS / 37° / AHG</div></div>
+          </div>
+          <div class="ab-grid">
+            <table>
+              <thead><tr><th>Specificity</th><th>Anti-D</th><th>Anti-K</th><th>Anti-Fy</th><th>Anti-Jk</th><th>Anti-S</th></tr></thead>
+              <tbody><tr><td class="neg">neg</td><td class="neg">neg</td><td class="neg">neg</td><td class="neg">neg</td><td class="neg">neg</td><td class="neg">neg</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Order · 2 units PRBC</span><span class="s">Dr. K. Hatcher · 14:02</span></div>
+        <div class="ord">
+          <div class="ordr"><span class="l">Indication</span><span class="v">Hgb 6.8 + symptomatic (fatigue, SOB) · post-op</span></div>
+          <div class="ordr"><span class="l">Product</span><span class="v">RBC · leukocyte-reduced · 2 units in series</span></div>
+          <div class="ordr"><span class="l">Special prep</span><span class="v">— none (not irradiated · not CMV-neg required)</span></div>
+          <div class="ordr"><span class="l">Premeds</span><span class="v">acetaminophen 650 mg PO · diphenhydramine 25 mg IV</span></div>
+          <div class="ordr"><span class="l">Rate</span><span class="v">≤ 125 mL/hr · complete each unit ≤ 4 hr</span></div>
+          <div class="ordr"><span class="l">Goal</span><span class="v">Hgb ≥ 8.0 g/dL · post-Tx Hgb in 1 hr</span></div>
+          <div class="ordr"><span class="l">Consent</span><span class="v" style="color:#1a8a48">Signed 2026-04-22 · Dr. Hatcher · pt</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Crossmatched & on hold</span><span class="s">2 units · 72hr</span></div>
+        <div class="xmrow h"><span>Unit</span><span>Patient</span><span>ABO/Rh</span><span>Issued</span><span>Expires</span><span>Status</span></div>
+        <div class="xmrow">
+          <span class="un">W0398…3561</span>
+          <span class="pt">M. Voss</span>
+          <span class="typ">O POS</span>
+          <span style="font-family:'JetBrains Mono',monospace">14:08</span>
+          <span style="font-family:'JetBrains Mono',monospace;color:var(--ink-mute)">18:08</span>
+          <span class="stat run">▶ Running</span>
+        </div>
+        <div class="xmrow">
+          <span class="un">W0398…4204</span>
+          <span class="pt">M. Voss</span>
+          <span class="typ">O POS</span>
+          <span style="font-family:'JetBrains Mono',monospace">on hold</span>
+          <span style="font-family:'JetBrains Mono',monospace;color:var(--ink-mute)">04-25 13:42</span>
+          <span class="stat held">⏸ On hold</span>
+        </div>
+        <div class="xmrow">
+          <span class="un">W0411…0019</span>
+          <span class="pt">L. Park (OR-3)</span>
+          <span class="typ">A POS</span>
+          <span style="font-family:'JetBrains Mono',monospace">15:52</span>
+          <span style="font-family:'JetBrains Mono',monospace;color:var(--ink-mute)">19:52</span>
+          <span class="stat ok">✓ Issued</span>
+        </div>
+        <div class="xmrow">
+          <span class="un">W0408…7782</span>
+          <span class="pt">A. Romero (ICU)</span>
+          <span class="typ">B NEG</span>
+          <span style="font-family:'JetBrains Mono',monospace">on hold</span>
+          <span style="font-family:'JetBrains Mono',monospace;color:#a06e0d">04-23 09:14 ⚠</span>
+          <span class="stat exp">↓ Exp soon</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Reaction watch · early signs</span><span class="s">stop · NS · vitals · BB call x4441</span></div>
+        <div style="padding:12px 16px;font-size:11.5px;line-height:1.55">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+            <div style="padding:8px 10px;background:#ffe3e3;border-radius:8px"><b style="color:#7a1f1f">Fever ≥ 1°C ↑</b></div>
+            <div style="padding:8px 10px;background:#ffe3e3;border-radius:8px"><b style="color:#7a1f1f">Chills · rigors</b></div>
+            <div style="padding:8px 10px;background:#ffe3e3;border-radius:8px"><b style="color:#7a1f1f">Hypotension</b></div>
+            <div style="padding:8px 10px;background:#ffe3e3;border-radius:8px"><b style="color:#7a1f1f">Dyspnea · wheeze</b></div>
+            <div style="padding:8px 10px;background:#fff5e2;border-radius:8px"><b style="color:#5c4108">Urticaria · itch</b></div>
+            <div style="padding:8px 10px;background:#fff5e2;border-radius:8px"><b style="color:#5c4108">Back / flank pain</b></div>
+            <div style="padding:8px 10px;background:#fff5e2;border-radius:8px"><b style="color:#5c4108">Hemoglobinuria</b></div>
+            <div style="padding:8px 10px;background:#fff5e2;border-radius:8px"><b style="color:#5c4108">Anxiety · sense of doom</b></div>
+          </div>
+          <div style="margin-top:10px;padding:9px 10px;background:#0e1116;color:#fff;border-radius:8px;font-size:11px;line-height:1.5">
+            <b>If reaction:</b> stop transfusion · keep IV w/ NS · vitals q15 · clerical recheck · return bag + tubing + post-Tx samples (clot + EDTA) to BB · order DAT, repeat T&S, urinalysis · notify Dr. Hatcher + BB medical director.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div></div>
+
+<script src="../scripts/nav.js"></script>
+<script src="../scripts/breadcrumbs.js"></script>
+</body></html>

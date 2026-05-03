@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — eMAR · Albert Smith</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;justify-content:space-between;align-items:flex-end;margin:8px 4px 18px;flex-wrap:wrap;gap:12px}
+  .head .h1{font-size:48px}
+  .ctx{display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;background:#fff;border-radius:18px;padding:14px 18px;box-shadow:var(--shadow);margin-bottom:18px}
+  .ctx .pic{width:48px;height:48px;border-radius:14px;background:#888 center/cover}
+  .ctx .nm{font-weight:700}
+  .ctx .meta{font-size:11px;color:var(--ink-soft);display:flex;gap:14px;flex-wrap:wrap;margin-top:3px}
+  .ctx .meta b{color:var(--ink)}
+
+  .controls{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .seg{display:flex;background:#fff;border-radius:999px;padding:4px;box-shadow:var(--shadow)}
+  .seg .o{padding:8px 14px;border-radius:999px;font:700 12px "Plus Jakarta Sans";color:var(--ink-soft);cursor:pointer}
+  .seg .o.active{background:#0e1116;color:#fff}
+
+  .legend{display:flex;gap:14px;font-size:11px;color:var(--ink-soft);align-items:center;flex-wrap:wrap}
+  .legend span{display:flex;align-items:center;gap:5px}
+  .legend i{width:14px;height:14px;border-radius:4px;display:inline-block}
+
+  .emar-table{background:#fff;border-radius:18px;box-shadow:var(--shadow);padding:14px;overflow-x:auto}
+  .emar-grid{display:grid;grid-template-columns:280px repeat(24,minmax(36px,1fr));gap:3px;font-size:10px;min-width:1100px}
+  .h-head{font-size:9px;color:var(--ink-mute);text-align:center;font-weight:700;padding:4px 0;text-transform:uppercase;letter-spacing:.04em}
+  .h-head.now{color:var(--bad)}
+  .med-cell{padding:8px 10px;font-size:12px;display:flex;flex-direction:column;justify-content:center;border-right:1px solid var(--line);background:#fafbfc;border-radius:10px 0 0 10px}
+  .med-cell .nm{font-weight:700;font-size:12px;line-height:1.2}
+  .med-cell .sub{font-size:10px;color:var(--ink-mute);margin-top:1px}
+  .dose-cell{height:42px;border-radius:6px;display:grid;place-items:center;background:#f4f6f9;font-size:9px;font-weight:800;cursor:pointer;transition:.15s}
+  .dose-cell:hover{transform:scale(1.06)}
+  .dose-cell.given{background:#27c26b;color:#fff}
+  .dose-cell.late{background:#ffb84d;color:#0e1116}
+  .dose-cell.held{background:#9aa0ad;color:#fff}
+  .dose-cell.refused{background:#ff4d6b;color:#fff}
+  .dose-cell.scheduled{background:#e6efff;color:#1a4fb3}
+  .dose-cell.due{background:#ffe26b;color:#0e1116;animation:pulse2 1.4s infinite}
+  .dose-cell.now{background:#0e1116;color:#ffd633;border:2px solid #ffd633}
+  .dose-cell.prn{background:transparent;color:var(--ink-mute);border:1px dashed var(--line)}
+  @keyframes pulse2{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+  .row-line{display:contents}
+  .now-line{position:absolute;top:0;bottom:0;width:2px;background:var(--bad);pointer-events:none}
+
+  .grid{display:grid;grid-template-columns:1fr 320px;gap:18px;align-items:start;margin-top:14px}
+
+  .due-card{background:#fef9d7;border:1px solid #ffd633;border-radius:14px;padding:14px;margin-bottom:8px}
+  .due-card .nm{font-weight:700;font-size:13px}
+  .due-card .sub{font-size:11px;color:#7a5c00;margin-top:2px}
+  .due-card .cta{display:flex;gap:6px;margin-top:8px}
+
+  .barcode-card{background:#0e1116;color:#fff;border-radius:14px;padding:18px;text-align:center}
+  .barcode-card .b{font-family:'Libre Barcode 39',sans-serif;font-size:48px;letter-spacing:1px;color:#ffd633;margin:8px 0}
+
+  .alert-card{padding:12px;border-radius:12px;font-size:12px;margin-bottom:8px;border:1px solid}
+  .alert-card.warn{background:#fff3df;border-color:#ffb84d;color:#a05a00}
+  .alert-card.info{background:#e6efff;border-color:#3a86ff;color:#1a4fb3}
+  .alert-card .t{font-weight:800;margin-bottom:2px}
+</style></head>
+<body data-page="patients" data-base="../">
+
+<div class="page"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div class="head">
+    <div><h1 class="h1">eMAR</h1><div style="font-size:13px;color:var(--ink-soft);margin-top:4px">Electronic Medication Administration Record · last 24 hrs</div></div>
+    <div style="display:flex;gap:8px"><button class="btn">+ PRN dose</button><button class="btn">Hold</button><button class="btn dark">📷 Scan to administer</button></div>
+  </div>
+
+  <div class="ctx">
+    <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=120&h=120&fit=crop&crop=faces')"></div>
+    <div>
+      <div class="nm">Albert Smith · MRN 4421-08</div>
+      <div class="meta"><span><b>Wt</b> 31 kg</span><span><b>Ward</b> Peds-2 · Bed 14</span><span><b>Allergies</b> Penicillin, Peanuts</span><span><b>Primary RN</b> Brooks</span><span><b>Code</b> Full</span></div>
+    </div>
+    <div style="display:flex;gap:6px"><span class="pill bad"><span class="pdot"></span>PCN</span><span class="pill warn"><span class="pdot"></span>Asthma</span></div>
+  </div>
+
+  <div class="controls">
+    <div class="seg"><div class="o">Last 8h</div><div class="o active">Last 24h</div><div class="o">7d</div><div class="o">All</div></div>
+    <div class="legend">
+      <span><i style="background:#27c26b"></i>Given</span>
+      <span><i style="background:#ffb84d"></i>Late</span>
+      <span><i style="background:#ffe26b"></i>Due now</span>
+      <span><i style="background:#e6efff"></i>Scheduled</span>
+      <span><i style="background:#9aa0ad"></i>Held</span>
+      <span><i style="background:#ff4d6b"></i>Refused</span>
+      <span><i style="border:1px dashed var(--line);background:transparent"></i>PRN</span>
+    </div>
+  </div>
+
+  <div class="emar-table">
+    <div class="emar-grid">
+      <div></div>
+      <div class="h-head">12a</div><div class="h-head">1</div><div class="h-head">2</div><div class="h-head">3</div><div class="h-head">4</div><div class="h-head">5</div>
+      <div class="h-head">6</div><div class="h-head">7</div><div class="h-head">8</div><div class="h-head">9</div><div class="h-head">10</div><div class="h-head">11</div>
+      <div class="h-head">12p</div><div class="h-head now">1•now</div><div class="h-head">2</div><div class="h-head">3</div><div class="h-head">4</div><div class="h-head">5</div>
+      <div class="h-head">6</div><div class="h-head">7</div><div class="h-head">8</div><div class="h-head">9</div><div class="h-head">10</div><div class="h-head">11</div>
+
+      <div class="med-cell"><div class="nm">Albuterol HFA 90 mcg</div><div class="sub">2 puffs · q4h scheduled · INH</div></div>
+      <div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div>
+      <div class="dose-cell given">04:00</div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div>
+      <div class="dose-cell given">08:02</div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div>
+      <div class="dose-cell given">12:00</div><div class="dose-cell now">●</div><div class="dose-cell"></div><div class="dose-cell"></div>
+      <div class="dose-cell scheduled">16:00</div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div>
+      <div class="dose-cell scheduled">20:00</div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div>
+
+      <div class="med-cell"><div class="nm">Methylprednisolone IV 40 mg</div><div class="sub">q6h · IV · over 30 min</div></div>
+      <div class="dose-cell given" style="grid-column:span 1">00:14</div>
+      <div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div>
+      <div class="dose-cell late">06:42</div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div>
+      <div class="dose-cell given">12:00</div><div class="dose-cell"></div>
+      <div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div>
+      <div class="dose-cell scheduled">18:00</div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div>
+
+      <div class="med-cell"><div class="nm">Fluticasone 50 mcg nasal</div><div class="sub">2 sprays each nostril · BID</div></div>
+      <div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div>
+      <div class="dose-cell"></div><div class="dose-cell"></div>
+      <div class="dose-cell given">08:14</div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div>
+      <div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div>
+      <div class="dose-cell"></div><div class="dose-cell"></div>
+      <div class="dose-cell scheduled">20:00</div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div>
+
+      <div class="med-cell"><div class="nm">Cetirizine 5 mg</div><div class="sub">PO daily AM</div></div>
+      <div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div>
+      <div class="dose-cell"></div><div class="dose-cell"></div>
+      <div class="dose-cell given">08:18</div>
+      <div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div>
+      <div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div>
+      <div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div>
+
+      <div class="med-cell"><div class="nm">Acetaminophen 325 mg</div><div class="sub">q6h PRN · fever or pain · max 4/24h</div></div>
+      <div class="dose-cell prn">P</div><div class="dose-cell prn">P</div><div class="dose-cell prn">P</div>
+      <div class="dose-cell prn">P</div><div class="dose-cell prn">P</div><div class="dose-cell prn">P</div>
+      <div class="dose-cell prn">P</div><div class="dose-cell prn">P</div><div class="dose-cell given">07:48</div>
+      <div class="dose-cell prn">P</div><div class="dose-cell prn">P</div><div class="dose-cell prn">P</div>
+      <div class="dose-cell prn">P</div><div class="dose-cell prn">P</div><div class="dose-cell prn">P</div>
+      <div class="dose-cell prn">P</div><div class="dose-cell prn">P</div><div class="dose-cell prn">P</div>
+      <div class="dose-cell prn">P</div><div class="dose-cell prn">P</div><div class="dose-cell prn">P</div>
+      <div class="dose-cell prn">P</div><div class="dose-cell prn">P</div><div class="dose-cell prn">P</div>
+
+      <div class="med-cell"><div class="nm">Ondansetron 2 mg IV</div><div class="sub">q8h PRN · nausea</div></div>
+      <div class="dose-cell prn">P</div><div class="dose-cell prn">P</div><div class="dose-cell prn">P</div>
+      <div class="dose-cell prn">P</div><div class="dose-cell prn">P</div><div class="dose-cell refused">refused</div>
+      <div class="dose-cell prn">P</div><div class="dose-cell prn">P</div><div class="dose-cell prn">P</div>
+      <div class="dose-cell prn">P</div><div class="dose-cell prn">P</div><div class="dose-cell prn">P</div>
+      <div class="dose-cell prn">P</div><div class="dose-cell prn">P</div><div class="dose-cell prn">P</div>
+      <div class="dose-cell prn">P</div><div class="dose-cell prn">P</div><div class="dose-cell prn">P</div>
+      <div class="dose-cell prn">P</div><div class="dose-cell prn">P</div><div class="dose-cell prn">P</div>
+      <div class="dose-cell prn">P</div><div class="dose-cell prn">P</div><div class="dose-cell prn">P</div>
+
+      <div class="med-cell"><div class="nm">Heparin SC 5000 U</div><div class="sub">q8h · DVT ppx · SC</div></div>
+      <div class="dose-cell"></div><div class="dose-cell"></div>
+      <div class="dose-cell given">02:00</div>
+      <div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div>
+      <div class="dose-cell held">held</div>
+      <div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div>
+      <div class="dose-cell given">16:08</div>
+      <div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div><div class="dose-cell"></div>
+      <div class="dose-cell scheduled">22:00</div><div class="dose-cell"></div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card" style="padding:18px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-weight:700">Administration log · today</div><span style="font-size:11px;color:var(--ink-mute)">12 doses given · 1 late · 1 held · 1 refused</span></div>
+      <div style="font-size:12px;line-height:1.7;font-family:'SF Mono',monospace;background:#fafbfc;border-radius:12px;padding:14px;max-height:340px;overflow-y:auto">
+        <b>13:00</b> · <span style="color:#a05a00">DUE</span> · Albuterol HFA 90 mcg · 2 puffs INH<br>
+        <b>12:00</b> · <span style="color:var(--good)">GIVEN</span> · Methylpred 40 mg IV · over 30 min · <span style="color:var(--ink-mute)">Brooks RN · scan ✓</span><br>
+        <b>12:00</b> · <span style="color:var(--good)">GIVEN</span> · Albuterol HFA 90 mcg · 2 puffs INH · <span style="color:var(--ink-mute)">Brooks RN · scan ✓</span><br>
+        <b>08:18</b> · <span style="color:var(--good)">GIVEN</span> · Cetirizine 5 mg PO · <span style="color:var(--ink-mute)">Brooks RN</span><br>
+        <b>08:14</b> · <span style="color:var(--good)">GIVEN</span> · Fluticasone 2 sprays each nostril · <span style="color:var(--ink-mute)">Brooks RN</span><br>
+        <b>08:02</b> · <span style="color:var(--good)">GIVEN</span> · Albuterol HFA 90 mcg · 2 puffs INH · <span style="color:var(--ink-mute)">Brooks RN · scan ✓</span><br>
+        <b>07:48</b> · <span style="color:var(--good)">GIVEN PRN</span> · Acetaminophen 325 mg PO · indication: fever 38.4 · <span style="color:var(--ink-mute)">Brooks RN</span><br>
+        <b>06:42</b> · <span style="color:#a05a00">LATE 42m</span> · Methylpred 40 mg IV · cause: IV access lost, restarted · <span style="color:var(--ink-mute)">Brooks RN</span><br>
+        <b>05:30</b> · <span style="color:#5b6272">REFUSED</span> · Ondansetron 2 mg IV · pt declined, no nausea · <span style="color:var(--ink-mute)">Foster RN</span><br>
+        <b>04:00</b> · <span style="color:var(--good)">GIVEN</span> · Albuterol HFA 90 mcg · 2 puffs INH · <span style="color:var(--ink-mute)">Foster RN · scan ✓</span><br>
+        <b>02:00</b> · <span style="color:var(--good)">GIVEN</span> · Heparin SC 5000 U · L flank · <span style="color:var(--ink-mute)">Foster RN</span><br>
+        <b>00:14</b> · <span style="color:var(--good)">GIVEN</span> · Methylpred 40 mg IV · <span style="color:var(--ink-mute)">Foster RN · scan ✓</span><br>
+        <b>00:08</b> · <span style="color:#5b6272">HELD</span> · Heparin SC 5000 U · cause: pre-procedure 06:00 · <span style="color:var(--ink-mute)">Foster RN</span><br>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="card" style="padding:18px">
+        <div style="font-weight:700;margin-bottom:10px">Due now &amp; soon</div>
+        <div class="due-card">
+          <div class="nm">⏰ Albuterol HFA · DUE NOW</div>
+          <div class="sub">2 puffs INH · scheduled 13:00 · 2 min ago</div>
+          <div class="cta"><button class="btn primary" style="font-size:11px;padding:6px 10px">Scan &amp; give</button><button class="btn" style="font-size:11px;padding:6px 10px">Hold</button></div>
+        </div>
+        <div class="due-card" style="background:#fff;border-color:var(--line)">
+          <div class="nm" style="color:var(--ink)">⏱ Methylpred 40 mg IV</div>
+          <div class="sub" style="color:var(--ink-mute)">scheduled 18:00 · in 4h 58m</div>
+        </div>
+        <div class="due-card" style="background:#fff;border-color:var(--line)">
+          <div class="nm" style="color:var(--ink)">⏱ Fluticasone</div>
+          <div class="sub" style="color:var(--ink-mute)">scheduled 20:00 · in 6h 58m</div>
+        </div>
+      </div>
+
+      <div class="card barcode-card">
+        <div style="font-size:11px;color:#9aa0ad;text-transform:uppercase;letter-spacing:.05em;font-weight:700">Five rights · scan workflow</div>
+        <div class="b">*4421-08*</div>
+        <div style="font-size:11px;color:#9aa0ad;margin-top:4px">Patient · Drug · Dose · Route · Time · all verified before chart</div>
+      </div>
+
+      <div class="card" style="padding:18px">
+        <div style="font-weight:700;margin-bottom:10px">Alerts</div>
+        <div class="alert-card warn"><div class="t">Late dose 06:42</div>Methylpred IV given 42 min late — IV access was lost. Documented and acknowledged.</div>
+        <div class="alert-card info"><div class="t">Tylenol max-dose tracker</div>1 of 4 doses used today (325 mg / 1300 mg max).</div>
+      </div>
+    </div>
+  </div>
+</div></div>
+<script src="../scripts/nav.js"></script>
+
+<script>window.MC_ROUTES = [{"sel":".dose-cell.due, .dose-cell.now, .dose-cell.scheduled","href":"PharmacyVerify.html","title":"Administer dose"},{"sel":".due-card .cta button:first-child, .due-card .cta .btn","href":"PharmacyVerify.html","title":"Scan & give"},{"sel":".med-cell","href":"OrderDetail.html","title":"View order"}];</script>
+<script src="../scripts/router.js"></script>
+</body></html>

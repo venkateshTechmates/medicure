@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Allergies · Albert Smith</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;justify-content:space-between;align-items:flex-end;margin:8px 4px 18px;flex-wrap:wrap;gap:14px}
+  .head .h1{font-size:48px}
+  .ctx{display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;background:#fff;border-radius:18px;padding:14px 18px;box-shadow:var(--shadow);margin-bottom:14px}
+  .ctx .pic{width:48px;height:48px;border-radius:14px;background:#888 center/cover}
+  .ctx .nm{font-weight:700}
+  .ctx .meta{font-size:11px;color:var(--ink-soft);display:flex;gap:14px;flex-wrap:wrap;margin-top:3px}
+
+  .layout{display:grid;grid-template-columns:1fr 320px;gap:14px;align-items:start}
+  .panel{padding:22px}
+  .panel h2{font-family:"Instrument Serif",serif;font-size:28px;letter-spacing:-.02em;margin:0 0 4px;font-weight:400}
+  .panel .sub{font-size:12px;color:var(--ink-soft);margin-bottom:14px}
+
+  .alert-banner{background:#fff7f9;border:1.5px solid #ffd1dc;border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:14px;margin-bottom:14px}
+  .alert-banner .ic{width:40px;height:40px;border-radius:12px;background:var(--bad);color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px;flex:none}
+  .alert-banner b{color:var(--bad)}
+  .alert-banner .nm{font-weight:800;color:var(--bad)}
+  .alert-banner .sub{font-size:12px;color:#7a3344;margin-top:2px}
+
+  /* Allergy cards */
+  .allergy{background:#fafbfc;border:1.5px solid var(--line);border-radius:14px;padding:16px;margin-bottom:10px;border-left:4px solid var(--line)}
+  .allergy.severe{border-color:#ffd1dc;border-left-color:var(--bad);background:#fff8fa}
+  .allergy.moderate{border-color:#ffe5b8;border-left-color:var(--warn);background:#fffaf0}
+  .allergy.mild{border-color:#cfeed7;border-left-color:var(--good);background:#f7fcf9}
+  .allergy.intolerance{border-left-color:var(--info);background:#f4f8ff;border-color:#d6e4ff}
+
+  .all-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px}
+  .all-name{font-family:"Instrument Serif",serif;font-size:22px;letter-spacing:-.01em;line-height:1.1;font-weight:400}
+  .all-cat{font-size:10px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin-top:3px}
+
+  .all-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;font-size:11px;padding:10px 14px;background:#fff;border-radius:10px;border:1px solid var(--line)}
+  .all-grid .m b{display:block;color:var(--ink);font-weight:800;font-size:12px;margin-top:1px}
+  .all-grid .m{color:var(--ink-soft)}
+
+  .reactions{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+  .reaction{padding:4px 9px;border-radius:6px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+  .reaction.life{background:var(--bad);color:#fff}
+  .reaction.high{background:#ffe5b8;color:#a05a00}
+  .reaction.low{background:#e7eaf0;color:var(--ink)}
+
+  .cross-react{margin-top:10px;padding:10px 12px;background:#fff;border-radius:10px;border:1px dashed var(--line);font-size:11.5px;color:var(--ink-soft)}
+  .cross-react b{color:var(--ink)}
+
+  .severity-pill{padding:4px 10px;border-radius:999px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:5px}
+  .severity-pill.severe{background:var(--bad);color:#fff}
+  .severity-pill.moderate{background:var(--warn);color:#0e1116}
+  .severity-pill.mild{background:var(--good);color:#fff}
+  .severity-pill.intolerance{background:var(--info);color:#fff}
+
+  /* Add form */
+  .add-form{padding:18px;border:1.5px dashed var(--line);border-radius:14px;background:#fafbfc}
+  .add-form-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px}
+  .add-form-grid .f{display:flex;flex-direction:column;gap:4px}
+  .add-form-grid label{font-size:10px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;font-weight:800}
+  .add-form-grid input,.add-form-grid select{border:1px solid var(--line);border-radius:8px;padding:9px 10px;font:600 12px "Plus Jakarta Sans";background:#fff}
+
+  /* Side */
+  .side-card{background:#fff;border-radius:14px;padding:14px;box-shadow:var(--shadow)}
+  .side-card h4{margin:0 0 8px;font-size:11px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;font-weight:800}
+  .blocked-row{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#fafbfc;border-radius:8px;margin-bottom:4px;font-size:12px;border:1px solid var(--line)}
+  .blocked-row .nm{font-weight:700}
+  .blocked-row .reason{font-size:10px;color:var(--ink-mute)}
+</style></head>
+<body data-page="patients" data-base="../">
+
+<div class="page"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div data-bc='[{"label":"Patients","href":"Patients.html"},{"label":"Albert Smith","href":"PatientChart.html"},{"label":"Allergies"}]'></div>
+
+  <div class="head">
+    <div><h1 class="h1">Allergies &amp; intolerances</h1><div style="font-size:13px;color:var(--ink-soft);margin-top:4px">Documented reactions on file. Verified at last admission Jan 18.</div></div>
+    <div style="display:flex;gap:8px"><button class="btn">Print bracelet label</button><button class="btn">No known allergies</button><button class="btn primary">+ Add allergy <span class="arrow">→</span></button></div>
+  </div>
+
+  <div class="ctx">
+    <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=160&h=160&fit=crop&crop=faces')"></div>
+    <div>
+      <div class="nm">Albert Smith · MRN 4421-08 · 9 yo M</div>
+      <div class="meta"><span><b>Last verified</b> Jan 18 by Dr. Achebe</span><span><b>Reviewed by</b> Mother (guardian)</span><span><b>2 severe</b> · 1 moderate · 1 intolerance</span></div>
+    </div>
+    <div style="display:flex;gap:6px"><span class="severity-pill severe">⚠ 2 critical</span></div>
+  </div>
+
+  <div class="alert-banner">
+    <div class="ic">!</div>
+    <div style="flex:1">
+      <div class="nm">Critical allergy alerts active in CPOE</div>
+      <div class="sub">Penicillin-class antibiotics and peanut-derived products are <b>blocked at order entry</b>. Override requires attending sign-off + reason.</div>
+    </div>
+    <button class="btn">View block log</button>
+  </div>
+
+  <div class="layout">
+    <div style="display:flex;flex-direction:column;gap:14px">
+
+      <div class="card panel">
+        <h2>Documented allergies</h2>
+        <div class="sub">4 active records · all verified by clinician within last admission</div>
+
+        <!-- Penicillin -->
+        <div class="allergy severe">
+          <div class="all-head">
+            <div>
+              <div class="all-name">Penicillin (PCN)</div>
+              <div class="all-cat">Drug class · Beta-lactam antibiotic · RxNorm 7980</div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center">
+              <span class="severity-pill severe">⚠ Severe</span>
+              <button class="btn" style="font-size:11px">Edit</button>
+            </div>
+          </div>
+
+          <div class="all-grid">
+            <div class="m">Onset<b>Age 4 (2019)</b></div>
+            <div class="m">Verified by<b>Dr. Achebe</b></div>
+            <div class="m">Source<b>Mother + chart</b></div>
+            <div class="m">Status<b style="color:var(--bad)">Active · confirmed</b></div>
+          </div>
+
+          <div class="reactions">
+            <span class="reaction life">Anaphylaxis</span>
+            <span class="reaction high">Urticaria (hives)</span>
+            <span class="reaction high">Facial swelling</span>
+            <span class="reaction low">Throat tightness</span>
+          </div>
+
+          <div class="cross-react">
+            <b>Cross-reactivity:</b> Cephalosporins (1st-gen ~10% cross) — flagged. Carbapenems &lt;1% cross — caution. <b>Avoid:</b> amoxicillin, ampicillin, piperacillin, cefazolin.
+          </div>
+        </div>
+
+        <!-- Peanut -->
+        <div class="allergy severe">
+          <div class="all-head">
+            <div>
+              <div class="all-name">Peanut</div>
+              <div class="all-cat">Food · Arachis hypogaea</div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center">
+              <span class="severity-pill severe">⚠ Severe</span>
+              <button class="btn" style="font-size:11px">Edit</button>
+            </div>
+          </div>
+
+          <div class="all-grid">
+            <div class="m">Onset<b>Age 2 (2017)</b></div>
+            <div class="m">Verified by<b>Allergist · Dr. Lopez</b></div>
+            <div class="m">Source<b>Skin prick + IgE</b></div>
+            <div class="m">EpiPen<b style="color:var(--good)">Carries 0.15mg</b></div>
+          </div>
+
+          <div class="reactions">
+            <span class="reaction life">Anaphylaxis</span>
+            <span class="reaction high">Wheezing</span>
+            <span class="reaction high">Vomiting</span>
+            <span class="reaction low">Hives</span>
+          </div>
+
+          <div class="cross-react">
+            <b>Dietary alert:</b> Tree nuts (no documented reaction but co-avoid recommended). Hospital food service flagged · peanut-free tray protocol.
+          </div>
+        </div>
+
+        <!-- Latex -->
+        <div class="allergy moderate">
+          <div class="all-head">
+            <div>
+              <div class="all-name">Latex (natural rubber)</div>
+              <div class="all-cat">Environmental · contact + airborne</div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center">
+              <span class="severity-pill moderate">Moderate</span>
+              <button class="btn" style="font-size:11px">Edit</button>
+            </div>
+          </div>
+
+          <div class="all-grid">
+            <div class="m">Onset<b>Age 6 (2021)</b></div>
+            <div class="m">Verified by<b>RN observation</b></div>
+            <div class="m">Source<b>Patch test pending</b></div>
+            <div class="m">Status<b>Active</b></div>
+          </div>
+
+          <div class="reactions">
+            <span class="reaction high">Contact dermatitis</span>
+            <span class="reaction low">Itching</span>
+            <span class="reaction low">Localized swelling</span>
+          </div>
+
+          <div class="cross-react">
+            <b>Hospital protocol:</b> Latex-free room signage active. All gloves, BP cuffs, IV tubing, tape verified latex-free at admission.
+          </div>
+        </div>
+
+        <!-- Intolerance -->
+        <div class="allergy intolerance">
+          <div class="all-head">
+            <div>
+              <div class="all-name">Lactose</div>
+              <div class="all-cat">Food · intolerance (not allergy)</div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center">
+              <span class="severity-pill intolerance">Intolerance</span>
+              <button class="btn" style="font-size:11px">Edit</button>
+            </div>
+          </div>
+
+          <div class="all-grid">
+            <div class="m">Onset<b>Age 7 (2022)</b></div>
+            <div class="m">Verified by<b>PCP · Dr. Patel</b></div>
+            <div class="m">Source<b>Symptom history</b></div>
+            <div class="m">Severity<b>GI only</b></div>
+          </div>
+
+          <div class="reactions">
+            <span class="reaction low">Bloating</span>
+            <span class="reaction low">Diarrhea</span>
+            <span class="reaction low">Abd cramping</span>
+          </div>
+
+          <div class="cross-react">
+            Diet flag: lactose-free meals. Lactaid available PRN. Most medications with lactose excipient acceptable in small doses.
+          </div>
+        </div>
+      </div>
+
+      <!-- Add new allergy form -->
+      <div class="card panel">
+        <h2 style="font-size:22px">+ Add allergy or intolerance</h2>
+        <div class="sub">Required for any new reaction observed during this admission</div>
+
+        <div class="add-form">
+          <div class="add-form-grid">
+            <div class="f"><label>Substance</label><input placeholder="Search drug, food, environmental..."></div>
+            <div class="f"><label>Category</label><select><option>Drug</option><option>Food</option><option>Environmental</option><option>Biologic</option></select></div>
+            <div class="f"><label>Severity</label><select><option>Severe (anaphylactic)</option><option>Moderate</option><option>Mild</option><option>Intolerance only</option></select></div>
+          </div>
+          <div class="add-form-grid">
+            <div class="f"><label>Reaction(s)</label><input placeholder="e.g. urticaria, swelling..."></div>
+            <div class="f"><label>Onset</label><input type="date"></div>
+            <div class="f"><label>Verified by</label><input value="Dr. M. Achebe" readonly></div>
+          </div>
+          <textarea placeholder="Notes — clinical context, treatment given, witness..." style="width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;font:500 12px 'Plus Jakarta Sans';height:60px;resize:vertical"></textarea>
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
+            <button class="btn">Cancel</button>
+            <button class="btn primary">Save allergy <span class="arrow">→</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right rail -->
+    <div style="display:flex;flex-direction:column;gap:12px;position:sticky;top:14px">
+      <div class="side-card">
+        <h4>CPOE blocks · 7 active</h4>
+        <div class="blocked-row"><div><div class="nm">Amoxicillin</div><div class="reason">Cross-reactive with PCN</div></div><span class="severity-pill severe" style="font-size:9px">Block</span></div>
+        <div class="blocked-row"><div><div class="nm">Piperacillin / tazo</div><div class="reason">PCN class</div></div><span class="severity-pill severe" style="font-size:9px">Block</span></div>
+        <div class="blocked-row"><div><div class="nm">Cefazolin</div><div class="reason">~10% cross-react</div></div><span class="severity-pill moderate" style="font-size:9px">Warn</span></div>
+        <div class="blocked-row"><div><div class="nm">Ampicillin</div><div class="reason">PCN class</div></div><span class="severity-pill severe" style="font-size:9px">Block</span></div>
+        <div class="blocked-row"><div><div class="nm">Peanut oil-based</div><div class="reason">Some IM injections</div></div><span class="severity-pill severe" style="font-size:9px">Block</span></div>
+      </div>
+
+      <div class="side-card">
+        <h4>Family history</h4>
+        <div style="font-size:12px;line-height:1.6;color:var(--ink-soft)">
+          <b style="color:var(--ink)">Mother:</b> seasonal allergies, asthma<br>
+          <b style="color:var(--ink)">Sister:</b> peanut allergy (severe)<br>
+          <b style="color:var(--ink)">Father:</b> none documented
+        </div>
+      </div>
+
+      <div class="side-card">
+        <h4>Reaction history · 3</h4>
+        <div style="font-size:11px;line-height:1.5;color:var(--ink-soft);margin-bottom:8px">
+          <b style="color:var(--ink)">2019 — Hospital ED</b><br>
+          PCN exposure → anaphylaxis, treated w/ epi + steroids, intubated 4h
+        </div>
+        <div style="font-size:11px;line-height:1.5;color:var(--ink-soft);margin-bottom:8px">
+          <b style="color:var(--ink)">2021 — School</b><br>
+          Peanut trace exposure → wheeze, EpiPen at home, ED visit
+        </div>
+        <div style="font-size:11px;line-height:1.5;color:var(--ink-soft)">
+          <b style="color:var(--ink)">2022 — Outpt</b><br>
+          Latex glove → contact dermatitis, supportive care
+        </div>
+      </div>
+
+      <div class="side-card">
+        <h4>Quick actions</h4>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <a href="OrderEntry.html" class="btn" style="justify-content:flex-start;text-decoration:none">→ Place order (with check)</a>
+          <a href="PatientChart.html" class="btn" style="justify-content:flex-start;text-decoration:none">→ Open chart</a>
+          <a href="DischargeSummary.html" class="btn" style="justify-content:flex-start;text-decoration:none">→ Discharge instructions</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div></div>
+
+<script src="../scripts/nav.js"></script>
+<script src="../scripts/breadcrumbs.js"></script>
+</body>
+</html>

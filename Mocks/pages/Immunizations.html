@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Immunizations</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin:8px 4px 22px;flex-wrap:wrap;gap:14px}
+  .head .h1{font-size:46px}
+  .head .meta{color:var(--ink-soft);font-size:13px;margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}
+  .head .meta b{color:var(--ink)}
+  .stat-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
+  .stat-card{background:#fff;border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+  .stat-card .lbl{color:var(--ink-soft);font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+  .stat-card .num{font-family:"Instrument Serif",serif;font-size:30px;letter-spacing:-.02em;line-height:1;margin-top:6px}
+  .stat-card .delta{font-size:10px;color:var(--ink-mute);margin-top:3px}
+
+  .layout{display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start}
+  .card{padding:0;overflow:hidden}
+  .ch{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:14px}
+  .ch .t{font-weight:800;font-size:14px}
+  .ch .s{font-size:11px;color:var(--ink-mute);font-family:"JetBrains Mono",monospace}
+
+  /* Schedule track — life-long */
+  .track{padding:18px}
+  .age-axis{display:grid;grid-template-columns:60px repeat(13,1fr);gap:0;font-family:"JetBrains Mono",monospace;font-size:9.5px;font-weight:700;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--line);padding-bottom:6px;margin-bottom:8px}
+  .age-axis div{text-align:center}
+  .age-axis div:first-child{text-align:left}
+  .row-vac{display:grid;grid-template-columns:60px repeat(13,1fr);gap:0;height:36px;border-bottom:1px dashed var(--line);align-items:center;position:relative}
+  .row-vac > .nm{font-size:11px;font-weight:700;text-align:left;padding-right:8px}
+  .row-vac > .nm small{display:block;color:var(--ink-mute);font-weight:500;font-size:9.5px;font-family:"JetBrains Mono",monospace;margin-top:1px}
+  .dose{position:absolute;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-family:"JetBrains Mono",monospace;font-size:9px;font-weight:800;cursor:pointer;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);top:6px;transform:translateX(-12px)}
+  .dose.done{background:#27c26b;color:#fff}
+  .dose.due{background:#0e1116;color:#fff;animation:pulse 2s infinite}
+  .dose.over{background:#c43c3c;color:#fff}
+  .dose.up{background:#fff;border-color:#0e1116;color:#0e1116}
+  .dose.contra{background:#9aa3b3;color:#fff;text-decoration:line-through}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(14,17,22,.6)}50%{box-shadow:0 0 0 6px rgba(14,17,22,0)}}
+  .row-vac .bar{position:absolute;height:6px;background:#fafbfc;border-radius:3px;top:15px;left:0;right:0;z-index:0;margin-left:60px}
+
+  /* Today panel */
+  .today{padding:18px;background:linear-gradient(135deg,#0e1116,#1f2937);color:#fff}
+  .today h3{font-family:"Instrument Serif",serif;font-size:30px;letter-spacing:-.015em;margin:0 0 6px;font-weight:400}
+  .today .lin{font-size:12px;color:rgba(255,255,255,.65);font-family:"JetBrains Mono",monospace}
+  .today-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+  .today-card{background:rgba(255,255,255,.06);border-radius:10px;padding:12px}
+  .today-card .nm{font-weight:800;font-size:13px}
+  .today-card .nm small{display:block;color:rgba(255,255,255,.6);font-weight:500;font-size:10.5px;margin-top:2px;font-family:"JetBrains Mono",monospace}
+  .today-card .dets{margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:10.5px;font-family:"JetBrains Mono",monospace;color:rgba(255,255,255,.7)}
+  .today-card .dets b{color:#fff;display:block}
+
+  /* History rows */
+  .hr{display:grid;grid-template-columns:90px 1fr 110px 80px 100px 70px;gap:10px;padding:10px 18px;border-top:1px solid var(--line);font-size:11.5px;align-items:center}
+  .hr.h{font-size:9.5px;font-weight:800;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;background:#fafbfc;border-top:0;padding:8px 18px}
+  .hr .when{font-family:"JetBrains Mono",monospace;font-weight:800}
+  .hr .nm{font-weight:700}
+  .hr .nm small{display:block;color:var(--ink-mute);font-weight:500;font-size:10px;margin-top:1px;font-family:"JetBrains Mono",monospace}
+  .hr .lot{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:10.5px}
+  .hr .stat{font-size:9.5px;font-weight:800;padding:3px 7px;border-radius:5px;text-align:center;text-transform:uppercase}
+  .stat.ok{background:#dff7e7;color:#1a6d3c}
+  .stat.iis{background:#e6efff;color:#1a4fb3}
+
+  /* Forecast tile */
+  .fc{padding:0}
+  .fc-row{display:grid;grid-template-columns:1fr 100px 90px;gap:10px;padding:10px 18px;border-top:1px solid var(--line);font-size:11.5px;align-items:center}
+  .fc-row:first-child{border-top:0}
+  .fc-row .nm{font-weight:700}
+  .fc-row .nm small{display:block;color:var(--ink-mute);font-weight:500;font-size:10px;margin-top:1px;font-family:"JetBrains Mono",monospace}
+  .fc-row .when{font-family:"JetBrains Mono",monospace;font-weight:800;font-size:11px}
+  .fc-row .stat{font-size:9.5px;font-weight:800;padding:3px 7px;border-radius:5px;text-align:center;text-transform:uppercase}
+  .stat.due{background:#0e1116;color:#fff}
+  .stat.up{background:#e6efff;color:#1a4fb3}
+  .stat.over{background:#ffe3e3;color:#7a1f1f}
+  .stat.contra{background:#fafbfc;color:var(--ink-mute)}
+
+  /* Refusal / contra cards */
+  .pill-wrap{padding:12px 16px;display:flex;gap:5px;flex-wrap:wrap}
+  .pill-wrap .pill{font-size:11px;font-weight:700;padding:6px 10px;border-radius:6px;background:#fafbfc;border:1px solid var(--line)}
+  .pill-wrap .pill.no{background:#ffe3e3;color:#7a1f1f;border-color:#e29292}
+  .pill-wrap .pill.warn{background:#fff5e2;color:#a06e0d;border-color:#e8c779}
+
+  /* VIS strip */
+  .vis-row{display:grid;grid-template-columns:1fr 90px 80px 80px;gap:10px;padding:10px 18px;border-top:1px solid var(--line);font-size:11.5px;align-items:center}
+  .vis-row:first-child{border-top:0}
+  .vis-row .nm{font-weight:700}
+  .vis-row .ed{font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--ink-mute);font-weight:700}
+</style></head>
+<body data-page="overview" data-base="../">
+
+<div class="page" style="max-width:1500px"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div data-bc='[{"label":"Patient"},{"label":"Tanaka, H."},{"label":"Immunizations"}]'></div>
+
+  <div class="head">
+    <div>
+      <h1 class="h1">Immunizations</h1>
+      <div class="meta">
+        <span><b>Henry Tanaka</b> · M · 58 yo · MRN 4451209</span>
+        <span>Records merged · State IIS · CHIRP since 2014</span>
+        <span>Last admin · <b>flu — today 14:42</b></span>
+        <span>Allergies · <b>egg — mild urticaria 1998</b></span>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn">⤓ Print record</button>
+      <button class="btn">↻ Sync IIS</button>
+      <button class="btn primary">+ Administer</button>
+    </div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-card"><div class="lbl">Up to date · CDC adult</div><div class="num" style="color:#1a8a48">9 / 12</div><div class="delta">3 due now · 0 overdue</div></div>
+    <div class="stat-card"><div class="lbl">Doses on file</div><div class="num">38</div><div class="delta">since 1968 · birth records</div></div>
+    <div class="stat-card"><div class="lbl">Today's plan</div><div class="num">2</div><div class="delta">flu · Tdap booster</div></div>
+    <div class="stat-card"><div class="lbl">Forecast 12 mo</div><div class="num">3</div><div class="delta">Shingrix #2 · Pneumo · COVID</div></div>
+    <div class="stat-card"><div class="lbl">Reactions logged</div><div class="num">1</div><div class="delta">egg · 1998 · mild</div></div>
+  </div>
+
+  <div class="layout">
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <div class="card">
+        <div class="ch"><span class="t">Lifetime track · childhood → today</span><span class="s">CDC schedule overlay · ● done · ○ due · ⚠ overdue</span></div>
+        <div class="track">
+          <div class="age-axis">
+            <div></div><div>0–6m</div><div>1y</div><div>2y</div><div>4–6y</div><div>11–12y</div><div>16y</div><div>19–26y</div><div>27–49y</div><div>50</div><div>55</div><div>58 NOW</div><div>65</div><div>75+</div>
+          </div>
+
+          <div class="row-vac"><div class="nm">DTaP / Tdap<small>diph · tetanus · pertussis</small></div>
+            <div class="bar"></div>
+            <div class="dose done" style="left:7.5%">5</div>
+            <div class="dose done" style="left:30.5%">6</div>
+            <div class="dose done" style="left:42%">Td</div>
+            <div class="dose done" style="left:62%">Td</div>
+            <div class="dose due" style="left:84.5%">!</div>
+          </div>
+          <div class="row-vac"><div class="nm">MMR<small>measles · mumps · rubella</small></div>
+            <div class="bar"></div>
+            <div class="dose done" style="left:13%">1</div>
+            <div class="dose done" style="left:24%">2</div>
+          </div>
+          <div class="row-vac"><div class="nm">Polio (IPV)<small>4 dose series</small></div>
+            <div class="bar"></div>
+            <div class="dose done" style="left:7.5%">4</div>
+          </div>
+          <div class="row-vac"><div class="nm">Varicella<small>2-dose</small></div>
+            <div class="bar"></div>
+            <div class="dose contra" style="left:36%">⊘</div>
+            <span style="position:absolute;left:42%;font-size:10px;color:var(--ink-mute);font-family:'JetBrains Mono',monospace">history of disease — immune</span>
+          </div>
+          <div class="row-vac"><div class="nm">HepB<small>3-dose</small></div>
+            <div class="bar"></div>
+            <div class="dose done" style="left:7.5%">3</div>
+          </div>
+          <div class="row-vac"><div class="nm">HPV<small>9-valent</small></div>
+            <div class="bar"></div>
+            <div class="dose contra" style="left:54%">—</div>
+            <span style="position:absolute;left:62%;font-size:10px;color:var(--ink-mute);font-family:'JetBrains Mono',monospace">age &gt; 26 — not routine</span>
+          </div>
+          <div class="row-vac"><div class="nm">Influenza · annual<small>seasonal</small></div>
+            <div class="bar"></div>
+            <div class="dose done" style="left:62%">14</div>
+            <div class="dose done" style="left:69%">15</div>
+            <div class="dose done" style="left:74%">16</div>
+            <div class="dose done" style="left:78%">17</div>
+            <div class="dose done" style="left:81%">18</div>
+            <div class="dose due" style="left:84.5%">!</div>
+          </div>
+          <div class="row-vac"><div class="nm">COVID-19<small>updated boosters</small></div>
+            <div class="bar"></div>
+            <div class="dose done" style="left:75%">1</div>
+            <div class="dose done" style="left:78%">2</div>
+            <div class="dose done" style="left:81%">3</div>
+            <div class="dose up" style="left:84.5%">↑</div>
+          </div>
+          <div class="row-vac"><div class="nm">Shingrix · RZV<small>2-dose · ≥ 50</small></div>
+            <div class="bar"></div>
+            <div class="dose done" style="left:78%">1</div>
+            <div class="dose due" style="left:84.5%">2</div>
+          </div>
+          <div class="row-vac"><div class="nm">Pneumococcal<small>PCV20 · age 65 (or risk)</small></div>
+            <div class="bar"></div>
+            <div class="dose up" style="left:91%">↑</div>
+            <span style="position:absolute;left:84.5%;font-size:10px;color:var(--ink-mute);font-family:'JetBrains Mono',monospace">DM = risk · consider now</span>
+          </div>
+          <div class="row-vac" style="border-bottom:0"><div class="nm">RSV · adult<small>≥ 60 single</small></div>
+            <div class="bar"></div>
+            <div class="dose up" style="left:91%">↑</div>
+          </div>
+        </div>
+
+        <div class="today">
+          <div style="font-size:10.5px;color:rgba(255,255,255,.6);font-weight:800;text-transform:uppercase;letter-spacing:.05em">Plan today · 2 doses</div>
+          <h3>Flu (Fluzone HD) + Tdap booster</h3>
+          <div class="lin">screened · pt consented · VIS handed · L deltoid scheduled · pharmacy holding cold chain</div>
+          <div class="today-grid">
+            <div class="today-card">
+              <div class="nm">Influenza · Fluzone HD QIV<small>quadrivalent · high-dose</small></div>
+              <div class="dets">
+                <div><b>0.7 mL IM</b> deltoid L</div><div><b>Lot · UJ449X</b></div>
+                <div>Mfr Sanofi</div><div>Exp 2026-09-30</div>
+                <div>VIS 8/6/2025</div><div>CVX 197</div>
+              </div>
+            </div>
+            <div class="today-card">
+              <div class="nm">Tdap · Boostrix<small>10-yr booster · last 2015</small></div>
+              <div class="dets">
+                <div><b>0.5 mL IM</b> deltoid R</div><div><b>Lot · 9ABCC</b></div>
+                <div>Mfr GSK</div><div>Exp 2027-02-28</div>
+                <div>VIS 8/6/2024</div><div>CVX 115</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Administered · history</span><span class="s">38 doses · all sources merged</span></div>
+        <div class="hr h"><span>Date</span><span>Vaccine / brand</span><span>Lot</span><span>Site / route</span><span>Source</span><span>VIS</span></div>
+        <div class="hr"><span class="when">2026-04-22</span><span class="nm">Influenza · Fluzone HD QIV<small>0.7 mL · CVX 197 · season 25/26</small></span><span class="lot">UJ449X</span><span>L delt IM</span><span class="stat ok">In-clinic</span><span class="stat iis">8/6/25</span></div>
+        <div class="hr"><span class="when">2024-10-08</span><span class="nm">Influenza · Fluarix QIV<small>season 24/25</small></span><span class="lot">FF-2410</span><span>R delt IM</span><span class="stat ok">In-clinic</span><span class="stat iis">8/6/24</span></div>
+        <div class="hr"><span class="when">2024-03-04</span><span class="nm">Shingrix · RZV #1<small>0.5 mL · CVX 187</small></span><span class="lot">A8H22</span><span>L delt IM</span><span class="stat ok">In-clinic</span><span class="stat iis">10/19/23</span></div>
+        <div class="hr"><span class="when">2023-09-20</span><span class="nm">COVID-19 · Pfizer XBB<small>booster</small></span><span class="lot">GA0093</span><span>R delt IM</span><span class="stat iis">CVS · IIS</span><span class="stat iis">9/12/23</span></div>
+        <div class="hr"><span class="when">2022-11-14</span><span class="nm">Influenza · Flublok QIV</span><span class="lot">FB-2210</span><span>L delt IM</span><span class="stat ok">In-clinic</span><span class="stat iis">8/15/22</span></div>
+        <div class="hr"><span class="when">2022-04-02</span><span class="nm">COVID-19 · Pfizer · #3</span><span class="lot">FH8019</span><span>L delt IM</span><span class="stat iis">Walgreens · IIS</span><span class="stat iis">3/9/22</span></div>
+        <div class="hr"><span class="when">2021-04-19</span><span class="nm">COVID-19 · Pfizer · #2</span><span class="lot">EW0150</span><span>L delt IM</span><span class="stat iis">Mass-vax · IIS</span><span class="stat iis">2/22/21</span></div>
+        <div class="hr"><span class="when">2021-03-29</span><span class="nm">COVID-19 · Pfizer · #1</span><span class="lot">EW0150</span><span>L delt IM</span><span class="stat iis">Mass-vax · IIS</span><span class="stat iis">2/22/21</span></div>
+        <div class="hr"><span class="when">2015-04-12</span><span class="nm">Tdap · Adacel</span><span class="lot">U4429AA</span><span>L delt IM</span><span class="stat iis">UrgentC · IIS</span><span class="stat iis">2014</span></div>
+        <div class="hr"><span class="when">…</span><span class="nm" style="color:var(--ink-mute);font-weight:600;font-style:italic">+ 29 earlier records · childhood + military · paper imported 2014</span><span></span><span></span><span class="stat iis">paper</span><span></span></div>
+      </div>
+
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <div class="card">
+        <div class="ch"><span class="t">Forecast · next 24 mo</span><span class="s">CDC · risk · age</span></div>
+        <div class="fc">
+          <div class="fc-row"><span class="nm">Tdap booster<small>10y from 2015 → due now</small></span><span class="when">Today</span><span class="stat over">Overdue</span></div>
+          <div class="fc-row"><span class="nm">Influenza · 26/27 season<small>annual</small></span><span class="when">Sep 2026</span><span class="stat up">Upcoming</span></div>
+          <div class="fc-row"><span class="nm">Shingrix #2<small>2–6 mo after #1 · #1 = 2024-03</small></span><span class="when">Today</span><span class="stat over">Overdue</span></div>
+          <div class="fc-row"><span class="nm">Pneumococcal · PCV20<small>DM risk · age 19–64</small></span><span class="when">Today</span><span class="stat due">Due now</span></div>
+          <div class="fc-row"><span class="nm">COVID-19 · 25/26<small>updated formula</small></span><span class="when">Sep 2026</span><span class="stat up">Upcoming</span></div>
+          <div class="fc-row"><span class="nm">RSV · single dose<small>recommended ≥ 60</small></span><span class="when">Aug 2027</span><span class="stat contra">Age &lt; 60</span></div>
+          <div class="fc-row"><span class="nm">HPV<small>not routine &gt; age 26</small></span><span class="when">—</span><span class="stat contra">Not indic</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Allergies / contraindications</span><span class="s">screened pre-admin</span></div>
+        <div class="pill-wrap">
+          <span class="pill warn">⚠ Egg · mild urticaria 1998</span>
+          <span class="pill no">✗ No live vaccines if immuno-compromised</span>
+          <span class="pill">No latex</span>
+          <span class="pill">No prior anaphylaxis</span>
+          <span class="pill">No GBS history</span>
+          <span class="pill">No bleeding dx</span>
+        </div>
+        <div style="padding:10px 16px;font-size:11px;color:var(--ink-mute);font-family:'JetBrains Mono',monospace;border-top:1px solid var(--line)">
+          Egg allergy — Fluzone HD: any severity OK per ACIP 2023; observe 30 min post-admin in clinic.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">VIS handed today</span><span class="s">CDC current editions</span></div>
+        <div>
+          <div class="vis-row"><span class="nm">Influenza VIS</span><span class="ed">8/6/2025</span><span class="ed">handed</span><span class="ed">14:30</span></div>
+          <div class="vis-row"><span class="nm">Tdap VIS</span><span class="ed">8/6/2024</span><span class="ed">handed</span><span class="ed">14:30</span></div>
+          <div class="vis-row"><span class="nm">Pneumo VIS</span><span class="ed">10/30/2024</span><span class="ed">offer</span><span class="ed">—</span></div>
+          <div class="vis-row"><span class="nm">Shingrix VIS</span><span class="ed">10/19/2023</span><span class="ed">offer</span><span class="ed">—</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Cold chain · in fridge now</span><span class="s">Sanofi · GSK · live tracker</span></div>
+        <div style="padding:12px 14px;display:grid;gap:6px;font-size:11.5px">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#fafbfc;border-radius:8px">
+            <div><b>Fluzone HD</b> · UJ449X<br/><span style="color:var(--ink-mute);font-family:'JetBrains Mono',monospace;font-size:10px">2–8°C · qty 8</span></div>
+            <div style="font-family:'JetBrains Mono',monospace;font-weight:800;color:#1a8a48">3.4 °C ✓</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#fafbfc;border-radius:8px">
+            <div><b>Boostrix Tdap</b> · 9ABCC<br/><span style="color:var(--ink-mute);font-family:'JetBrains Mono',monospace;font-size:10px">2–8°C · qty 14</span></div>
+            <div style="font-family:'JetBrains Mono',monospace;font-weight:800;color:#1a8a48">3.4 °C ✓</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#fafbfc;border-radius:8px">
+            <div><b>Shingrix RZV</b> · A8H22<br/><span style="color:var(--ink-mute);font-family:'JetBrains Mono',monospace;font-size:10px">2–8°C · qty 4</span></div>
+            <div style="font-family:'JetBrains Mono',monospace;font-weight:800;color:#1a8a48">3.4 °C ✓</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#fff5e2;border-radius:8px">
+            <div><b>PCV20 · Prevnar</b> · A41B2<br/><span style="color:#a06e0d;font-family:'JetBrains Mono',monospace;font-size:10px">2–8°C · qty 2 · LOW</span></div>
+            <div style="font-family:'JetBrains Mono',monospace;font-weight:800;color:#1a8a48">3.4 °C ✓</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div></div>
+
+<script src="../scripts/nav.js"></script>
+<script src="../scripts/breadcrumbs.js"></script>
+</body></html>

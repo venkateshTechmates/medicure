@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — ICU Flowsheet</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin:8px 4px 22px;flex-wrap:wrap;gap:14px}
+  .head .h1{font-size:46px}
+  .head .meta{color:var(--ink-soft);font-size:13px;margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}
+  .head .meta b{color:var(--ink)}
+
+  .stat-row{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:18px}
+  .stat-card{background:#fff;border-radius:14px;padding:12px 14px;box-shadow:var(--shadow)}
+  .stat-card .lbl{color:var(--ink-soft);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+  .stat-card .num{font-family:"Instrument Serif",serif;font-size:26px;letter-spacing:-.02em;line-height:1;margin-top:6px}
+  .stat-card .delta{font-size:10px;color:var(--ink-mute);margin-top:3px}
+  .stat-card.crit .num{color:#c43c3c}
+  .stat-card.warn .num{color:#a06e0d}
+  .stat-card.ok .num{color:#1a8a48}
+
+  .card{padding:0;overflow:hidden}
+  .ch{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+  .ch .t{font-weight:800;font-size:14px}
+
+  /* Flowsheet grid */
+  .fs{overflow-x:auto;font-family:"JetBrains Mono",monospace}
+  .fs table{border-collapse:collapse;width:100%;font-size:11.5px;min-width:1200px}
+  .fs th, .fs td{padding:7px 6px;text-align:right;border-bottom:1px solid var(--line);border-right:1px solid var(--line);font-weight:700;white-space:nowrap}
+  .fs th:first-child, .fs td:first-child{text-align:left;padding-left:18px;position:sticky;left:0;background:#fff;z-index:1;width:200px;border-right:2px solid var(--line)}
+  .fs thead th{background:#fafbfc;color:var(--ink-mute);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:9px 6px;border-bottom:2px solid var(--line)}
+  .fs thead th:first-child{background:#fafbfc}
+  .fs tbody tr.section td{background:#0e1116;color:#fff;font-family:"Plus Jakarta Sans",sans-serif;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:8px 18px;border-right:0;text-align:left}
+  .fs tbody tr.section td:first-child{background:#0e1116}
+  .fs tbody tr:hover td:not(.section td){background:#fafbfc}
+  .fs tbody tr:hover td:first-child{background:#fafbfc}
+  .fs td.now{background:#fff5e2;border-left:2px solid #f0d99c}
+  .fs td.warn{color:#a06e0d}
+  .fs td.crit{color:#c43c3c;background:#ffe3e3}
+  .fs td.ok{color:#1a8a48}
+  .fs .row-l{font-family:"Plus Jakarta Sans",sans-serif;font-size:11.5px;font-weight:700}
+  .fs .row-l .u{color:var(--ink-mute);font-size:10px;font-weight:600}
+
+  /* MAR strip */
+  .mar-row{display:grid;grid-template-columns:240px 1fr;gap:14px;padding:10px 18px;border-top:1px solid var(--line);align-items:center;font-size:12px}
+  .mar-row.h{font-size:9.5px;font-weight:800;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;border-top:0;background:#fafbfc}
+  .mar-row .nm{font-weight:700}
+  .mar-row .nm .sub{font-size:10px;color:var(--ink-mute);margin-top:2px;font-family:"JetBrains Mono",monospace;font-weight:600}
+  .mar-cells{display:grid;grid-template-columns:repeat(13,1fr);gap:2px}
+  .mar-cell{height:26px;background:#fafbfc;border-radius:4px;display:grid;place-items:center;font:800 10px "JetBrains Mono",monospace;color:var(--ink-mute)}
+  .mar-cell.given{background:#27c26b;color:#0e1116}
+  .mar-cell.due{background:#fff5e2;color:#a06e0d;animation:pulse 1.4s infinite}
+  .mar-cell.held{background:#ffe3e3;color:#c43c3c}
+  .mar-cell.cont{background:#3a86ff;color:#fff;font-size:8px}
+  @keyframes pulse{50%{opacity:.5}}
+
+  .layout{display:grid;grid-template-columns:1fr 320px;gap:16px;align-items:start}
+
+  .info-row{display:flex;justify-content:space-between;padding:9px 16px;font-size:12px;border-top:1px solid var(--line)}
+  .info-row:first-of-type{border-top:0;padding-top:14px}
+  .info-row .l{color:var(--ink-mute);font-weight:600}
+  .info-row .v{font-weight:800;font-family:"JetBrains Mono",monospace;font-size:11.5px}
+
+  .gtt-row{padding:11px 16px;border-top:1px solid var(--line)}
+  .gtt-row:first-of-type{border-top:0}
+  .gtt-row .nm{font-weight:800;font-size:12.5px}
+  .gtt-row .sub{font-size:10.5px;color:var(--ink-mute);margin-top:2px;font-family:"JetBrains Mono",monospace}
+  .gtt-row .rate-bar{margin-top:8px;height:5px;background:var(--line);border-radius:3px;overflow:hidden}
+  .gtt-row .rate-bar .f{height:100%;background:#3a86ff}
+  .gtt-row .rate-info{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-mute);font-family:"JetBrains Mono",monospace;margin-top:4px;font-weight:700}
+
+  .scoring-grid{padding:12px 16px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .scoring-grid .item{padding:10px;background:#fafbfc;border-radius:8px;text-align:center}
+  .scoring-grid .l{font-size:10px;color:var(--ink-mute);font-weight:700;text-transform:uppercase}
+  .scoring-grid .v{font-family:"Instrument Serif",serif;font-size:24px;line-height:1;letter-spacing:-.02em;margin-top:3px}
+  .scoring-grid .v.warn{color:#a06e0d}
+  .scoring-grid .v.crit{color:#c43c3c}
+</style></head>
+<body data-page="overview" data-base="../">
+
+<div class="page" style="max-width:1500px"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div data-bc='[{"label":"ICU"},{"label":"ICU-04"},{"label":"Bed 12 — Whitfield"}]'></div>
+
+  <div class="head">
+    <div>
+      <h1 class="h1">ICU flowsheet · Bed 12</h1>
+      <div class="meta">
+        <span><b>James Whitfield</b> · M · 67 yo · MRN 002-441-22</span>
+        <span>POD 2 · post-MI · vented · Levo + Vaso</span>
+        <span>RN · <b>L. Chen</b> (1° · primary)</span>
+        <span>Day 4 of stay</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn">Print last 24h</button>
+      <button class="btn">+ Vital entry</button>
+      <button class="btn primary">Hand-off note →</button>
+    </div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-card warn"><div class="lbl">MAP</div><div class="num">62</div><div class="delta">target ≥ 65</div></div>
+    <div class="stat-card ok"><div class="lbl">SpO2</div><div class="num">96%</div><div class="delta">FiO2 0.45</div></div>
+    <div class="stat-card crit"><div class="lbl">Lactate</div><div class="num">4.2</div><div class="delta">trending ↑</div></div>
+    <div class="stat-card warn"><div class="lbl">Urine 4h</div><div class="num">62</div><div class="delta">0.23 mL/kg/hr</div></div>
+    <div class="stat-card"><div class="lbl">Levo</div><div class="num">12</div><div class="delta">μg/min · titrating ↑</div></div>
+    <div class="stat-card warn"><div class="lbl">SOFA</div><div class="num">9</div><div class="delta">↑ from 7 yesterday</div></div>
+  </div>
+
+  <div class="layout">
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <div class="card">
+        <div class="ch"><span class="t">Hourly flowsheet · last 13h</span><span style="font-size:11px;color:var(--ink-mute);font-family:'JetBrains Mono',monospace">Now 14:00 · refresh 5m</span></div>
+        <div class="fs">
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>02:00</th><th>03:00</th><th>04:00</th><th>05:00</th><th>06:00</th><th>07:00</th><th>08:00</th><th>09:00</th><th>10:00</th><th>11:00</th><th>12:00</th><th>13:00</th><th>14:00</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="section"><td colspan="14">Hemodynamics</td></tr>
+              <tr><td class="row-l">HR <span class="u">bpm</span></td>
+                <td>96</td><td>98</td><td>102</td><td>108</td><td>104</td><td>112</td><td>118</td><td class="warn">122</td><td class="warn">128</td><td class="crit">134</td><td>118</td><td>112</td><td class="now">110</td>
+              </tr>
+              <tr><td class="row-l">A-line BP <span class="u">mmHg</span></td>
+                <td>118/68</td><td>112/64</td><td>108/62</td><td>104/58</td><td>98/54</td><td>96/52</td><td>94/50</td><td>92/48</td><td class="warn">88/46</td><td class="crit">82/44</td><td>92/52</td><td>96/58</td><td class="now warn">92/52</td>
+              </tr>
+              <tr><td class="row-l">MAP <span class="u">mmHg</span></td>
+                <td>85</td><td>80</td><td>78</td><td>73</td><td>69</td><td>67</td><td>65</td><td>63</td><td class="warn">60</td><td class="crit">57</td><td>65</td><td>70</td><td class="now warn">65</td>
+              </tr>
+              <tr><td class="row-l">CVP <span class="u">cmH2O</span></td>
+                <td>10</td><td>11</td><td>11</td><td>10</td><td>9</td><td>9</td><td>8</td><td>8</td><td>7</td><td>7</td><td>9</td><td>10</td><td class="now">10</td>
+              </tr>
+
+              <tr class="section"><td colspan="14">Respiratory · vented (PRVC)</td></tr>
+              <tr><td class="row-l">SpO2 <span class="u">%</span></td>
+                <td>97</td><td>97</td><td>96</td><td>96</td><td>95</td><td>95</td><td>94</td><td>95</td><td>96</td><td>96</td><td>96</td><td>96</td><td class="now ok">96</td>
+              </tr>
+              <tr><td class="row-l">FiO2 <span class="u">·</span></td>
+                <td>0.40</td><td>0.40</td><td>0.40</td><td>0.40</td><td>0.45</td><td>0.45</td><td>0.50</td><td>0.50</td><td>0.50</td><td>0.50</td><td>0.45</td><td>0.45</td><td class="now">0.45</td>
+              </tr>
+              <tr><td class="row-l">PEEP <span class="u">cmH2O</span></td>
+                <td>5</td><td>5</td><td>5</td><td>5</td><td>8</td><td>8</td><td>8</td><td>8</td><td>10</td><td>10</td><td>8</td><td>8</td><td class="now">8</td>
+              </tr>
+              <tr><td class="row-l">Vt <span class="u">mL</span></td>
+                <td>440</td><td>440</td><td>440</td><td>440</td><td>440</td><td>440</td><td>440</td><td>440</td><td>440</td><td>440</td><td>440</td><td>440</td><td class="now">440</td>
+              </tr>
+              <tr><td class="row-l">RR · set <span class="u">/min</span></td>
+                <td>16</td><td>16</td><td>16</td><td>16</td><td>18</td><td>18</td><td>18</td><td>18</td><td>20</td><td>20</td><td>18</td><td>18</td><td class="now">18</td>
+              </tr>
+              <tr><td class="row-l">Plat / peak <span class="u">cmH2O</span></td>
+                <td>22/26</td><td>23/27</td><td>23/28</td><td>24/28</td><td>26/30</td><td>27/31</td><td class="warn">28/32</td><td>28/32</td><td class="warn">30/34</td><td class="warn">30/34</td><td>27/31</td><td>26/30</td><td class="now">26/30</td>
+              </tr>
+              <tr><td class="row-l">EtCO2 <span class="u">mmHg</span></td>
+                <td>34</td><td>35</td><td>36</td><td>36</td><td>38</td><td>38</td><td>40</td><td>41</td><td>42</td><td>42</td><td>40</td><td>38</td><td class="now">38</td>
+              </tr>
+
+              <tr class="section"><td colspan="14">Neuro · sedation</td></tr>
+              <tr><td class="row-l">RASS</td>
+                <td>−2</td><td>−2</td><td>−2</td><td>−2</td><td>−2</td><td>−2</td><td>−1</td><td>−1</td><td>0</td><td>−1</td><td>−2</td><td>−2</td><td class="now">−2</td>
+              </tr>
+              <tr><td class="row-l">CPOT <span class="u">pain</span></td>
+                <td>0</td><td>0</td><td>1</td><td>1</td><td>2</td><td>2</td><td>3</td><td>2</td><td>1</td><td>1</td><td>0</td><td>0</td><td class="now ok">0</td>
+              </tr>
+              <tr><td class="row-l">CAM-ICU <span class="u">delir</span></td>
+                <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>+</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="now">—</td>
+              </tr>
+
+              <tr class="section"><td colspan="14">Renal · I/O</td></tr>
+              <tr><td class="row-l">Urine output <span class="u">mL/hr</span></td>
+                <td>45</td><td>40</td><td>38</td><td>35</td><td>32</td><td>28</td><td class="warn">22</td><td class="warn">18</td><td class="crit">14</td><td class="crit">12</td><td>16</td><td class="warn">18</td><td class="now warn">14</td>
+              </tr>
+              <tr><td class="row-l">IVF in <span class="u">mL/hr</span></td>
+                <td>125</td><td>125</td><td>125</td><td>150</td><td>200</td><td>250</td><td>500</td><td>250</td><td>200</td><td>200</td><td>150</td><td>125</td><td class="now">125</td>
+              </tr>
+              <tr><td class="row-l">Net 4h <span class="u">mL</span></td>
+                <td colspan="4" style="text-align:center">+248</td>
+                <td colspan="4" style="text-align:center">+892</td>
+                <td colspan="4" style="text-align:center;background:#fff5e2" class="warn">+604</td>
+                <td class="now">—</td>
+              </tr>
+
+              <tr class="section"><td colspan="14">Drips</td></tr>
+              <tr><td class="row-l">Norepi <span class="u">μg/min</span></td>
+                <td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td><td>10</td><td class="warn">11</td><td class="warn">12</td><td>10</td><td>11</td><td class="now warn">12</td>
+              </tr>
+              <tr><td class="row-l">Vasopressin <span class="u">U/min</span></td>
+                <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>0.03</td><td>0.04</td><td>0.04</td><td>0.04</td><td>0.04</td><td>0.04</td><td class="now">0.04</td>
+              </tr>
+              <tr><td class="row-l">Propofol <span class="u">μg/kg/min</span></td>
+                <td>30</td><td>30</td><td>30</td><td>30</td><td>30</td><td>30</td><td>20</td><td>20</td><td>15</td><td>20</td><td>30</td><td>30</td><td class="now">30</td>
+              </tr>
+              <tr><td class="row-l">Fentanyl <span class="u">μg/hr</span></td>
+                <td>50</td><td>50</td><td>75</td><td>75</td><td>75</td><td>75</td><td>100</td><td>75</td><td>50</td><td>50</td><td>50</td><td>50</td><td class="now">50</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">eMAR · last 12h</span><span style="font-size:11px;color:var(--ink-mute);font-family:'JetBrains Mono',monospace">9 active orders · 4 due now</span></div>
+
+        <div class="mar-row h">
+          <span>Medication</span>
+          <div class="mar-cells">
+            <span style="text-align:center">02</span><span style="text-align:center">04</span><span style="text-align:center">06</span><span style="text-align:center">08</span><span style="text-align:center">10</span><span style="text-align:center">12</span><span style="text-align:center;color:#a06e0d">14<br><span style="font-size:8px">NOW</span></span><span style="text-align:center">16</span><span style="text-align:center">18</span><span style="text-align:center">20</span><span style="text-align:center">22</span><span style="text-align:center">00</span><span style="text-align:center">02</span>
+          </div>
+        </div>
+
+        <div class="mar-row">
+          <div class="nm">Norepinephrine drip <div class="sub">titrate to MAP ≥ 65</div></div>
+          <div class="mar-cells">
+            <span class="mar-cell cont">CONT</span><span class="mar-cell cont">CONT</span><span class="mar-cell cont">CONT</span><span class="mar-cell cont">CONT</span><span class="mar-cell cont">CONT</span><span class="mar-cell cont">CONT</span><span class="mar-cell cont">CONT</span><span class="mar-cell cont">CONT</span><span class="mar-cell cont">CONT</span><span class="mar-cell cont">CONT</span><span class="mar-cell cont">CONT</span><span class="mar-cell cont">CONT</span><span class="mar-cell cont">CONT</span>
+          </div>
+        </div>
+        <div class="mar-row">
+          <div class="nm">Vancomycin 1.5g IV q12h <div class="sub">trough goal 15-20</div></div>
+          <div class="mar-cells">
+            <span class="mar-cell"></span><span class="mar-cell given">✓ 04</span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell due">DUE 16</span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span>
+          </div>
+        </div>
+        <div class="mar-row">
+          <div class="nm">Pip-tazo 3.375g IV q6h <div class="sub">extended infusion 4h</div></div>
+          <div class="mar-cells">
+            <span class="mar-cell"></span><span class="mar-cell given">✓ 04</span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell given">✓ 10</span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell due">DUE 16</span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span>
+          </div>
+        </div>
+        <div class="mar-row">
+          <div class="nm">Pantoprazole 40mg IV q24h <div class="sub">stress ulcer ppx</div></div>
+          <div class="mar-cells">
+            <span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell given">✓ 08</span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span>
+          </div>
+        </div>
+        <div class="mar-row">
+          <div class="nm">Heparin 5000U SQ q8h <div class="sub">VTE ppx</div></div>
+          <div class="mar-cells">
+            <span class="mar-cell given">✓ 02</span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell given">✓ 10</span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell due">DUE 18</span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span>
+          </div>
+        </div>
+        <div class="mar-row">
+          <div class="nm">Insulin sliding scale <div class="sub">q6h glucose</div></div>
+          <div class="mar-cells">
+            <span class="mar-cell"></span><span class="mar-cell given">✓ 04</span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell given">✓ 10</span><span class="mar-cell"></span><span class="mar-cell due">DUE 14</span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span>
+          </div>
+        </div>
+        <div class="mar-row">
+          <div class="nm">Furosemide 40mg IV PRN <div class="sub">if oliguric</div></div>
+          <div class="mar-cells">
+            <span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell held">HOLD</span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span><span class="mar-cell"></span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <div class="card">
+        <div class="ch"><span class="t">Active drips · 4</span></div>
+        <div class="gtt-row">
+          <div class="nm">Norepinephrine</div>
+          <div class="sub">8 mg / 250 mL D5W · 32 μg/mL</div>
+          <div class="rate-bar"><div class="f" style="width:60%"></div></div>
+          <div class="rate-info"><span>12 μg/min</span><span>22.5 mL/hr</span><span>↑ titrating</span></div>
+        </div>
+        <div class="gtt-row">
+          <div class="nm">Vasopressin</div>
+          <div class="sub">100 U / 100 mL · fixed dose</div>
+          <div class="rate-bar"><div class="f" style="width:40%;background:#a07ddc"></div></div>
+          <div class="rate-info"><span>0.04 U/min</span><span>2.4 mL/hr</span><span>fixed</span></div>
+        </div>
+        <div class="gtt-row">
+          <div class="nm">Propofol</div>
+          <div class="sub">10 mg/mL · sedation</div>
+          <div class="rate-bar"><div class="f" style="width:50%;background:#27c26b"></div></div>
+          <div class="rate-info"><span>30 μg/kg/min</span><span>16 mL/hr</span><span>RASS −2 ✓</span></div>
+        </div>
+        <div class="gtt-row">
+          <div class="nm">Fentanyl</div>
+          <div class="sub">10 mcg/mL · analgesia</div>
+          <div class="rate-bar"><div class="f" style="width:25%;background:#f0d99c"></div></div>
+          <div class="rate-info"><span>50 μg/hr</span><span>5 mL/hr</span><span>CPOT 0 ✓</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Severity scores</span></div>
+        <div class="scoring-grid">
+          <div class="item"><div class="l">SOFA</div><div class="v warn">9</div></div>
+          <div class="item"><div class="l">APACHE II</div><div class="v warn">22</div></div>
+          <div class="item"><div class="l">qSOFA</div><div class="v crit">3</div></div>
+          <div class="item"><div class="l">RASS</div><div class="v">−2</div></div>
+          <div class="item"><div class="l">CAM-ICU</div><div class="v" style="color:#1a8a48">−</div></div>
+          <div class="item"><div class="l">Braden</div><div class="v warn">12</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Lines · drains · tubes</span></div>
+        <div class="info-row"><span class="l">Right IJ TLC</span><span class="v">D2 · clean</span></div>
+        <div class="info-row"><span class="l">Left A-line</span><span class="v">D2 · clean</span></div>
+        <div class="info-row"><span class="l">ETT · 7.5</span><span class="v">D2 · 22 cm</span></div>
+        <div class="info-row"><span class="l">OG tube</span><span class="v">D2 · venting</span></div>
+        <div class="info-row"><span class="l">Foley · 16Fr</span><span class="v" style="color:#a06e0d">D2 · low UO</span></div>
+        <div class="info-row"><span class="l">PIV · 18g R AC</span><span class="v">D1 · patent</span></div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Active concerns</span></div>
+        <div style="padding:12px 16px;font-size:11.5px;line-height:1.6">
+          <div style="padding:8px 10px;background:#ffe3e3;border-radius:8px;margin-bottom:6px"><b style="color:#7a1f1f">Worsening shock</b><br><span style="color:var(--ink-soft)">MAP trending down · escalating pressor · lactate rising</span></div>
+          <div style="padding:8px 10px;background:#fff5e2;border-radius:8px;margin-bottom:6px"><b style="color:#5c4108">AKI Stage 2</b><br><span style="color:var(--ink-soft)">UO &lt; 0.5 mL/kg/hr × 6h · Cr 2.4 (baseline 1.1)</span></div>
+          <div style="padding:8px 10px;background:#fff5e2;border-radius:8px"><b style="color:#5c4108">Vent compliance ↓</b><br><span style="color:var(--ink-soft)">Plat 30 · consider PEEP titration</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div></div>
+
+<script src="../scripts/nav.js"></script>
+<script src="../scripts/breadcrumbs.js"></script>
+</body>
+</html>

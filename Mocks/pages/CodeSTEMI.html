@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Code STEMI · M/64</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  body{background:linear-gradient(180deg,#1a0810,#0a0306)}
+  .frame{background:linear-gradient(180deg,#221018,#150709);box-shadow:0 30px 80px rgba(0,0,0,.6)}
+  .nav .tab{color:#9aa0ad}.nav .tab.active{background:#ff4d6b}
+  .logo{color:#fff}
+  .icon-btn,.profile{background:rgba(255,255,255,.08);color:#fff}
+  .profile .name{color:#fff}.profile .handle{color:#9aa0ad}
+
+  .head{display:flex;justify-content:space-between;align-items:flex-end;margin:8px 4px 18px;flex-wrap:wrap;gap:12px}
+  .head h1{font-family:"Instrument Serif",serif;color:#fff;font-size:62px;letter-spacing:-.02em;margin:0;line-height:1}
+  .head h1 .tag{display:inline-block;background:#ff4d6b;color:#fff;font-family:"Plus Jakarta Sans";font-size:13px;font-weight:800;padding:6px 12px;border-radius:999px;letter-spacing:.04em;text-transform:uppercase;vertical-align:middle;margin-right:14px;animation:flash 1s infinite}
+  @keyframes flash{0%,49%{background:#ff4d6b}50%,100%{background:#fff;color:#ff4d6b}}
+  .head .meta{color:#fff;font-size:13px;margin-top:6px;display:flex;gap:14px}
+  .head .meta b{color:#ff8b9a}
+
+  .timer-bar{background:rgba(255,77,107,.15);border:1px solid #ff4d6b;border-radius:18px;padding:14px 22px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;color:#fff}
+  .timer-bar .l{font-size:11px;color:#ff8b9a;text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+  .timer-bar .v{font-family:"Instrument Serif",serif;font-size:48px;letter-spacing:-.02em;line-height:1;color:#fff}
+  .timer-bar .goal{font-size:11px;color:#ff8b9a;margin-top:4px}
+
+  .grid{display:grid;grid-template-columns:1fr 360px;gap:18px;align-items:start}
+  .col{display:flex;flex-direction:column;gap:14px}
+  .panel{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:20px;color:#fff;backdrop-filter:blur(10px)}
+  .panel h2{font-family:"Instrument Serif",serif;font-size:26px;letter-spacing:-.02em;margin:0 0 4px}
+  .panel .sub{font-size:12px;color:#9aa0ad;margin-bottom:14px}
+
+  /* Patient strip */
+  .pt-strip{display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;background:#fff;color:#0e1116;border-radius:18px;padding:16px 20px;margin-bottom:18px}
+  .pt-strip .pic{width:62px;height:62px;border-radius:18px;background:#888 center/cover}
+  .pt-strip .nm{font-family:"Instrument Serif",serif;font-size:30px;letter-spacing:-.02em;line-height:1}
+  .pt-strip .meta{font-size:12px;color:var(--ink-soft);margin-top:6px;display:flex;gap:12px;flex-wrap:wrap}
+  .pt-strip .meta b{color:var(--ink)}
+
+  .vitals-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+  .vital-blk{background:rgba(0,0,0,.25);border-radius:10px;padding:10px}
+  .vital-blk .l{font-size:9px;color:#9aa0ad;text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+  .vital-blk .v{font-family:"Instrument Serif",serif;font-size:24px;color:#fff;letter-spacing:-.02em;line-height:1;margin-top:4px}
+  .vital-blk.bad .v{color:#ff4d6b}.vital-blk.warn .v{color:#ffb84d}
+
+  /* Checklist */
+  .ck-step{display:grid;grid-template-columns:auto 1fr auto;gap:12px;padding:12px;background:rgba(0,0,0,.25);border-radius:12px;margin-bottom:6px;align-items:center;border-left:3px solid transparent}
+  .ck-step.done{border-left-color:#27c26b;opacity:.65}
+  .ck-step.active{border-left-color:#ffb84d;background:rgba(255,184,77,.12)}
+  .ck-step .b{width:24px;height:24px;border-radius:7px;display:grid;place-items:center;font-size:11px;font-weight:800;flex:none}
+  .ck-step.done .b{background:#27c26b;color:#fff}
+  .ck-step.active .b{background:#ffb84d;color:#0e1116}
+  .ck-step:not(.done):not(.active) .b{background:rgba(255,255,255,.1);color:#9aa0ad}
+  .ck-step .nm{font-weight:700;font-size:13px;color:#fff}
+  .ck-step .sub{font-size:11px;color:#9aa0ad;margin-top:1px}
+  .ck-step .ts{font-family:"Instrument Serif",serif;font-size:18px;color:#fff;letter-spacing:-.01em}
+  .ck-step .ts .l{font-size:9px;color:#9aa0ad;text-transform:uppercase;letter-spacing:.05em;font-weight:700;display:block;font-family:"Plus Jakarta Sans"}
+
+  /* Recorder log */
+  .log{font-family:'SF Mono','JetBrains Mono',monospace;font-size:11px;color:#fff;background:rgba(0,0,0,.45);border-radius:12px;padding:12px;max-height:280px;overflow-y:auto;line-height:1.7}
+  .log .t{color:#ffd633;font-weight:700}
+  .log .a{color:#9aa0ad}.log .v{color:#ff8b9a}
+
+  /* Right rail */
+  .team-row{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:11px;border-top:1px solid rgba(255,255,255,.08);color:#fff}
+  .team-row:first-of-type{border-top:0}
+  .team-row .pic{width:30px;height:30px;border-radius:50%;background:#888 center/cover;flex:none}
+  .team-row .nm{font-weight:700;font-size:12px}
+  .team-row .role{font-size:10px;color:#9aa0ad}
+
+  .quick-action{display:block;width:100%;text-align:left;background:rgba(255,255,255,.08);color:#fff;border:0;padding:10px 14px;border-radius:12px;font:700 12px "Plus Jakarta Sans";cursor:pointer;margin-bottom:6px}
+  .quick-action.crit{background:#ff4d6b}
+  .quick-action.go{background:#27c26b}
+
+  .ekg{height:48px;width:100%;margin-top:6px}
+</style></head>
+<body data-page="ed" data-base="../">
+
+<div class="page"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div class="head">
+    <div><h1><span class="tag">● ACTIVE</span>Code STEMI</h1>
+      <div class="meta"><span><b>RES-1</b></span><span>Activated <b>06:42</b></span><span>By Dr. S. Vasquez</span><span>Cath lab notified · Dr. H. Park en route</span></div>
+    </div>
+    <div style="display:flex;gap:8px"><button class="btn" style="background:rgba(255,255,255,.08);color:#fff">📞 Page team</button><button class="btn primary">Stand down</button></div>
+  </div>
+
+  <!-- Timer -->
+  <div class="timer-bar">
+    <div><div class="l">⏱ Door to balloon</div><div class="goal">Goal: ≤ 90 minutes · started 06:38</div></div>
+    <div style="text-align:center"><div class="v">38:14</div><div class="goal" style="color:#27c26b">52 min remaining</div></div>
+    <div style="text-align:right"><div class="l">EKG to activation</div><div class="v" style="font-size:30px">04:02</div><div class="goal">Goal ≤ 10 min · ✓</div></div>
+  </div>
+
+  <!-- Patient strip -->
+  <div class="pt-strip">
+    <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1556157382-97eda2d62296?w=180&h=180&fit=crop&crop=faces')"></div>
+    <div>
+      <div class="nm">Reginald Holloway</div>
+      <div class="meta">
+        <span><b>MRN</b> 8821-04</span>
+        <span><b>Age</b> 64 y</span><span><b>Sex</b> M</span><span><b>Wt</b> 92 kg</span>
+        <span><b>Allergies</b> NKDA</span><span><b>Hx</b> HTN, T2DM, smoker</span><span><b>Anticoag</b> none</span>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;min-width:280px">
+      <div class="vital-blk bad" style="background:#fafbfc"><div class="l" style="color:var(--ink-mute)">HR</div><div class="v" style="color:#ff4d6b">112</div></div>
+      <div class="vital-blk warn" style="background:#fafbfc"><div class="l" style="color:var(--ink-mute)">BP</div><div class="v" style="color:#a05a00">158/98</div></div>
+      <div class="vital-blk" style="background:#fafbfc"><div class="l" style="color:var(--ink-mute)">SpO₂</div><div class="v" style="color:var(--ink)">94%</div></div>
+      <div class="vital-blk bad" style="background:#fafbfc"><div class="l" style="color:var(--ink-mute)">Pain</div><div class="v" style="color:#ff4d6b">8/10</div></div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="col">
+      <div class="panel">
+        <h2>Code STEMI Checklist</h2>
+        <div class="sub">AHA bundle · time-stamped · auto-logged to chart on completion</div>
+
+        <div class="ck-step done"><div class="b">✓</div><div><div class="nm">EKG obtained &amp; interpreted</div><div class="sub">Anterior STEMI · ST elevation V1–V4 · 2 mm</div></div><div class="ts">06:42<span class="l">complete</span></div></div>
+        <div class="ck-step done"><div class="b">✓</div><div><div class="nm">ASA 324 mg PO chewed</div><div class="sub">Given pre-hospital by Medic 12</div></div><div class="ts">06:28<span class="l">complete</span></div></div>
+        <div class="ck-step done"><div class="b">✓</div><div><div class="nm">IV access ×2 (18g antecubital)</div><div class="sub">RN A. Brooks</div></div><div class="ts">06:43<span class="l">complete</span></div></div>
+        <div class="ck-step done"><div class="b">✓</div><div><div class="nm">Cardiac enzymes drawn (troponin, CK-MB)</div><div class="sub">Sent STAT · resulting in 18 min</div></div><div class="ts">06:45<span class="l">complete</span></div></div>
+        <div class="ck-step done"><div class="b">✓</div><div><div class="nm">Cath lab activated</div><div class="sub">Dr. Park accepting · team in 14 min</div></div><div class="ts">06:46<span class="l">complete</span></div></div>
+
+        <div class="ck-step active"><div class="b">●</div><div><div class="nm">P2Y12 inhibitor (Ticagrelor 180 mg)</div><div class="sub">Dose drawn from cart · pending administration</div></div><div class="ts" style="color:#ffb84d">in progress<span class="l">RN Brooks</span></div></div>
+
+        <div class="ck-step"><div class="b">6</div><div><div class="nm">Heparin 60 U/kg bolus + drip</div><div class="sub">Bolus 5520 U · drip 12 U/kg/hr · pending order entry</div></div><div class="ts">—<span class="l">pending</span></div></div>
+        <div class="ck-step"><div class="b">7</div><div><div class="nm">Nitroglycerin SL 0.4 mg q5 ×3</div><div class="sub">Hold if SBP < 90 · re-check pain after each</div></div><div class="ts">—<span class="l">pending</span></div></div>
+        <div class="ck-step"><div class="b">8</div><div><div class="nm">Morphine 2–4 mg IV PRN</div><div class="sub">For ongoing pain · monitor BP/RR</div></div><div class="ts">—<span class="l">PRN</span></div></div>
+        <div class="ck-step"><div class="b">9</div><div><div class="nm">Beta-blocker (if no contraindication)</div><div class="sub">Metoprolol 5 mg IV · hold if HR <60 / SBP <100</div></div><div class="ts">—<span class="l">eval</span></div></div>
+        <div class="ck-step"><div class="b">10</div><div><div class="nm">Statin (Atorvastatin 80 mg PO)</div><div class="sub">Pre-cath</div></div><div class="ts">—<span class="l">pending</span></div></div>
+        <div class="ck-step"><div class="b">11</div><div><div class="nm">Family contacted</div><div class="sub">Wife · consent for procedure pending</div></div><div class="ts">—<span class="l">pending</span></div></div>
+        <div class="ck-step"><div class="b">12</div><div><div class="nm">Transport to cath lab</div><div class="sub">Bed-board notified · transporter en route</div></div><div class="ts">—<span class="l">awaiting</span></div></div>
+      </div>
+
+      <div class="panel">
+        <h2>Recorder log</h2>
+        <div class="sub">Real-time event capture · everyone's actions auto-logged · exported to chart</div>
+        <div class="log">
+<span class="t">06:38:00</span> <span class="a">[EMS]</span> Medic 12 patch — 64M chest pain, ST elev anterior, ASA given<br>
+<span class="t">06:42:14</span> <span class="a">[Triage]</span> Pt arrives RES-1 · GCS 15 · ambulating w/ assist<br>
+<span class="t">06:42:30</span> <span class="a">[Vasquez,MD]</span> EKG repeated · <span class="v">anterior STEMI confirmed V1–V4</span><br>
+<span class="t">06:42:48</span> <span class="a">[Vasquez,MD]</span> <span class="v">CODE STEMI ACTIVATED</span> · cath lab paged<br>
+<span class="t">06:43:02</span> <span class="a">[Brooks,RN]</span> IV ×2 18g R AC, L AC<br>
+<span class="t">06:43:30</span> <span class="a">[Park,MD]</span> Acknowledged · ETA cath lab 14 min<br>
+<span class="t">06:44:10</span> <span class="a">[Brooks,RN]</span> Vitals: HR 112, BP 158/98, SpO₂ 94% RA, pain 8/10<br>
+<span class="t">06:45:15</span> <span class="a">[Lab]</span> Trop, CK-MB, BMP, CBC, INR drawn STAT<br>
+<span class="t">06:46:00</span> <span class="a">[CathLab]</span> Team activated · Dr. Park, RN Lopez, RT Singh<br>
+<span class="t">06:48:22</span> <span class="a">[Brooks,RN]</span> O₂ 2L NC applied<br>
+<span class="t">06:51:10</span> <span class="a">[Vasquez,MD]</span> Ticagrelor 180mg PO ordered<br>
+<span class="t">06:54:30</span> <span class="a">[Family]</span> Wife reached by phone · en route to ED<br>
+<span class="t">07:02:00</span> <span class="a">[Lab]</span> <span class="v">Troponin I: 4.82 ng/mL (HIGH)</span> · CK-MB 18.4<br>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="panel">
+        <h2 style="font-size:22px">Telemetry</h2>
+        <svg class="ekg" viewBox="0 0 300 60" preserveAspectRatio="none">
+          <polyline fill="none" stroke="#27c26b" stroke-width="1.5" points="0,30 30,30 33,30 36,28 39,32 42,30 50,30 52,8 55,52 58,30 80,30 110,30 113,30 116,28 119,32 122,30 130,30 132,12 135,48 138,30 160,30 190,30 193,30 196,28 199,32 202,30 210,30 212,10 215,50 218,30 240,30 270,30 273,30 276,28 279,32 282,30 290,30 292,8 295,52 298,30 300,30"/>
+        </svg>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:#9aa0ad;margin-top:4px"><span>II · 25 mm/s</span><span>STE V1–V4 · 2mm</span></div>
+      </div>
+
+      <div class="panel">
+        <h2 style="font-size:20px">Code team</h2>
+        <div class="team-row"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=80&h=80&fit=crop&crop=faces')"></div><div style="flex:1"><div class="nm">Dr. S. Vasquez</div><div class="role">ED attending · Recorder</div></div></div>
+        <div class="team-row"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=80&h=80&fit=crop&crop=faces')"></div><div style="flex:1"><div class="nm">Dr. H. Park</div><div class="role">Interventional cards</div></div></div>
+        <div class="team-row"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1587614382346-4ec70e388b28?w=80&h=80&fit=crop&crop=faces')"></div><div style="flex:1"><div class="nm">RN A. Brooks</div><div class="role">Primary RN</div></div></div>
+        <div class="team-row"><div class="pic" style="background:#aaa"></div><div style="flex:1"><div class="nm">RT D. Singh</div><div class="role">Resp therapist</div></div></div>
+        <div class="team-row"><div class="pic" style="background:#aaa"></div><div style="flex:1"><div class="nm">PharmD M. Cole</div><div class="role">Pharmacy</div></div></div>
+      </div>
+
+      <div class="panel">
+        <h2 style="font-size:20px">Quick actions</h2>
+        <button class="quick-action crit">⚡ Escalate · Code BLUE</button>
+        <button class="quick-action">+ Add order</button>
+        <button class="quick-action">+ Vitals snapshot</button>
+        <button class="quick-action">+ Note (timestamped)</button>
+        <button class="quick-action">📞 Page consult</button>
+        <button class="quick-action go">✓ Stand down code</button>
+      </div>
+
+      <div class="panel">
+        <h2 style="font-size:20px">Latest results</h2>
+        <div style="font-size:11px;padding:8px 0;border-top:1px solid rgba(255,255,255,.08)"><span style="color:#9aa0ad">Troponin I</span><br><b style="color:#ff4d6b;font-size:18px;font-family:'Instrument Serif',serif">4.82</b> <span style="color:#9aa0ad">ng/mL · HIGH (ref &lt;0.04)</span></div>
+        <div style="font-size:11px;padding:8px 0;border-top:1px solid rgba(255,255,255,.08)"><span style="color:#9aa0ad">CK-MB</span><br><b style="color:#ffb84d;font-size:18px;font-family:'Instrument Serif',serif">18.4</b> <span style="color:#9aa0ad">ng/mL · elevated</span></div>
+        <div style="font-size:11px;padding:8px 0;border-top:1px solid rgba(255,255,255,.08)"><span style="color:#9aa0ad">Glucose</span><br><b style="font-size:18px;font-family:'Instrument Serif',serif;color:#fff">186</b> <span style="color:#9aa0ad">mg/dL</span></div>
+      </div>
+    </div>
+  </div>
+</div></div>
+<script src="../scripts/nav.js"></script>
+
+<script>window.MC_ROUTES = [{"sel":".btn.primary, button.primary","href":"PatientChart.html","title":"Continue"},{"sel":".member-row, .team-row","href":"Staff.html"}];</script>
+<script src="../scripts/router.js"></script>
+</body></html>

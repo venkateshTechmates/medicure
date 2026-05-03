@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Create account</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  body{background:#dde2ea}
+  .auth-shell{min-height:100vh;display:grid;grid-template-columns:1fr 620px;gap:0;padding:20px}
+  @media (max-width:980px){.auth-shell{grid-template-columns:1fr;padding:16px}}
+
+  .brand-panel{background:linear-gradient(135deg,#0e1116 0%,#1a2030 60%,#1d3a2a 100%);border-radius:24px;padding:36px 40px;color:#fff;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;min-height:760px}
+  .brand-panel::before{content:'';position:absolute;inset:0;background:
+    radial-gradient(circle at 20% 30%, rgba(39,194,107,.18), transparent 50%),
+    radial-gradient(circle at 90% 80%, rgba(58,134,255,.12), transparent 55%);
+    pointer-events:none}
+  .brand-top{display:flex;justify-content:space-between;align-items:center;position:relative;z-index:2}
+  .logo{display:flex;align-items:center;gap:10px;font-family:"Instrument Serif",serif;font-size:22px;letter-spacing:-.02em}
+  .logo .mark{width:30px;height:30px;border-radius:9px;background:#fff;display:grid;place-items:center;color:#0e1116;font-family:"Plus Jakarta Sans";font-weight:800;font-size:13px}
+
+  .brand-content{position:relative;z-index:2;max-width:480px}
+  .brand-content .eyebrow{font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.1em;font-weight:800;margin-bottom:14px}
+  .brand-content h1{font-family:"Instrument Serif",serif;font-size:54px;letter-spacing:-.025em;line-height:1.05;margin:0 0 16px;font-weight:400}
+  .brand-content h1 em{font-style:italic;color:#27c26b}
+  .brand-content p{font-size:14px;color:rgba(255,255,255,.7);line-height:1.7;margin:0 0 22px}
+
+  .feature-list{display:flex;flex-direction:column;gap:14px;margin-top:20px;position:relative;z-index:2}
+  .feat{display:grid;grid-template-columns:32px 1fr;gap:12px;align-items:flex-start}
+  .feat .ic{width:32px;height:32px;border-radius:9px;background:rgba(255,255,255,.08);display:grid;place-items:center;color:#27c26b;flex:none}
+  .feat .nm{font-weight:700;font-size:13px;color:#fff}
+  .feat .ds{font-size:11.5px;color:rgba(255,255,255,.6);margin-top:1px;line-height:1.5}
+
+  .brand-bottom{font-size:11px;color:rgba(255,255,255,.5);position:relative;z-index:2}
+
+  /* RIGHT */
+  .form-panel{background:#fff;border-radius:24px;padding:36px 44px;box-shadow:var(--shadow);min-height:760px;display:flex;flex-direction:column}
+
+  /* Stepper */
+  .stepper{display:flex;align-items:center;gap:6px;margin-bottom:28px;font-size:11px;color:var(--ink-mute);font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+  .stepper .step{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;background:#fafbfc;color:var(--ink-mute);transition:.2s}
+  .stepper .step .n{width:18px;height:18px;border-radius:50%;background:var(--ink-mute);color:#fff;display:grid;place-items:center;font-size:10px;font-weight:800}
+  .stepper .step.act{background:var(--ink);color:#fff}
+  .stepper .step.act .n{background:#27c26b}
+  .stepper .step.done{background:#dff7e7;color:#1a8a48}
+  .stepper .step.done .n{background:#27c26b}
+  .stepper .arr{color:var(--ink-mute);font-size:10px}
+
+  .form-head h2{font-family:"Instrument Serif",serif;font-size:38px;letter-spacing:-.02em;margin:0;font-weight:400;line-height:1.05}
+  .form-head .sub{font-size:13px;color:var(--ink-soft);margin-top:6px}
+
+  /* Steps */
+  .step-pane{display:none;flex:1;flex-direction:column}
+  .step-pane.act{display:flex}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+  .field label{font-size:11px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;font-weight:800}
+  .field input,.field select{border:1.5px solid var(--line);border-radius:11px;padding:12px 14px;font:600 14px "Plus Jakarta Sans";background:#fff;outline:none;transition:.15s}
+  .field input:focus,.field select:focus{border-color:#0e1116;box-shadow:0 0 0 4px rgba(14,17,22,.06)}
+  .field .hint{font-size:11px;color:var(--ink-mute)}
+  .field .strength{display:flex;gap:3px;margin-top:6px}
+  .field .strength .b{height:4px;flex:1;background:var(--line);border-radius:2px}
+  .field .strength .b.on1{background:var(--bad)}
+  .field .strength .b.on2{background:var(--warn)}
+  .field .strength .b.on3{background:var(--good)}
+
+  /* Org choice */
+  .org-toggle{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+  .org-toggle .o{padding:18px;border:1.5px solid var(--line);border-radius:14px;cursor:pointer;background:#fafbfc;transition:.15s}
+  .org-toggle .o:hover{border-color:#0e1116}
+  .org-toggle .o.sel{background:#0e1116;color:#fff;border-color:#0e1116}
+  .org-toggle .o .ti{font-weight:800;font-size:14px;display:flex;justify-content:space-between;align-items:center}
+  .org-toggle .o .ds{font-size:11px;color:var(--ink-mute);margin-top:5px;line-height:1.5}
+  .org-toggle .o.sel .ds{color:rgba(255,255,255,.65)}
+
+  .invite-card{background:linear-gradient(135deg,#dff7e7 0%,#f0faf3 100%);border-radius:14px;padding:14px 16px;margin-bottom:14px;display:flex;gap:12px;align-items:center;border:1px solid #b3e3c5}
+  .invite-card .ic{width:38px;height:38px;border-radius:10px;background:#1a8a48;color:#fff;display:grid;place-items:center;flex:none;font-size:18px}
+  .invite-card .nm{font-weight:800;font-size:13px;color:#0e1116}
+  .invite-card .ds{font-size:11px;color:#1a8a48;margin-top:1px}
+
+  /* Role grid */
+  .role-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+  .role{padding:14px 12px;border:1.5px solid var(--line);border-radius:12px;cursor:pointer;background:#fafbfc;text-align:center;transition:.15s}
+  .role:hover{border-color:#0e1116}
+  .role.sel{background:#0e1116;color:#fff;border-color:#0e1116}
+  .role .ic{width:32px;height:32px;border-radius:9px;background:#fff;color:#0e1116;display:grid;place-items:center;margin:0 auto 8px;font-family:"Instrument Serif",serif;font-size:18px}
+  .role.sel .ic{background:#27c26b;color:#0e1116}
+  .role .nm{font-weight:800;font-size:12px}
+  .role .sub{font-size:9px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin-top:3px}
+  .role.sel .sub{color:rgba(255,255,255,.6)}
+
+  /* Buttons */
+  .btn-row{display:flex;gap:10px;margin-top:auto;padding-top:20px}
+  .btn-back{padding:13px 22px;border:1.5px solid var(--line);background:#fff;border-radius:12px;font:800 13px "Plus Jakarta Sans";color:var(--ink);cursor:pointer}
+  .btn-back:hover{border-color:#0e1116;background:#fafbfc}
+  .btn-next{flex:1;background:#0e1116;color:#fff;border:0;border-radius:12px;padding:14px;font:800 14px "Plus Jakarta Sans";cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+  .btn-next:hover{background:#000}
+
+  .review-list{background:#fafbfc;border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+  .review-list .r{display:grid;grid-template-columns:140px 1fr;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+  .review-list .r:last-child{border-bottom:0}
+  .review-list .r .l{color:var(--ink-mute);font-weight:700}
+  .review-list .r .v{font-weight:700}
+
+  .check-row{display:flex;align-items:flex-start;gap:10px;font-size:12px;color:var(--ink-soft);font-weight:600;margin-bottom:10px;cursor:pointer}
+  .check-row input{width:16px;height:16px;accent-color:#0e1116;margin-top:2px;flex:none;cursor:pointer}
+  .check-row a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line);font-weight:700}
+</style></head>
+<body>
+
+<div class="auth-shell">
+  <div class="brand-panel">
+    <div class="brand-top">
+      <div class="logo"><span class="mark">M</span> Medcure</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.6)">Already have an account? <a href="SignIn.html" style="color:#fff;text-decoration:none;font-weight:700;border-bottom:1px solid rgba(255,255,255,.4);margin-left:4px">Sign in →</a></div>
+    </div>
+
+    <div class="brand-content">
+      <div class="eyebrow">Create account · 3-minute setup</div>
+      <h1>Join your team's <em>care fabric.</em></h1>
+      <p>Set up your clinician account in three steps. Bring your existing organization or start a new one — invite your team along the way.</p>
+
+      <div class="feature-list">
+        <div class="feat">
+          <div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12 11 14 15 10"/><circle cx="12" cy="12" r="10"/></svg></div>
+          <div><div class="nm">Verified at credentialing</div><div class="ds">NPI &amp; state license auto-checked against AMA + state boards.</div></div>
+        </div>
+        <div class="feat">
+          <div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+          <div><div class="nm">Two-factor by default</div><div class="ds">Authenticator app, hardware key, or biometric.</div></div>
+        </div>
+        <div class="feat">
+          <div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <div><div class="nm">Multi-organization</div><div class="ds">One identity, many hospital networks. Switch with one click.</div></div>
+        </div>
+        <div class="feat">
+          <div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div>
+          <div><div class="nm">Pre-loaded with your specialty</div><div class="ds">Templates, order sets, and dashboards configured for your role.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="brand-bottom">© 2026 Medcure Health · HIPAA · SOC 2 · HITRUST</div>
+  </div>
+
+  <div class="form-panel">
+    <div class="stepper">
+      <div class="step act" data-s="1"><span class="n">1</span> You</div>
+      <span class="arr">→</span>
+      <div class="step" data-s="2"><span class="n">2</span> Organization</div>
+      <span class="arr">→</span>
+      <div class="step" data-s="3"><span class="n">3</span> Role</div>
+      <span class="arr">→</span>
+      <div class="step" data-s="4"><span class="n">4</span> Confirm</div>
+    </div>
+
+    <!-- Step 1 -->
+    <div class="step-pane act" data-pane="1">
+      <div class="form-head"><h2>Tell us about you.</h2><div class="sub">We'll verify your clinical credentials in step 3.</div></div>
+      <div style="height:24px"></div>
+
+      <div class="grid2">
+        <div class="field"><label>First name</label><input value="Albert" /></div>
+        <div class="field"><label>Last name</label><input value="Drobo" /></div>
+      </div>
+
+      <div class="field"><label>Work email</label><input type="email" value="a.drobo@mercy.health" /><div class="hint">Use your hospital-issued email so we can detect your organization.</div></div>
+
+      <div class="grid2">
+        <div class="field"><label>Mobile (for 2FA)</label><input value="+1 (555) 042-7100" /></div>
+        <div class="field"><label>NPI (optional)</label><input value="1457208392" /><div class="hint">Auto-fills your specialty</div></div>
+      </div>
+
+      <div class="field">
+        <label>Password</label>
+        <input type="password" value="••••••••••••" oninput="updateStrength(this.value)" id="pw" />
+        <div class="strength" id="str"><div class="b on1"></div><div class="b on2"></div><div class="b on3"></div><div class="b"></div></div>
+        <div class="hint" id="strLab">Strong · 14 chars · meets HIPAA policy (1 upper, 1 lower, 1 digit, 1 symbol)</div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-back" onclick="window.location.href='SignIn.html'">← Back to sign in</button>
+        <button class="btn-next" onclick="goStep(2)">Continue · Organization → </button>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step-pane" data-pane="2">
+      <div class="form-head"><h2>Choose your organization.</h2><div class="sub">We detected your hospital from your email — or you can join with an invite code.</div></div>
+      <div style="height:24px"></div>
+
+      <div class="invite-card">
+        <div class="ic">✓</div>
+        <div>
+          <div class="nm">Mercy Health · detected from a.drobo@mercy.health</div>
+          <div class="ds">14,200 staff · Cincinnati, OH · auto-join enabled for verified domain</div>
+        </div>
+      </div>
+
+      <div class="org-toggle">
+        <div class="o sel">
+          <div class="ti">Join Mercy Health <span style="font-size:18px">✓</span></div>
+          <div class="ds">Auto-detected from your email domain. You'll be in pending state until your director approves your role.</div>
+        </div>
+        <div class="o">
+          <div class="ti">Use invite code</div>
+          <div class="ds">Have a 12-character invite from a colleague? Enter it to join their team.</div>
+        </div>
+        <div class="o" style="grid-column:1/-1">
+          <div class="ti">Create new organization</div>
+          <div class="ds">Set up a new hospital, clinic, or practice. You'll be the workspace admin and can invite up to 50 team members during trial.</div>
+        </div>
+      </div>
+
+      <div class="field"><label>Department / unit (optional)</label><select><option>Internal Medicine — Hospitalist Service</option><option>Emergency Department</option><option>Critical Care · ICU</option><option>Cardiology</option><option>Pediatrics</option><option>Surgery</option><option>Other</option></select></div>
+
+      <div class="field"><label>Primary location</label><select><option>Mercy Main · Cincinnati Tower 4</option><option>Mercy West · Outpatient</option><option>Mercy North · Children's</option></select></div>
+
+      <div class="btn-row">
+        <button class="btn-back" onclick="goStep(1)">← Back</button>
+        <button class="btn-next" onclick="goStep(3)">Continue · Role →</button>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step-pane" data-pane="3">
+      <div class="form-head"><h2>What's your role?</h2><div class="sub">Configures your dashboard, permissions, and default order sets. Your director will confirm.</div></div>
+      <div style="height:18px"></div>
+
+      <div class="role-grid">
+        <div class="role sel"><div class="ic">⚕</div><div class="nm">Attending MD</div><div class="sub">Inpatient + privileges</div></div>
+        <div class="role"><div class="ic">⚒</div><div class="nm">Resident / Fellow</div><div class="sub">Co-sign required</div></div>
+        <div class="role"><div class="ic">⚷</div><div class="nm">Nurse practitioner</div><div class="sub">APP scope</div></div>
+        <div class="role"><div class="ic">★</div><div class="nm">Registered nurse</div><div class="sub">Bedside / charge</div></div>
+        <div class="role"><div class="ic">⏧</div><div class="nm">Pharmacist</div><div class="sub">Verification + IV</div></div>
+        <div class="role"><div class="ic">⚯</div><div class="nm">Tech / RT / RD</div><div class="sub">Specialty support</div></div>
+        <div class="role"><div class="ic">⚿</div><div class="nm">Care manager</div><div class="sub">Discharge planning</div></div>
+        <div class="role"><div class="ic">◐</div><div class="nm">Front desk / Reg</div><div class="sub">No PHI write</div></div>
+        <div class="role"><div class="ic">⚛</div><div class="nm">Admin / Ops</div><div class="sub">Reporting only</div></div>
+      </div>
+
+      <div class="field"><label>Specialty</label><select><option>Internal Medicine</option><option>Emergency Medicine</option><option>Cardiology</option><option>Critical Care</option><option>Surgery</option><option>Other</option></select></div>
+
+      <div class="grid2">
+        <div class="field"><label>State license</label><input value="OH-MED-228104" /></div>
+        <div class="field"><label>DEA (optional)</label><input value="BD7421058" /></div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-back" onclick="goStep(2)">← Back</button>
+        <button class="btn-next" onclick="goStep(4)">Continue · Confirm →</button>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="step-pane" data-pane="4">
+      <div class="form-head"><h2>Confirm and create.</h2><div class="sub">Review what you're submitting. We'll send a verification email and your director will approve within 1 business day.</div></div>
+      <div style="height:18px"></div>
+
+      <div class="review-list">
+        <div class="r"><span class="l">Name</span><span class="v">Albert Drobo, MD</span></div>
+        <div class="r"><span class="l">Email</span><span class="v">a.drobo@mercy.health · ✓ verified domain</span></div>
+        <div class="r"><span class="l">Mobile (2FA)</span><span class="v">+1 (555) 042-7100</span></div>
+        <div class="r"><span class="l">Organization</span><span class="v">Mercy Health · Internal Medicine · Mercy Main</span></div>
+        <div class="r"><span class="l">Role</span><span class="v">Attending MD · Internal Medicine</span></div>
+        <div class="r"><span class="l">License</span><span class="v">OH-MED-228104 · DEA BD7421058</span></div>
+        <div class="r"><span class="l">NPI</span><span class="v">1457208392 · ✓ valid in NPPES</span></div>
+      </div>
+
+      <label class="check-row"><input type="checkbox" checked> I agree to the <a href="#">Terms of Service</a>, <a href="#">BAA</a>, and <a href="#">Acceptable Use Policy</a>. I understand that I will be auditable for all PHI access.</label>
+      <label class="check-row"><input type="checkbox" checked> I consent to receive 2FA SMS codes and security alerts at the mobile number above.</label>
+      <label class="check-row"><input type="checkbox"> Send me product updates and clinical workflow tips (optional, can unsubscribe anytime).</label>
+
+      <div class="btn-row">
+        <button class="btn-back" onclick="goStep(3)">← Back</button>
+        <button class="btn-next" onclick="window.location.href='TwoFactor.html'">Create account &amp; verify ✓</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function goStep(n){
+  document.querySelectorAll('.step-pane').forEach(p => p.classList.remove('act'));
+  document.querySelector(`[data-pane="${n}"]`).classList.add('act');
+  document.querySelectorAll('.stepper .step').forEach(s => {
+    const sn = +s.dataset.s;
+    s.classList.toggle('act', sn === n);
+    s.classList.toggle('done', sn < n);
+  });
+}
+document.querySelectorAll('.org-toggle .o').forEach(o => o.addEventListener('click', () => {
+  document.querySelectorAll('.org-toggle .o').forEach(x => x.classList.remove('sel'));
+  o.classList.add('sel');
+}));
+document.querySelectorAll('.role').forEach(r => r.addEventListener('click', () => {
+  document.querySelectorAll('.role').forEach(x => x.classList.remove('sel'));
+  r.classList.add('sel');
+}));
+function updateStrength(v){
+  const bs = document.querySelectorAll('#str .b');
+  let s = 0;
+  if(v.length >= 8) s++;
+  if(/[A-Z]/.test(v) && /[a-z]/.test(v)) s++;
+  if(/\d/.test(v)) s++;
+  if(/[^A-Za-z0-9]/.test(v)) s++;
+  bs.forEach((b,i) => { b.className = 'b' + (i < s ? ' on' + Math.min(s,3) : ''); });
+  document.getElementById('strLab').textContent = ['Too short','Weak','Fair','Good','Strong · 14 chars · meets HIPAA policy'][s];
+}
+</script>
+</body>
+</html>

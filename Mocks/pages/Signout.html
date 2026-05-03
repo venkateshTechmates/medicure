@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Sign-out · IPASS</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;justify-content:space-between;align-items:flex-end;margin:8px 4px 18px;flex-wrap:wrap;gap:14px}
+  .head .h1{font-size:48px}
+  .ctx{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;background:#fff;border-radius:18px;padding:14px 18px;box-shadow:var(--shadow);margin-bottom:14px}
+  .ctx .who{display:flex;gap:14px;align-items:center}
+  .ctx .pic{width:44px;height:44px;border-radius:50%;background:#888 center/cover;flex:none}
+  .ctx .arrow-h{font-size:24px;color:var(--ink-mute);margin:0 6px}
+  .ctx .nm{font-weight:700;font-size:13px}
+  .ctx .role{font-size:11px;color:var(--ink-soft)}
+
+  .layout{display:grid;grid-template-columns:240px 1fr 320px;gap:14px;align-items:start}
+
+  /* Patient list rail */
+  .rail{background:#fff;border-radius:18px;padding:10px;box-shadow:var(--shadow);position:sticky;top:14px;max-height:calc(100vh - 28px);overflow:auto}
+  .rail-pt{padding:10px 12px;border-radius:12px;cursor:pointer;border:1px solid transparent;margin-bottom:4px}
+  .rail-pt:hover{background:#fafbfc}
+  .rail-pt.act{background:#0e1116;color:#fff;border-color:#0e1116}
+  .rail-pt .nm{font-weight:700;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:6px}
+  .rail-pt .meta{font-size:10px;color:var(--ink-mute);margin-top:2px}
+  .rail-pt.act .meta{color:rgba(255,255,255,.6)}
+  .sev-dot{width:8px;height:8px;border-radius:50%;flex:none}
+  .sev-dot.crit{background:var(--bad);box-shadow:0 0 0 3px rgba(255,77,107,.2)}
+  .sev-dot.watch{background:var(--warn)}
+  .sev-dot.stable{background:var(--good)}
+  .sev-dot.dc{background:var(--info)}
+
+  /* IPASS card */
+  .ipass{background:#fff;border-radius:18px;box-shadow:var(--shadow);overflow:hidden}
+  .ipass-head{padding:18px 22px;background:linear-gradient(135deg,#0e1116 0%,#1f2532 100%);color:#fff;display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center}
+  .ipass-head .pic{width:60px;height:60px;border-radius:18px;background:#888 center/cover}
+  .ipass-head .nm{font-family:"Instrument Serif",serif;font-size:30px;letter-spacing:-.02em;line-height:1;font-weight:400}
+  .ipass-head .meta{font-size:11px;color:rgba(255,255,255,.6);display:flex;gap:14px;flex-wrap:wrap;margin-top:6px}
+  .ipass-head .meta b{color:#fff}
+  .ipass-head .severity{padding:6px 14px;border-radius:999px;font:800 11px "Plus Jakarta Sans";text-transform:uppercase;letter-spacing:.05em}
+  .ipass-head .severity.crit{background:var(--bad);color:#fff;animation:pulse 1.4s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+
+  .ipass-body{padding:0}
+  .ip-section{padding:22px 24px;border-bottom:1px solid var(--line)}
+  .ip-section:last-child{border-bottom:0}
+  .ip-section .letter{font-family:"Instrument Serif",serif;font-size:60px;line-height:1;letter-spacing:-.04em;color:#27c26b;float:left;margin:6px 18px 0 0}
+  .ip-section .label{font-size:11px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;font-weight:800}
+  .ip-section h3{font-family:"Instrument Serif",serif;font-size:22px;letter-spacing:-.01em;margin:2px 0 8px;font-weight:400}
+  .ip-section .body{font-size:13px;line-height:1.65;color:var(--ink);font-family:"Lora",Georgia,serif;font-style:normal}
+  .ip-section .body p{margin:0 0 8px}
+  .ip-section .body ul{margin:8px 0;padding-left:20px}
+  .ip-section .body li{margin-bottom:4px}
+  .ip-section .body b{color:#0e1116}
+  .ip-section .editable{background:#fafbfc;padding:14px 16px;border-left:3px solid var(--info);border-radius:8px;margin-top:8px}
+
+  .severity-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px;clear:both}
+  .severity-bar .s{padding:10px;border-radius:10px;text-align:center;border:1.5px solid var(--line);background:#fafbfc;cursor:pointer;font:800 11px "Plus Jakarta Sans";text-transform:uppercase;letter-spacing:.04em}
+  .severity-bar .s small{display:block;font-weight:600;text-transform:none;letter-spacing:0;color:var(--ink-mute);margin-top:2px;font-size:10px}
+  .severity-bar .s.sel-crit{background:var(--bad);color:#fff;border-color:var(--bad)}
+  .severity-bar .s.sel-crit small{color:rgba(255,255,255,.7)}
+  .severity-bar .s.sel-watch{background:var(--warn);color:#0e1116;border-color:var(--warn)}
+  .severity-bar .s.sel-stable{background:var(--good);color:#fff;border-color:var(--good)}
+  .severity-bar .s.sel-stable small{color:rgba(255,255,255,.7)}
+  .severity-bar .s.sel-dc{background:var(--info);color:#fff;border-color:var(--info)}
+  .severity-bar .s.sel-dc small{color:rgba(255,255,255,.7)}
+
+  .todo-row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:8px 12px;background:#fafbfc;border-radius:10px;margin-bottom:5px;font-size:12px}
+  .todo-row .when{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--bad);font-weight:800;background:#fff7f9;padding:3px 7px;border-radius:5px;flex:none}
+  .todo-row .nm{font-weight:700}
+  .todo-row .by{font-size:10px;color:var(--ink-mute);margin-top:1px}
+
+  /* Side */
+  .side-card{background:#fff;border-radius:14px;padding:14px;box-shadow:var(--shadow)}
+  .side-card h4{margin:0 0 8px;font-size:11px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;font-weight:800}
+</style></head>
+<body data-page="overview" data-base="../">
+
+<div class="page" style="max-width:1500px"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div class="head">
+    <div><span class="eyebrow">End of shift · evening hand-off</span><h1 class="h1">Sign-out · I-PASS</h1><div style="font-size:13px;color:var(--ink-soft);margin-top:4px">12 patients · structured hand-off using I-PASS framework. Read-back confirmed before going off duty.</div></div>
+    <div style="display:flex;gap:8px"><button class="btn">Print pocket card</button><button class="btn">Save draft</button><button class="btn primary">Complete &amp; sign out <span class="arrow">→</span></button></div>
+  </div>
+
+  <div class="ctx">
+    <div class="who">
+      <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=160&h=160&fit=crop&crop=faces')"></div>
+      <div><div class="nm">Dr. Albert Drobo</div><div class="role">Day team · 07:00–19:00 · Hospitalist</div></div>
+      <div class="arrow-h">→</div>
+      <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=160&h=160&fit=crop&crop=faces')"></div>
+      <div><div class="nm">Dr. Khalid Reza</div><div class="role">Night team · 19:00–07:00 · Hospitalist</div></div>
+    </div>
+    <div style="display:flex;gap:6px"><span class="pill warn"><span class="pdot"></span>2 critical</span><span class="pill"><span class="pdot"></span>3 watch</span><span class="pill good"><span class="pdot"></span>5 stable</span></div>
+  </div>
+
+  <div class="layout">
+    <!-- Patient list -->
+    <div class="rail">
+      <div style="font-size:11px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;font-weight:800;padding:6px 10px 8px">My list · 12</div>
+
+      <div class="rail-pt act">
+        <div class="nm"><span>Maria Hernandez</span><span class="sev-dot crit"></span></div>
+        <div class="meta">ICU-2 / 04 · Sepsis · ARDS</div>
+      </div>
+      <div class="rail-pt">
+        <div class="nm"><span>James Liu</span><span class="sev-dot crit"></span></div>
+        <div class="meta">CCU / 12 · STEMI post-PCI</div>
+      </div>
+      <div class="rail-pt">
+        <div class="nm"><span>Robert Kim</span><span class="sev-dot watch"></span></div>
+        <div class="meta">ICU-2 / 07 · Post-CABG</div>
+      </div>
+      <div class="rail-pt">
+        <div class="nm"><span>Adison Reyes</span><span class="sev-dot watch"></span></div>
+        <div class="meta">Peds-2 / 15 · RSV bronchiolitis</div>
+      </div>
+      <div class="rail-pt">
+        <div class="nm"><span>Marcus Wei</span><span class="sev-dot watch"></span></div>
+        <div class="meta">CCU / 13 · CHF exac</div>
+      </div>
+      <div class="rail-pt">
+        <div class="nm"><span>Albert Smith</span><span class="sev-dot dc"></span></div>
+        <div class="meta">Peds-2 / 14 · Asthma · d/c tomorrow</div>
+      </div>
+      <div class="rail-pt">
+        <div class="nm"><span>Sarah Johnson</span><span class="sev-dot dc"></span></div>
+        <div class="meta">StepD / 21 · Post-appy · d/c AM</div>
+      </div>
+      <div class="rail-pt">
+        <div class="nm"><span>Daniel Owusu</span><span class="sev-dot stable"></span></div>
+        <div class="meta">StepD / 22 · Migraine obs</div>
+      </div>
+      <div class="rail-pt">
+        <div class="nm"><span>Emma Bauer</span><span class="sev-dot stable"></span></div>
+        <div class="meta">ICU-1 / 02 · Post-op vasc</div>
+      </div>
+      <div class="rail-pt">
+        <div class="nm"><span>Priya Shah</span><span class="sev-dot stable"></span></div>
+        <div class="meta">Maty / 03 · Post-partum</div>
+      </div>
+      <div class="rail-pt">
+        <div class="nm"><span>Chen Wei</span><span class="sev-dot stable"></span></div>
+        <div class="meta">StepD / 24 · COPD obs</div>
+      </div>
+      <div class="rail-pt">
+        <div class="nm"><span>Layla Hassan</span><span class="sev-dot watch"></span></div>
+        <div class="meta">StepD / 25 · PE · therap</div>
+      </div>
+    </div>
+
+    <!-- IPASS Card -->
+    <div class="ipass">
+      <div class="ipass-head">
+        <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=160&h=160&fit=crop&crop=faces')"></div>
+        <div>
+          <div class="nm">Maria Hernandez</div>
+          <div class="meta"><span><b>MRN</b> 08461</span><span><b>64F</b> · Day 5</span><span><b>ICU-2 / 04</b></span><span><b>Allergies</b> Sulfa</span><span><b>Code</b> Full</span><span><b>Attending</b> Okafor</span></div>
+        </div>
+        <div class="severity crit">⚠ Watcher</div>
+      </div>
+
+      <div class="ipass-body">
+
+        <!-- I -->
+        <div class="ip-section">
+          <div class="letter">I</div>
+          <div class="label">Illness severity</div>
+          <h3>Watcher · clinically unstable</h3>
+          <div class="severity-bar" style="margin-top:14px">
+            <div class="s sel-crit">⚠ Unstable<small>actively decompensating</small></div>
+            <div class="s">Watcher<small>could decline</small></div>
+            <div class="s">Stable<small>doing well</small></div>
+            <div class="s">D/C ready<small>plan in motion</small></div>
+          </div>
+          <div class="body">
+            <p>Patient remains in shock state with intermittent hypotension. Lactate elevated to 5.4 at 14:20 prompted re-evaluation — likely 2/2 fluid responsiveness vs persistent infection source. Holding off on re-starting pressors pending response to bolus.</p>
+          </div>
+        </div>
+
+        <!-- P -->
+        <div class="ip-section">
+          <div class="letter">P</div>
+          <div class="label">Patient summary</div>
+          <h3>HPI &amp; hospital course</h3>
+          <div class="body">
+            <p><b>HPI:</b> 64F with HTN, T2DM, prior MRSA UTI presenting Jan 16 from clinic with fevers, altered mental status, hypotension. Diagnosed with severe sepsis 2/2 pyelonephritis. Initial lactate 6.8, BP 78/42.</p>
+            <p><b>Hospital course:</b></p>
+            <ul>
+              <li><b>Day 1:</b> Resuscitation 30mL/kg LR, broad-spectrum abx (vanc + zosyn), pressors. Intubated for AMS + WOB.</li>
+              <li><b>Day 2:</b> CT showed L pyelonephritis + small abscess. Cultures grew MRSA + ESBL E. coli. Narrowed to vanc + meropenem.</li>
+              <li><b>Day 3:</b> Extubated. Pressors weaned. Lactate 2.4.</li>
+              <li><b>Day 4:</b> Off pressors. Lactate 1.8. Started PO trial.</li>
+              <li><b>Day 5 (today):</b> Lactate bumped to 5.4 — concerning. ID consulted, repeat imaging ordered.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- A -->
+        <div class="ip-section">
+          <div class="letter">A</div>
+          <div class="label">Action list</div>
+          <h3>To-do tonight</h3>
+          <div class="todo-row">
+            <span class="when">19:30</span>
+            <div><div class="nm">Repeat lactate after 1L LR bolus</div><div class="by">If &gt;3.0 → notify ICU senior, consider re-image</div></div>
+            <span style="font-size:10px;color:var(--ink-mute)">Time-sensitive</span>
+          </div>
+          <div class="todo-row">
+            <span class="when">20:00</span>
+            <div><div class="nm">CT abdomen w/ contrast</div><div class="by">R/o new abscess · Cr 1.2, OK for contrast</div></div>
+            <span style="font-size:10px;color:var(--ink-mute)">Ordered</span>
+          </div>
+          <div class="todo-row">
+            <span class="when">22:00</span>
+            <div><div class="nm">ID curbside re: meropenem duration</div><div class="by">Day 4 of 14 · cultures pending speciation</div></div>
+            <span style="font-size:10px;color:var(--ink-mute)">Page 3-4471</span>
+          </div>
+          <div class="todo-row">
+            <span class="when">06:00</span>
+            <div><div class="nm">AM labs: CBC, CMP, lactate, blood cx ×2</div></div>
+            <span style="font-size:10px;color:var(--ink-mute)">Ordered</span>
+          </div>
+        </div>
+
+        <!-- S -->
+        <div class="ip-section">
+          <div class="letter">S</div>
+          <div class="label">Situation awareness</div>
+          <h3>If/then scenarios</h3>
+          <div class="body">
+            <p><b>If hypotensive (MAP &lt;65):</b> Bolus 500mL LR ×1, recheck lactate. If still &lt;65 after 1L, restart norepi at 0.05 mcg/kg/min and call ICU senior immediately.</p>
+            <p><b>If new fever (T ≥38.5):</b> Blood cx ×2, urine cx, CXR. Hold acetaminophen until cx drawn.</p>
+            <p><b>If acute respiratory distress (SpO2 &lt;90):</b> NRB 100%, ABG, consider HFNC. Family aware she does not want re-intubation if avoidable — code status discussion ongoing.</p>
+            <p><b>Family contact:</b> Daughter Carmen (primary) 555-0142. Has been at bedside daily, very involved in decisions. OK to call after hours if status changes.</p>
+          </div>
+        </div>
+
+        <!-- S - Synthesis -->
+        <div class="ip-section">
+          <div class="letter">S</div>
+          <div class="label">Synthesis · receiver read-back</div>
+          <h3>Confirm understanding</h3>
+          <div class="editable">
+            <div style="font-size:11px;color:var(--ink-mute);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Receiver — verbalize back the plan in your words:</div>
+            <textarea style="width:100%;border:0;background:transparent;padding:0;font:500 13px 'Plus Jakarta Sans';line-height:1.6;outline:none;resize:vertical;min-height:80px">64F day 5 sepsis from pyelo. Off pressors but lactate bumped to 5.4 — getting fluid bolus, repeat lactate at 19:30. CT abdomen at 20:00 to look for new source. Will hold pressors unless MAP &lt;65 after fluids, then restart and call ICU senior. Family wants to avoid re-intubation if possible. Daughter Carmen is primary contact.</textarea>
+            <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end">
+              <button class="btn" style="font-size:11px">Need clarification</button>
+              <button class="btn primary" style="font-size:11px;background:var(--good);border-color:var(--good)">✓ Read-back confirmed</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Right rail -->
+    <div style="display:flex;flex-direction:column;gap:12px;position:sticky;top:14px">
+      <div class="side-card">
+        <h4>Hand-off progress</h4>
+        <div style="font-family:'Instrument Serif',serif;font-size:36px;letter-spacing:-.02em">3 / 12</div>
+        <div style="font-size:11px;color:var(--ink-soft)">patients signed out · 9 remaining · ~18 min</div>
+        <div style="height:6px;background:var(--line);border-radius:3px;margin-top:8px;overflow:hidden"><div style="height:100%;width:25%;background:var(--good)"></div></div>
+      </div>
+
+      <div class="side-card">
+        <h4>This shift's events</h4>
+        <div style="font-size:12px;color:var(--ink-soft);line-height:1.7">
+          • <b style="color:var(--ink)">2 admissions</b> from ED<br>
+          • <b style="color:var(--ink)">1 transfer</b> to step-down<br>
+          • <b style="color:var(--ink)">1 rapid response</b> · Hernandez<br>
+          • <b style="color:var(--ink)">3 discharges</b> planned for AM<br>
+          • <b style="color:var(--ink)">14 result</b> acknowledgements pending
+        </div>
+      </div>
+
+      <div class="side-card">
+        <h4>Pending consults</h4>
+        <div style="font-size:12px;line-height:1.6">
+          • <b>Hernandez</b> — ID, ongoing<br>
+          • <b>Liu</b> — Cards, complete<br>
+          • <b>Smith</b> — Allergy, scheduled outpt<br>
+          • <b>Wei</b> — Cardiology, pending
+        </div>
+      </div>
+
+      <div class="side-card">
+        <h4>Quick links</h4>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <a href="ResultAck.html" class="btn" style="justify-content:flex-start;text-decoration:none">→ Clear result inbox</a>
+          <a href="Telemetry.html" class="btn" style="justify-content:flex-start;text-decoration:none">→ Telemetry wall</a>
+          <a href="ConsultRequest.html" class="btn" style="justify-content:flex-start;text-decoration:none">→ Active consults</a>
+          <a href="Patients.html" class="btn" style="justify-content:flex-start;text-decoration:none">→ Patient list</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div></div>
+
+<script src="../scripts/nav.js"></script>
+<script>
+document.querySelectorAll('.rail-pt').forEach(p => p.addEventListener('click', () => {
+  document.querySelectorAll('.rail-pt').forEach(x => x.classList.remove('act'));
+  p.classList.add('act');
+}));
+</script>
+</body>
+</html>

@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Lab · CBC w/ diff</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .crumb{font-size:11px;color:var(--ink-mute);margin:4px 0 14px;display:flex;gap:6px}
+  .crumb a{color:var(--ink-soft);text-decoration:none}
+  .crumb span.cur{color:var(--ink)}
+
+  .head{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:flex-end;margin:0 4px 18px}
+  .head .h1{font-size:54px;line-height:1}
+  .head .sub{font-size:13px;color:var(--ink-soft);margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}
+  .head .sub b{color:var(--ink)}
+
+  .layout{display:grid;grid-template-columns:1fr 320px;gap:14px;align-items:start}
+
+  /* Result table */
+  .panel{background:#fff;border-radius:18px;padding:22px;box-shadow:var(--shadow);margin-bottom:14px}
+  .panel h3{font-family:"Instrument Serif",serif;font-size:26px;letter-spacing:-.02em;margin:0 0 4px}
+  .panel .panel-sub{font-size:12px;color:var(--ink-mute);margin-bottom:14px}
+
+  table.lab{width:100%;border-collapse:collapse;font-size:13px}
+  table.lab th,table.lab td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line)}
+  table.lab th{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-mute);font-weight:800}
+  table.lab td.an{font-weight:700;width:30%}
+  table.lab td.val{font-family:'SF Mono',monospace;font-weight:700;font-size:14px;width:14%}
+  table.lab td.ref{font-family:'SF Mono',monospace;color:var(--ink-mute);font-size:11px}
+  table.lab td.bar{width:30%}
+  table.lab tr.hi td.val{color:var(--bad)}
+  table.lab tr.hi td.val::after{content:' ↑';font-size:11px}
+  table.lab tr.lo td.val{color:var(--info)}
+  table.lab tr.lo td.val::after{content:' ↓';font-size:11px}
+  table.lab tr.crit td.val{color:#fff;background:#ff4d6b;padding-left:14px;font-weight:800}
+  table.lab tr.crit td.val::after{content:' CRITICAL';font-size:9px;font-weight:800;letter-spacing:.05em;background:#0e1116;color:#fff;padding:2px 5px;border-radius:4px;margin-left:6px}
+
+  /* range bar */
+  .range{position:relative;height:10px;background:#f4f6f9;border-radius:6px}
+  .range .ok{position:absolute;top:0;bottom:0;background:#dff7e7;border-radius:6px}
+  .range .marker{position:absolute;top:-3px;width:3px;height:16px;background:#0e1116;border-radius:2px}
+  .range .marker.hi{background:#ff4d6b}
+  .range .marker.lo{background:#3a86ff}
+  .range .ticks{display:flex;justify-content:space-between;margin-top:4px;font-size:9px;color:var(--ink-mute);font-family:'SF Mono',monospace}
+
+  /* Trend */
+  .trend-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  .trend{padding:14px;background:#fafbfc;border:1px solid var(--line);border-radius:14px}
+  .trend h5{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-mute);margin:0 0 6px;display:flex;justify-content:space-between}
+  .trend h5 .now{color:var(--ink);font-family:'SF Mono',monospace;font-size:13px}
+  .trend svg{width:100%;height:60px;display:block}
+
+  /* Right rail */
+  .pt-mini{display:grid;grid-template-columns:auto 1fr;gap:10px;margin-bottom:12px}
+  .pt-mini .pic{width:48px;height:48px;border-radius:14px;background:center/cover}
+  .pt-mini .nm{font-weight:800;font-size:15px;line-height:1}
+  .pt-mini .sub{font-size:10px;color:var(--ink-mute);margin-top:3px}
+
+  .row{display:flex;justify-content:space-between;font-size:11px;padding:6px 0;border-top:1px solid var(--line)}
+  .row:first-of-type{border-top:0}
+  .row .k{color:var(--ink-mute)}.row .v{font-weight:700}
+
+  .interp{padding:14px;background:#fff3df;border:1px solid #ffb84d;border-radius:14px;font-size:12px;color:#7a4400;line-height:1.55;margin-bottom:14px}
+  .interp .t{font-weight:800;margin-bottom:4px}
+
+  .actbtns{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+</style></head>
+<body data-page="labs" data-base="../">
+
+<div class="page"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div class="crumb">
+    <a href="Labs.html">Labs</a> ›
+    <a href="PatientChart.html">Aria Chen</a> ›
+    <span class="cur">CBC with differential · 11:42</span>
+  </div>
+
+  <div class="head">
+    <div>
+      <h1 class="h1">CBC w/ differential</h1>
+      <div class="sub">
+        <span><b>Order #</b> LAB-93821</span>
+        <span><b>Specimen</b> EDTA whole blood · 4 mL</span>
+        <span><b>Collected</b> 11:18 by RN Brooks</span>
+        <span><b>Resulted</b> 11:42 (24 min)</span>
+        <span><b>Verified</b> by P. Cole, MT(ASCP)</span>
+        <span><b>Status</b> <span class="pill bad"><span class="pdot"></span>Critical</span></span>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px"><button class="btn">Print</button><button class="btn">Compare prior</button><button class="btn primary">Acknowledge critical</button></div>
+  </div>
+
+  <div class="layout">
+    <div>
+      <!-- CRITICAL banner -->
+      <div class="interp" style="background:#ffe7eb;border-color:#ff4d6b;color:#8a142e">
+        <div class="t">⚠ Critical value · WBC 28.4 K/µL</div>
+        Resulted at 11:42. Lab tech P. Cole called Dr. M. Achebe at 11:44 — ack received 11:46 with read-back. Repeat clinically indicated; rule out leukemoid reaction, leukemia, severe infection.
+      </div>
+
+      <!-- Result table -->
+      <div class="panel">
+        <h3>Hematology · CBC</h3>
+        <div class="panel-sub">Sysmex XN-1000 · ref ranges adult female</div>
+
+        <table class="lab">
+          <thead><tr><th>Analyte</th><th>Result</th><th>Units</th><th>Reference</th><th>Range</th></tr></thead>
+          <tbody>
+            <tr class="crit"><td class="an">WBC</td><td class="val">28.4</td><td class="ref">K/µL</td><td class="ref">4.0–11.0</td>
+              <td class="bar"><div class="range"><div class="ok" style="left:30%;right:30%"></div><div class="marker hi" style="left:96%"></div></div><div class="ticks"><span>0</span><span>10</span><span>20</span><span>30</span></div></td></tr>
+            <tr class="lo"><td class="an">RBC</td><td class="val">3.42</td><td class="ref">M/µL</td><td class="ref">4.20–5.40</td>
+              <td class="bar"><div class="range"><div class="ok" style="left:35%;right:25%"></div><div class="marker lo" style="left:18%"></div></div></td></tr>
+            <tr class="lo"><td class="an">Hgb</td><td class="val">9.8</td><td class="ref">g/dL</td><td class="ref">12.0–16.0</td>
+              <td class="bar"><div class="range"><div class="ok" style="left:40%;right:20%"></div><div class="marker lo" style="left:22%"></div></div></td></tr>
+            <tr class="lo"><td class="an">Hct</td><td class="val">29.2</td><td class="ref">%</td><td class="ref">36.0–46.0</td>
+              <td class="bar"><div class="range"><div class="ok" style="left:38%;right:22%"></div><div class="marker lo" style="left:20%"></div></div></td></tr>
+            <tr><td class="an">MCV</td><td class="val">85.4</td><td class="ref">fL</td><td class="ref">80–100</td>
+              <td class="bar"><div class="range"><div class="ok" style="left:25%;right:25%"></div><div class="marker" style="left:42%"></div></div></td></tr>
+            <tr><td class="an">MCH</td><td class="val">28.7</td><td class="ref">pg</td><td class="ref">27–33</td><td class="bar"><div class="range"><div class="ok" style="left:30%;right:30%"></div><div class="marker" style="left:42%"></div></div></td></tr>
+            <tr><td class="an">MCHC</td><td class="val">33.6</td><td class="ref">g/dL</td><td class="ref">32–36</td><td class="bar"><div class="range"><div class="ok" style="left:25%;right:25%"></div><div class="marker" style="left:48%"></div></div></td></tr>
+            <tr class="hi"><td class="an">RDW</td><td class="val">16.8</td><td class="ref">%</td><td class="ref">11.5–14.5</td><td class="bar"><div class="range"><div class="ok" style="left:25%;right:35%"></div><div class="marker hi" style="left:78%"></div></div></td></tr>
+            <tr class="lo"><td class="an">Platelets</td><td class="val">112</td><td class="ref">K/µL</td><td class="ref">150–400</td><td class="bar"><div class="range"><div class="ok" style="left:30%;right:20%"></div><div class="marker lo" style="left:22%"></div></div></td></tr>
+            <tr><td class="an">MPV</td><td class="val">10.4</td><td class="ref">fL</td><td class="ref">7.5–11.5</td><td class="bar"><div class="range"><div class="ok" style="left:25%;right:25%"></div><div class="marker" style="left:62%"></div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Diff -->
+      <div class="panel">
+        <h3>Differential</h3>
+        <div class="panel-sub">Auto + manual reflex · 100-cell count</div>
+        <table class="lab">
+          <thead><tr><th>Cell</th><th>%</th><th>Abs (K/µL)</th><th>Reference</th><th></th></tr></thead>
+          <tbody>
+            <tr class="hi"><td class="an">Neutrophils</td><td class="val">82</td><td class="val">23.3</td><td class="ref">40–70 / 1.8–7.7</td><td class="ref">Left shift +</td></tr>
+            <tr class="lo"><td class="an">Lymphocytes</td><td class="val">8</td><td class="val">2.3</td><td class="ref">20–45 / 1.0–4.8</td><td></td></tr>
+            <tr><td class="an">Monocytes</td><td class="val">7</td><td class="val">2.0</td><td class="ref">2–10 / 0.1–0.8</td><td></td></tr>
+            <tr><td class="an">Eosinophils</td><td class="val">2</td><td class="val">0.6</td><td class="ref">0–6 / 0.0–0.5</td><td></td></tr>
+            <tr><td class="an">Basophils</td><td class="val">0</td><td class="val">0.0</td><td class="ref">0–2</td><td></td></tr>
+            <tr class="hi"><td class="an">Bands</td><td class="val">8</td><td class="val">2.3</td><td class="ref">0–5</td><td class="ref">Left shift</td></tr>
+            <tr><td class="an">Metas / myelos</td><td class="val">0</td><td class="val">0</td><td class="ref">0</td><td></td></tr>
+            <tr class="hi"><td class="an">Blasts</td><td class="val">3</td><td class="val">0.85</td><td class="ref">0</td><td class="ref">Reflex to peripheral smear</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Trends -->
+      <div class="panel">
+        <h3>Trends · last 7 days</h3>
+        <div class="trend-grid">
+          <div class="trend">
+            <h5>WBC <span class="now">28.4 ↑</span></h5>
+            <svg viewBox="0 0 300 60" preserveAspectRatio="none"><path d="M0,40 L50,38 L100,32 L150,28 L200,22 L250,15 L300,4" fill="none" stroke="#ff4d6b" stroke-width="2.5"/><circle cx="300" cy="4" r="4" fill="#ff4d6b"/></svg>
+          </div>
+          <div class="trend">
+            <h5>Hgb <span class="now">9.8 ↓</span></h5>
+            <svg viewBox="0 0 300 60" preserveAspectRatio="none"><path d="M0,18 L50,22 L100,25 L150,30 L200,34 L250,40 L300,46" fill="none" stroke="#3a86ff" stroke-width="2.5"/><circle cx="300" cy="46" r="4" fill="#3a86ff"/></svg>
+          </div>
+          <div class="trend">
+            <h5>Platelets <span class="now">112 ↓</span></h5>
+            <svg viewBox="0 0 300 60" preserveAspectRatio="none"><path d="M0,15 L50,18 L100,22 L150,28 L200,34 L250,40 L300,44" fill="none" stroke="#3a86ff" stroke-width="2.5"/><circle cx="300" cy="44" r="4" fill="#3a86ff"/></svg>
+          </div>
+          <div class="trend">
+            <h5>Bands <span class="now">8 ↑</span></h5>
+            <svg viewBox="0 0 300 60" preserveAspectRatio="none"><path d="M0,52 L50,48 L100,42 L150,36 L200,28 L250,20 L300,12" fill="none" stroke="#ffb84d" stroke-width="2.5"/><circle cx="300" cy="12" r="4" fill="#ffb84d"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right rail -->
+    <div>
+      <div class="panel" style="padding:18px">
+        <div class="pt-mini">
+          <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&h=120&fit=crop&crop=faces')"></div>
+          <div><div class="nm">Aria Chen</div><div class="sub">F · 34 · MRN 5520 · ICU-12</div></div>
+        </div>
+        <div class="row"><span class="k">Diagnosis</span><span class="v">Sepsis · day 2</span></div>
+        <div class="row"><span class="k">Attending</span><span class="v">Dr. Achebe</span></div>
+        <div class="row"><span class="k">Last CBC</span><span class="v">Yesterday 06:00</span></div>
+        <div class="actbtns">
+          <a href="PatientChart.html" class="btn" style="text-decoration:none">View chart →</a>
+          <a href="OrderDetail.html" class="btn primary" style="text-decoration:none">+ Order</a>
+        </div>
+      </div>
+
+      <div class="panel" style="padding:18px">
+        <h4 style="margin:0 0 10px;font-size:13px">Critical callback log</h4>
+        <div class="row"><span class="k">Resulted</span><span class="v">11:42</span></div>
+        <div class="row"><span class="k">Lab paged</span><span class="v">11:43</span></div>
+        <div class="row"><span class="k">Provider acked</span><span class="v">11:46 (3 min)</span></div>
+        <div class="row"><span class="k">Read-back</span><span class="v" style="color:var(--good)">✓ Verified</span></div>
+        <div class="row"><span class="k">Action</span><span class="v">Repeat ordered</span></div>
+      </div>
+
+      <div class="panel" style="padding:18px">
+        <h4 style="margin:0 0 10px;font-size:13px">Recommended follow-up</h4>
+        <div style="font-size:11px;line-height:1.6;color:var(--ink-soft)">
+          • Peripheral blood smear · pathology review<br>
+          • Reticulocyte count<br>
+          • LDH, haptoglobin, indirect bili<br>
+          • Procalcitonin, lactate (sepsis bundle)<br>
+          • Repeat CBC in 6 hrs<br>
+          • Hematology consult if blasts persist
+        </div>
+        <button class="btn primary" style="margin-top:10px;width:100%;justify-content:center">+ Order set</button>
+      </div>
+
+      <div class="panel" style="padding:18px">
+        <h4 style="margin:0 0 10px;font-size:13px">Specimen chain of custody</h4>
+        <div style="font-size:11px;line-height:1.6;color:var(--ink-soft)">
+          <b>11:18</b> Drawn · RN Brooks · BCID #4421-A<br>
+          <b>11:22</b> Tube system · pneumatic to lab<br>
+          <b>11:25</b> Received in hematology · J. Lin<br>
+          <b>11:31</b> Loaded Sysmex XN-1000<br>
+          <b>11:38</b> Auto-flagged for manual diff<br>
+          <b>11:42</b> Verified by P. Cole, MT(ASCP)
+        </div>
+      </div>
+    </div>
+  </div>
+</div></div>
+<script src="../scripts/nav.js"></script>
+
+<script>window.MC_ROUTES = [{"sel":".btn.primary, button.primary","href":"OrderDetail.html","title":"Order follow-up"},{"sel":".followup-row, .order-set-row","href":"OrderDetail.html"}];</script>
+<script src="../scripts/router.js"></script>
+</body></html>

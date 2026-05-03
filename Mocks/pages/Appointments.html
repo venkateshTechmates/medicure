@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Medcure — Appointments</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin:8px 4px 22px;gap:20px;flex-wrap:wrap}
+  .head .h1{font-size:56px}
+  .head .meta{color:var(--ink-soft);font-size:13px;margin-top:6px}
+  .grid{display:grid;grid-template-columns:280px 1fr 320px;gap:18px;align-items:start}
+  .mini-cal{padding:18px}
+  .mini-cal .mc-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  .mc-title{font-weight:700}
+  .mc-nav{display:flex;gap:4px}
+  .mc-nav button{width:26px;height:26px;border-radius:50%;border:0;background:#f4f6f9;cursor:pointer;display:grid;place-items:center;color:var(--ink-soft)}
+  .mc-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;font-size:11px}
+  .mc-grid .dn{color:var(--ink-mute);font-weight:600;text-align:center;padding:6px 0}
+  .mc-grid .d{aspect-ratio:1;display:grid;place-items:center;border-radius:50%;cursor:pointer;font-weight:600;color:var(--ink-soft)}
+  .mc-grid .d.cur{background:#0e1116;color:#fff}
+  .mc-grid .d.has::after{content:"";position:absolute;width:4px;height:4px;border-radius:50%;background:#ff4d6b;margin-top:18px}
+  .mc-grid .d{position:relative}
+  .mc-grid .d.muted{color:var(--ink-mute);opacity:.4}
+
+  .legend{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+  .legend .lr{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-soft)}
+  .legend .sw{width:10px;height:10px;border-radius:3px}
+  .filters{margin-top:18px;display:flex;flex-direction:column;gap:6px}
+  .filters .f{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:12px;cursor:pointer}
+  .filters .f:hover{background:#f4f6f9}
+  .filters .f .l{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
+  .filters .f .c{font-size:11px;color:var(--ink-mute)}
+  .sw-blue{background:#3a86ff}.sw-pink{background:#ff4d6b}.sw-green{background:#27c26b}.sw-amber{background:#ffb84d}.sw-purple{background:#8b5cf6}
+
+  .schedule{padding:0;overflow:hidden}
+  .sched-head{padding:16px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line)}
+  .sched-tabs{display:flex;gap:4px;background:#f4f6f9;border-radius:999px;padding:4px}
+  .sched-tabs .t{padding:6px 12px;border-radius:999px;font:600 11px "Plus Jakarta Sans";color:var(--ink-soft);cursor:pointer}
+  .sched-tabs .t.active{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+  .day-col-head{display:grid;grid-template-columns:60px repeat(5,1fr);padding:14px 20px;border-bottom:1px solid var(--line);font-size:11px;color:var(--ink-mute);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+  .day-col-head .dh{text-align:center}
+  .day-col-head .dh .d{font-family:"Instrument Serif",serif;font-size:22px;color:var(--ink);text-transform:none;letter-spacing:0;line-height:1}
+  .day-col-head .dh.today .d{color:#ff4d6b}
+  .timeline{position:relative;height:560px;display:grid;grid-template-columns:60px repeat(5,1fr)}
+  .hours{display:flex;flex-direction:column;font-size:10px;color:var(--ink-mute);padding-top:6px}
+  .hours .h{flex:1;padding-left:14px;border-top:1px dashed var(--line)}
+  .col{position:relative;border-left:1px solid var(--line)}
+  .col .row{position:absolute;left:6px;right:6px;border-radius:10px;padding:8px 10px;font-size:11px;color:#fff;cursor:pointer;overflow:hidden}
+  .col .row .t{font-weight:700}
+  .col .row .p{font-size:10px;opacity:.85;margin-top:2px}
+  .ev-blue{background:linear-gradient(180deg,#3a86ff,#1a4fb3)}
+  .ev-pink{background:linear-gradient(180deg,#ff4d6b,#b3263d)}
+  .ev-green{background:linear-gradient(180deg,#27c26b,#1a8a48)}
+  .ev-amber{background:linear-gradient(180deg,#ffb84d,#a05a00);color:#fff}
+  .ev-purple{background:linear-gradient(180deg,#8b5cf6,#5b21b6)}
+  .now-line{position:absolute;left:60px;right:0;height:2px;background:#ff4d6b;z-index:5}
+  .now-line::before{content:"";position:absolute;left:-6px;top:-4px;width:10px;height:10px;border-radius:50%;background:#ff4d6b}
+
+  .right-col{display:flex;flex-direction:column;gap:14px}
+  .next-up{padding:18px}
+  .nu-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .nu-card{background:#fff7d6;border-radius:16px;padding:14px;border:1px solid #ffe26b}
+  .nu-card .who{display:flex;align-items:center;gap:10px}
+  .nu-card .pic{width:38px;height:38px;border-radius:50%;background:#eee center/cover}
+  .nu-card .nm{font-weight:700;font-size:13px}
+  .nu-card .sub{font-size:11px;color:var(--ink-soft)}
+  .nu-card .when{display:flex;justify-content:space-between;margin-top:12px;font-size:11px}
+  .nu-card .when b{font-weight:700}
+  .nu-actions{display:flex;gap:8px;margin-top:12px}
+  .nu-actions button{flex:1;padding:8px;border-radius:999px;border:0;background:#0e1116;color:#fff;font:600 11px "Plus Jakarta Sans";cursor:pointer}
+  .nu-actions button.ghost{background:#fff;color:var(--ink)}
+
+  .req-list{padding:18px}
+  .req{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+  .req:first-child{border-top:0}
+  .req .l{display:flex;align-items:center;gap:10px}
+  .req .pic{width:32px;height:32px;border-radius:50%;background:#eee center/cover}
+  .req .nm{font-size:12px;font-weight:700}
+  .req .sub{font-size:10px;color:var(--ink-mute)}
+  .req .a{display:flex;gap:4px}
+  .req .a button{width:24px;height:24px;border-radius:50%;border:0;cursor:pointer;display:grid;place-items:center}
+  .req .a .ok{background:#27c26b;color:#fff}
+  .req .a .no{background:#ffe7eb;color:#ff4d6b}
+</style>
+</head>
+<body data-page="appointments" data-base="../">
+
+<div class="page">
+  <div class="frame">
+    <div class="nav" id="medcure-nav"></div>
+
+    <div class="head">
+      <div>
+        <h1 class="h1">Appointments</h1>
+        <div class="meta">Week of Apr 27 – May 03, 2026 · 47 scheduled · 6 pending</div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <div class="searchbox">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input placeholder="Search patient or doctor..."/>
+        </div>
+        <button class="btn primary">+ New Appointment <span class="arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></span></button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- Left: Mini calendar + filters -->
+      <div>
+        <div class="card mini-cal">
+          <div class="mc-head"><div class="mc-title">May 2026</div>
+            <div class="mc-nav"><button>‹</button><button>›</button></div>
+          </div>
+          <div class="mc-grid" id="mc"></div>
+          <div class="legend">
+            <div class="lr"><span class="sw sw-blue"></span> General Consultation</div>
+            <div class="lr"><span class="sw sw-pink"></span> Cardiology</div>
+            <div class="lr"><span class="sw sw-green"></span> Lab / Imaging</div>
+            <div class="lr"><span class="sw sw-amber"></span> Follow-up</div>
+            <div class="lr"><span class="sw sw-purple"></span> Surgery</div>
+          </div>
+          <div class="filters" style="margin-top:14px">
+            <div class="f"><div class="l"><span class="sw sw-blue" style="width:8px;height:8px;border-radius:50%"></span>Dr. Mireille Achebe</div><span class="c">14</span></div>
+            <div class="f"><div class="l"><span class="sw sw-pink" style="width:8px;height:8px;border-radius:50%"></span>Dr. Hae-jin Park</div><span class="c">9</span></div>
+            <div class="f"><div class="l"><span class="sw sw-green" style="width:8px;height:8px;border-radius:50%"></span>Lab — D. Voss</div><span class="c">12</span></div>
+            <div class="f"><div class="l"><span class="sw sw-amber" style="width:8px;height:8px;border-radius:50%"></span>Dr. Iqbal Tanaka</div><span class="c">7</span></div>
+            <div class="f"><div class="l"><span class="sw sw-purple" style="width:8px;height:8px;border-radius:50%"></span>Surgery — OR-2</div><span class="c">5</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center: schedule -->
+      <div class="card schedule">
+        <div class="sched-head">
+          <div style="font-weight:700">Week View</div>
+          <div class="sched-tabs"><div class="t">Day</div><div class="t active">Week</div><div class="t">Month</div></div>
+        </div>
+        <div class="day-col-head">
+          <div></div>
+          <div class="dh"><div>MON</div><div class="d">27</div></div>
+          <div class="dh"><div>TUE</div><div class="d">28</div></div>
+          <div class="dh"><div>WED</div><div class="d">29</div></div>
+          <div class="dh"><div>THU</div><div class="d">30</div></div>
+          <div class="dh today"><div>FRI</div><div class="d">02</div></div>
+        </div>
+        <div class="timeline">
+          <div class="hours">
+            <div class="h">8 AM</div><div class="h">9 AM</div><div class="h">10 AM</div><div class="h">11 AM</div><div class="h">12 PM</div><div class="h">1 PM</div><div class="h">2 PM</div>
+          </div>
+          <div class="col">
+            <div class="row ev-blue" style="top:6%;height:14%"><div class="t">Albert Smith</div><div class="p">Consult · Dr. Achebe</div></div>
+            <div class="row ev-pink" style="top:38%;height:12%"><div class="t">N. Whitfield</div><div class="p">Cardio · Park</div></div>
+            <div class="row ev-amber" style="top:64%;height:10%"><div class="t">M. Reyes</div><div class="p">Follow-up</div></div>
+          </div>
+          <div class="col">
+            <div class="row ev-green" style="top:10%;height:8%"><div class="t">Lab · CBC</div></div>
+            <div class="row ev-blue" style="top:26%;height:16%"><div class="t">Adison K.</div><div class="p">Pediatric</div></div>
+            <div class="row ev-purple" style="top:54%;height:22%"><div class="t">Lap. Chole</div><div class="p">OR-2 · 90 min</div></div>
+          </div>
+          <div class="col">
+            <div class="row ev-blue" style="top:14%;height:12%"><div class="t">J. Okafor</div><div class="p">New patient</div></div>
+            <div class="row ev-pink" style="top:36%;height:10%"><div class="t">ECHO · Park</div></div>
+            <div class="row ev-green" style="top:52%;height:10%"><div class="t">MRI L-spine</div></div>
+            <div class="row ev-amber" style="top:72%;height:10%"><div class="t">Telehealth</div></div>
+          </div>
+          <div class="col">
+            <div class="row ev-amber" style="top:6%;height:10%"><div class="t">Post-op check</div></div>
+            <div class="row ev-blue" style="top:24%;height:14%"><div class="t">Lin Chen</div><div class="p">Annual</div></div>
+            <div class="row ev-pink" style="top:50%;height:14%"><div class="t">Stress test</div></div>
+            <div class="row ev-green" style="top:74%;height:8%"><div class="t">A1C draw</div></div>
+          </div>
+          <div class="col">
+            <div class="now-line" style="top:18%"></div>
+            <div class="row ev-blue" style="top:4%;height:14%"><div class="t">Albert Smith</div><div class="p">11:30 · Consult</div></div>
+            <div class="row ev-amber" style="top:22%;height:12%"><div class="t">Adison · 12:30</div><div class="p">Follow-up</div></div>
+            <div class="row ev-pink" style="top:42%;height:18%"><div class="t">R. Vasquez</div><div class="p">Cardiology · Park</div></div>
+            <div class="row ev-green" style="top:66%;height:10%"><div class="t">Lab · Lipid panel</div></div>
+            <div class="row ev-purple" style="top:82%;height:14%"><div class="t">Pre-op clearance</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Next up + requests -->
+      <div class="right-col">
+        <div class="card next-up">
+          <div class="nu-title"><div style="font-weight:700">Next up</div><span class="pill good"><span class="pdot"></span>In 12 min</span></div>
+          <div class="nu-card">
+            <div class="who">
+              <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=120&h=120&fit=crop&crop=faces')"></div>
+              <div><div class="nm">Albert Smith</div><div class="sub">08 yrs · MRN 4421-08</div></div>
+            </div>
+            <div class="when"><span><b>11:30 AM</b> · 30 min</span><span style="color:var(--ink-mute)">Room 204</span></div>
+            <div class="nu-actions"><button class="ghost">Reschedule</button><button>Check in</button></div>
+          </div>
+        </div>
+        <div class="card req-list">
+          <div style="font-weight:700;margin-bottom:8px;display:flex;justify-content:space-between">Pending Requests <span style="font-size:11px;color:var(--ink-mute)">6</span></div>
+          <div class="req"><div class="l"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&h=120&fit=crop&crop=faces')"></div><div><div class="nm">Marisol Reyes</div><div class="sub">Follow-up · Tue 9:30</div></div></div><div class="a"><button class="ok">✓</button><button class="no">✕</button></div></div>
+          <div class="req"><div class="l"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=120&h=120&fit=crop&crop=faces')"></div><div><div class="nm">Tomás Bauer</div><div class="sub">New patient · Wed 11:00</div></div></div><div class="a"><button class="ok">✓</button><button class="no">✕</button></div></div>
+          <div class="req"><div class="l"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=120&h=120&fit=crop&crop=faces')"></div><div><div class="nm">Kayode Adeyemi</div><div class="sub">Telehealth · Thu 2:15</div></div></div><div class="a"><button class="ok">✓</button><button class="no">✕</button></div></div>
+          <div class="req"><div class="l"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=120&h=120&fit=crop&crop=faces')"></div><div><div class="nm">Priya Iyer</div><div class="sub">Cardio referral · Fri 10:00</div></div></div><div class="a"><button class="ok">✓</button><button class="no">✕</button></div></div>
+        </div>
+        <div class="card" style="padding:18px">
+          <div style="font-weight:700;margin-bottom:10px">Today's load</div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink-mute);margin-bottom:6px"><span>0%</span><span>74%</span><span>100%</span></div>
+          <div style="height:10px;background:#f4f6f9;border-radius:6px;overflow:hidden"><div style="width:74%;height:100%;background:linear-gradient(90deg,#27c26b,#ffb84d)"></div></div>
+          <div style="display:flex;justify-content:space-between;margin-top:14px;font-size:12px"><span style="color:var(--ink-soft)">Booked</span><b>23</b></div>
+          <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:12px"><span style="color:var(--ink-soft)">No-shows</span><b style="color:var(--bad)">2</b></div>
+          <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:12px"><span style="color:var(--ink-soft)">Walk-ins</span><b>4</b></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../scripts/nav.js"></script>
+<script>
+  // Build mini-calendar
+  const mc = document.getElementById('mc');
+  const dayNames = ['M','T','W','T','F','S','S'];
+  let html = dayNames.map(d=>`<div class="dn">${d}</div>`).join('');
+  // April ends Thu 30, May 1 = Fri. Render 6 rows starting Mon 27 Apr.
+  const start = -4; // -4 = Mon Apr 27 relative to May 1
+  for(let i=0;i<42;i++){
+    const day = start + i;
+    let label, cls = 'd';
+    if(day < 1){ label = 30 + day - 0; if(day===-4) label=27; if(day===-3) label=28; if(day===-2) label=29; if(day===-1) label=30; if(day===0) label=''; cls+=' muted'; }
+    else if(day > 31){ label = day - 31; cls+=' muted'; }
+    else label = day;
+    if(day === 2) cls += ' cur';
+    if([5,8,12,15,19,22,26].includes(day)) cls += ' has';
+    html += `<div class="${cls}">${label}</div>`;
+  }
+  mc.innerHTML = html;
+</script>
+
+<script>window.MC_ROUTES = [{"sel":".appt-row, .day-col .appt, .slot, .booking, .calendar-day .has, .schedule-row","href":"PatientChart.html","title":"Open patient"},{"sel":".btn.primary, button.primary","href":"ScheduleAppointment.html","title":"Schedule new"},{"sel":".provider-card, .doc-card, .provider","href":"Staff.html","title":"View provider"}];</script>
+<script src="../scripts/router.js"></script>
+</body></html>

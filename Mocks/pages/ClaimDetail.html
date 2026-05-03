@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Claim Detail</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin:8px 4px 22px;flex-wrap:wrap;gap:14px}
+  .head .h1{font-size:48px}
+  .head .meta{color:var(--ink-soft);font-size:13px;margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}
+  .head .meta b{color:var(--ink)}
+
+  .timeline{display:grid;grid-template-columns:repeat(7,1fr);gap:0;margin-bottom:18px;background:#fff;border-radius:16px;padding:18px;box-shadow:var(--shadow);position:relative}
+  .timeline::before{content:'';position:absolute;left:38px;right:38px;top:46px;height:2px;background:var(--line);z-index:0}
+  .tl{position:relative;z-index:1;text-align:center}
+  .tl .dot{width:32px;height:32px;border-radius:50%;background:#fafbfc;border:2px solid var(--line);margin:0 auto 8px;display:grid;place-items:center;font-size:13px;font-weight:800;color:var(--ink-mute)}
+  .tl.done .dot{background:#27c26b;border-color:#27c26b;color:#0e1116}
+  .tl.cur .dot{background:#0e1116;border-color:#0e1116;color:#fff;box-shadow:0 0 0 4px #fafbfc, 0 0 0 5px #0e1116}
+  .tl .lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+  .tl.cur .lbl{color:var(--ink)}
+  .tl .dt{font-size:10px;color:var(--ink-mute);font-family:"JetBrains Mono",monospace;margin-top:3px}
+
+  .grid{display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start}
+
+  .card{padding:0;overflow:hidden}
+  .ch{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+  .ch .t{font-weight:800;font-size:14px}
+  .ch .s{font-size:11px;color:var(--ink-mute);font-family:"JetBrains Mono",monospace}
+
+  .seg{display:flex;background:#fafbfc;border-radius:10px;padding:3px;gap:2px}
+  .seg .s{padding:6px 11px;font:700 11.5px "Plus Jakarta Sans";color:var(--ink-soft);cursor:pointer;border-radius:7px}
+  .seg .s.act{background:#0e1116;color:#fff}
+
+  /* 837 segments */
+  .x12{padding:18px;font-family:"JetBrains Mono",monospace;font-size:11.5px;line-height:1.85;background:#fafbfc;color:var(--ink);max-height:340px;overflow:auto}
+  .x12 .seg-line{padding:2px 0;border-left:3px solid transparent;padding-left:10px;margin-left:-10px}
+  .x12 .seg-line:hover{background:#fff;border-left-color:#0e1116}
+  .x12 .key{color:#3a86ff;font-weight:700}
+  .x12 .val{color:var(--ink)}
+  .x12 .com{color:var(--ink-mute);font-style:italic;font-size:10px;float:right}
+
+  /* Service lines */
+  .sl-row{display:grid;grid-template-columns:80px 1fr 60px 90px 90px 90px 80px;gap:10px;padding:11px 18px;border-top:1px solid var(--line);align-items:center;font-size:12px}
+  .sl-row.h{font-size:9.5px;font-weight:800;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;border-top:0;padding:8px 18px;background:#fafbfc}
+  .sl-row .cpt{font-family:"JetBrains Mono",monospace;font-weight:700}
+  .sl-row .desc{font-weight:700}
+  .sl-row .dx{font-size:10px;color:var(--ink-mute);margin-top:1px;font-family:"JetBrains Mono",monospace}
+  .sl-row .num{font-family:"JetBrains Mono",monospace;font-weight:700;text-align:right}
+  .sl-row .stat{font-size:9px;font-weight:800;padding:3px 7px;border-radius:5px;text-transform:uppercase}
+  .stat.paid{background:#dff7e7;color:#1a8a48}
+  .stat.adj{background:#fff5e2;color:#a06e0d}
+  .stat.den{background:#ffe3e3;color:#c43c3c}
+
+  /* Sidebar */
+  .info-row{display:flex;justify-content:space-between;padding:10px 18px;border-top:1px solid var(--line);font-size:12px}
+  .info-row:first-of-type{border-top:0;padding-top:14px}
+  .info-row .l{color:var(--ink-mute);font-weight:600}
+  .info-row .v{font-weight:800}
+  .info-row .v.mono{font-family:"JetBrains Mono",monospace;font-size:11.5px}
+
+  .sum-tot{background:#0e1116;color:#fff;padding:18px;display:flex;flex-direction:column;gap:6px}
+  .sum-tot .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.6);font-weight:800}
+  .sum-tot .v{font-family:"Instrument Serif",serif;font-size:38px;letter-spacing:-.02em;line-height:1}
+  .sum-tot .delta{font-size:11px;color:rgba(255,255,255,.7);margin-top:4px}
+
+  .activity-row{padding:11px 18px;border-top:1px solid var(--line);display:grid;grid-template-columns:30px 1fr;gap:10px;font-size:11.5px}
+  .activity-row:first-of-type{border-top:0}
+  .activity-row .ic{width:24px;height:24px;border-radius:7px;background:#fafbfc;display:grid;place-items:center;font-size:11px}
+  .activity-row .ic.ok{background:#dff7e7;color:#1a8a48}
+  .activity-row .ic.err{background:#ffe3e3;color:#c43c3c}
+  .activity-row .ic.info{background:#e6efff;color:#1a4fb3}
+  .activity-row .who{font-weight:700;font-size:12px}
+  .activity-row .when{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--ink-mute)}
+  .activity-row .body{color:var(--ink-soft);margin-top:2px;line-height:1.5}
+</style></head>
+<body data-page="billing" data-base="../">
+
+<div class="page" style="max-width:1500px"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div data-bc='[{"label":"Billing","href":"Billing.html"},{"label":"Claims"},{"label":"CLM-2026-44872"}]'></div>
+
+  <div class="head">
+    <div>
+      <h1 class="h1">Claim CLM-2026-44872</h1>
+      <div class="meta">
+        <span><b>Aria Chen</b> · MRN 012-887-43</span>
+        <span>Aetna POS II · Member W215 887 432</span>
+        <span>837P submitted Apr 28 · 835 received May 1</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn">Download 837</button>
+      <button class="btn">Download 835</button>
+      <button class="btn primary">Post payment →</button>
+    </div>
+  </div>
+
+  <!-- Lifecycle -->
+  <div class="timeline">
+    <div class="tl done"><div class="dot">✓</div><div class="lbl">Encounter</div><div class="dt">Apr 24</div></div>
+    <div class="tl done"><div class="dot">✓</div><div class="lbl">Coded</div><div class="dt">Apr 26</div></div>
+    <div class="tl done"><div class="dot">✓</div><div class="lbl">Scrubbed</div><div class="dt">Apr 27</div></div>
+    <div class="tl done"><div class="dot">✓</div><div class="lbl">837 sent</div><div class="dt">Apr 28</div></div>
+    <div class="tl done"><div class="dot">✓</div><div class="lbl">Payer ack</div><div class="dt">Apr 29</div></div>
+    <div class="tl cur"><div class="dot">$</div><div class="lbl">835 paid</div><div class="dt">May 01 · today</div></div>
+    <div class="tl"><div class="dot">7</div><div class="lbl">Pt. statement</div><div class="dt">— pending</div></div>
+  </div>
+
+  <div class="grid">
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <div class="card">
+        <div class="ch">
+          <span class="t">Service lines · 7 charges</span>
+          <div class="seg">
+            <div class="s act">Lines</div>
+            <div class="s">837P (raw)</div>
+            <div class="s">835 (ERA)</div>
+            <div class="s">Claim form</div>
+          </div>
+        </div>
+
+        <div class="sl-row h">
+          <span>CPT</span><span>Service / DX</span><span>Units</span>
+          <span style="text-align:right">Charged</span><span style="text-align:right">Allowed</span><span style="text-align:right">Paid</span><span>Status</span>
+        </div>
+
+        <div class="sl-row">
+          <span class="cpt">99223</span>
+          <div><div class="desc">Initial hospital care · L3</div><div class="dx">Dx · I50.9</div></div>
+          <span class="num">1</span>
+          <span class="num">$520.00</span>
+          <span class="num">$418.00</span>
+          <span class="num" style="color:#1a8a48">$334.40</span>
+          <span class="stat paid">Paid</span>
+        </div>
+        <div class="sl-row">
+          <span class="cpt">93306</span>
+          <div><div class="desc">Echo complete + Doppler · 26 mod</div><div class="dx">Dx · I50.9, I10</div></div>
+          <span class="num">1</span>
+          <span class="num">$485.00</span>
+          <span class="num">$382.00</span>
+          <span class="num" style="color:#1a8a48">$305.60</span>
+          <span class="stat paid">Paid</span>
+        </div>
+        <div class="sl-row">
+          <span class="cpt">71046</span>
+          <div><div class="desc">Chest X-ray · 2 view</div><div class="dx">Dx · I50.9, J18.9</div></div>
+          <span class="num">1</span>
+          <span class="num">$135.00</span>
+          <span class="num">$108.00</span>
+          <span class="num" style="color:#1a8a48">$86.40</span>
+          <span class="stat paid">Paid</span>
+        </div>
+        <div class="sl-row">
+          <span class="cpt">93000</span>
+          <div><div class="desc">EKG · routine 12-lead</div><div class="dx">Dx · I50.9, R07.9</div></div>
+          <span class="num">1</span>
+          <span class="num">$95.00</span>
+          <span class="num">$76.00</span>
+          <span class="num" style="color:#1a8a48">$60.80</span>
+          <span class="stat paid">Paid</span>
+        </div>
+        <div class="sl-row" style="background:#fff5e2">
+          <span class="cpt">80053</span>
+          <div><div class="desc">Comprehensive metabolic panel</div><div class="dx">Dx · I50.9 · CO-45 contractual</div></div>
+          <span class="num">1</span>
+          <span class="num">$48.00</span>
+          <span class="num">$22.00</span>
+          <span class="num" style="color:#a06e0d">$17.60</span>
+          <span class="stat adj">Adj</span>
+        </div>
+        <div class="sl-row">
+          <span class="cpt">85025</span>
+          <div><div class="desc">CBC w/ auto-diff</div><div class="dx">Dx · I50.9</div></div>
+          <span class="num">1</span>
+          <span class="num">$32.00</span>
+          <span class="num">$18.00</span>
+          <span class="num" style="color:#1a8a48">$14.40</span>
+          <span class="stat paid">Paid</span>
+        </div>
+        <div class="sl-row" style="background:#ffe3e3">
+          <span class="cpt">J1956</span>
+          <div><div class="desc">Levofloxacin 250mg IV</div><div class="dx">Denial · CO-50 not medically necessary</div></div>
+          <span class="num">2</span>
+          <span class="num">$84.00</span>
+          <span class="num">$0.00</span>
+          <span class="num" style="color:#c43c3c">$0.00</span>
+          <span class="stat den">Denied</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch">
+          <span class="t">837P transaction · raw segments</span>
+          <span class="s">ANSI X12 5010 · Healthcare Claim Professional</span>
+        </div>
+        <div class="x12">
+<div class="seg-line"><span class="key">ISA</span>*00*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*00*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*ZZ*MERCYHEALTHTX&nbsp;&nbsp;*ZZ*AETNA&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*260428*1432*^*00501*000048721*0*P*:~ <span class="com">Interchange envelope</span></div>
+<div class="seg-line"><span class="key">GS</span>*HC*MERCYHEALTHTX*AETNA*20260428*1432*48721*X*005010X222A1~ <span class="com">Functional group</span></div>
+<div class="seg-line"><span class="key">ST</span>*837*0001*005010X222A1~</div>
+<div class="seg-line"><span class="key">BHT</span>*0019*00*4872101*20260428*1432*CH~ <span class="com">Beginning of hierarchical</span></div>
+<div class="seg-line"><span class="key">NM1</span>*41*2*MERCY HEALTH SYSTEM*****46*1881042214~ <span class="com">Submitter</span></div>
+<div class="seg-line"><span class="key">PER</span>*IC*BILLING DEPT*TE*5125550199~</div>
+<div class="seg-line"><span class="key">NM1</span>*40*2*AETNA*****46*60054~ <span class="com">Receiver</span></div>
+<div class="seg-line"><span class="key">HL</span>*1**20*1~ <span class="com">Billing provider hierarchy</span></div>
+<div class="seg-line"><span class="key">NM1</span>*85*2*MERCY MAIN HOSPITAL*****XX*1881042214~</div>
+<div class="seg-line"><span class="key">N3</span>*200 RIVERSIDE DR~</div>
+<div class="seg-line"><span class="key">N4</span>*AUSTIN*TX*78704~</div>
+<div class="seg-line"><span class="key">REF</span>*EI*742887104~</div>
+<div class="seg-line"><span class="key">HL</span>*2*1*22*0~ <span class="com">Subscriber</span></div>
+<div class="seg-line"><span class="key">SBR</span>*P*18*0288104****CI~</div>
+<div class="seg-line"><span class="key">NM1</span>*IL*1*CHEN*ARIA****MI*W215887432~</div>
+<div class="seg-line"><span class="key">DMG</span>*D8*19910308*F~</div>
+<div class="seg-line"><span class="key">NM1</span>*PR*2*AETNA HEALTH INC*****PI*60054~</div>
+<div class="seg-line"><span class="key">CLM</span>*44872*1399.00***11:B:1*Y*A*Y*Y~ <span class="com">Claim header — $1,399 total billed</span></div>
+<div class="seg-line"><span class="key">DTP</span>*431*D8*20260424~</div>
+<div class="seg-line"><span class="key">HI</span>*ABK:I509*ABF:I10*ABF:R079~ <span class="com">Diagnosis codes</span></div>
+<div class="seg-line"><span class="key">LX</span>*1~</div>
+<div class="seg-line"><span class="key">SV1</span>*HC:99223*520.00*UN*1***1~</div>
+<div class="seg-line"><span class="key">DTP</span>*472*D8*20260424~</div>
+<div class="seg-line">… 42 more segments …</div>
+<div class="seg-line"><span class="key">SE</span>*94*0001~</div>
+<div class="seg-line"><span class="key">GE</span>*1*48721~</div>
+<div class="seg-line"><span class="key">IEA</span>*1*000048721~</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SIDEBAR -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <div class="card">
+        <div class="sum-tot">
+          <div class="lbl">Net to provider</div>
+          <div class="v">$819.20</div>
+          <div class="delta">Allowed $1,024 · pt resp $204.80 · denied $84</div>
+        </div>
+        <div class="info-row"><span class="l">Total billed</span><span class="v">$1,399.00</span></div>
+        <div class="info-row"><span class="l">Contractual adj.</span><span class="v" style="color:#a06e0d">−$291.00</span></div>
+        <div class="info-row"><span class="l">Allowed amount</span><span class="v">$1,024.00</span></div>
+        <div class="info-row"><span class="l">Insurance paid</span><span class="v" style="color:#1a8a48">$819.20</span></div>
+        <div class="info-row"><span class="l">Patient coinsurance</span><span class="v">$204.80</span></div>
+        <div class="info-row"><span class="l">Denied / not paid</span><span class="v" style="color:#c43c3c">$84.00</span></div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Claim metadata</span></div>
+        <div class="info-row"><span class="l">Claim #</span><span class="v mono">CLM-2026-44872</span></div>
+        <div class="info-row"><span class="l">Payer trace #</span><span class="v mono">AET-887442108</span></div>
+        <div class="info-row"><span class="l">Place of service</span><span class="v">21 — Inpatient</span></div>
+        <div class="info-row"><span class="l">Bill type</span><span class="v">837P · Professional</span></div>
+        <div class="info-row"><span class="l">Rendering NPI</span><span class="v mono">1881042214</span></div>
+        <div class="info-row"><span class="l">Tax ID (EIN)</span><span class="v mono">74-2887104</span></div>
+        <div class="info-row"><span class="l">Days in A/R</span><span class="v">3</span></div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Activity</span><span class="s">7 events</span></div>
+        <div class="activity-row">
+          <div class="ic ok">$</div>
+          <div>
+            <div class="who">835 ERA posted <span class="when">· May 1 09:14</span></div>
+            <div class="body">Aetna paid $819.20. CO-45 contractual on 80053. CO-50 denial on J1956 — appeal-eligible.</div>
+          </div>
+        </div>
+        <div class="activity-row">
+          <div class="ic info">📨</div>
+          <div>
+            <div class="who">Payer acknowledged <span class="when">· Apr 29 06:22</span></div>
+            <div class="body">277CA accepted · trace # AET-887442108 assigned</div>
+          </div>
+        </div>
+        <div class="activity-row">
+          <div class="ic info">↑</div>
+          <div>
+            <div class="who">837P transmitted <span class="when">· Apr 28 14:32</span></div>
+            <div class="body">Submitted to Aetna via Change Healthcare clearinghouse · 94 segments</div>
+          </div>
+        </div>
+        <div class="activity-row">
+          <div class="ic ok">✓</div>
+          <div>
+            <div class="who">Claim scrubbed <span class="when">· Apr 27 11:08</span></div>
+            <div class="body">0 errors · 1 warning (modifier 26 advisory) — passed</div>
+          </div>
+        </div>
+        <div class="activity-row">
+          <div class="ic ok">✓</div>
+          <div>
+            <div class="who">Coded by D. Foster <span class="when">· Apr 26 16:40</span></div>
+            <div class="body">Primary I50.9 · 7 service lines · DRG 291</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Related</span></div>
+        <div style="padding:14px 18px;display:flex;flex-direction:column;gap:8px">
+          <a href="DenialMgmt.html" style="padding:11px;background:#ffe3e3;border:1px solid #f4c4c4;border-radius:10px;text-decoration:none;color:#7a1f1f;font:800 12px 'Plus Jakarta Sans';display:flex;justify-content:space-between"><span>⚠ Appeal J1956 denial</span><span>→</span></a>
+          <a href="PaymentPosting.html" style="padding:11px;background:#fafbfc;border:1px solid var(--line);border-radius:10px;text-decoration:none;color:var(--ink);font:700 12px 'Plus Jakarta Sans';display:flex;justify-content:space-between"><span>Post 835 to ledger</span><span>→</span></a>
+          <a href="PatientStatement.html" style="padding:11px;background:#fafbfc;border:1px solid var(--line);border-radius:10px;text-decoration:none;color:var(--ink);font:700 12px 'Plus Jakarta Sans';display:flex;justify-content:space-between"><span>Generate pt. statement</span><span>→</span></a>
+          <a href="Eligibility.html" style="padding:11px;background:#fafbfc;border:1px solid var(--line);border-radius:10px;text-decoration:none;color:var(--ink);font:700 12px 'Plus Jakarta Sans';display:flex;justify-content:space-between"><span>Verify eligibility</span><span>→</span></a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div></div>
+
+<script src="../scripts/nav.js"></script>
+<script src="../scripts/breadcrumbs.js"></script>
+</body>
+</html>

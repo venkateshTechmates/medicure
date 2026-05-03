@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Payment Posting</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin:8px 4px 22px;flex-wrap:wrap;gap:14px}
+  .head .h1{font-size:54px}
+  .head .meta{color:var(--ink-soft);font-size:13px;margin-top:6px}
+
+  .stat-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
+  .stat-card{background:#fff;border-radius:16px;padding:14px 16px;box-shadow:var(--shadow)}
+  .stat-card .lbl{color:var(--ink-soft);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+  .stat-card .num{font-family:"Instrument Serif",serif;font-size:32px;letter-spacing:-.02em;line-height:1;margin-top:6px}
+  .stat-card .delta{font-size:10px;color:var(--ink-mute);margin-top:4px}
+
+  .layout{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;align-items:start}
+
+  .card{padding:0;overflow:hidden}
+  .ch{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+  .ch .t{font-weight:800;font-size:14px}
+
+  .seg{display:flex;background:#fafbfc;border-radius:10px;padding:3px;gap:2px}
+  .seg .s{padding:6px 11px;font:700 11.5px "Plus Jakarta Sans";color:var(--ink-soft);cursor:pointer;border-radius:7px}
+  .seg .s.act{background:#0e1116;color:#fff}
+
+  /* ERA batch hero */
+  .era-hero{padding:18px;background:linear-gradient(135deg,#0e1116,#243049);color:#fff;display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:18px;align-items:start}
+  .era-hero .lbl{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.6)}
+  .era-hero .v{font-family:"Instrument Serif",serif;font-size:38px;letter-spacing:-.02em;line-height:1;margin-top:6px}
+  .era-hero .v.small{font-size:24px}
+  .era-hero .delta{font-size:11px;color:rgba(255,255,255,.7);margin-top:4px;font-family:"JetBrains Mono",monospace}
+  .era-hero .check{display:flex;gap:10px;margin-top:10px}
+  .era-hero .chip{font-size:10px;font-weight:800;padding:4px 9px;border-radius:6px;text-transform:uppercase}
+  .chip.match{background:#27c26b;color:#0e1116}
+  .chip.diff{background:#fff5e2;color:#a06e0d}
+
+  /* Match table */
+  .pmt-row{display:grid;grid-template-columns:24px 110px 1fr 90px 90px 100px 90px 60px;gap:10px;padding:11px 18px;border-top:1px solid var(--line);align-items:center;font-size:12px}
+  .pmt-row.h{font-size:9.5px;font-weight:800;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;border-top:0;padding:8px 18px;background:#fafbfc}
+  .pmt-row .clm{font-family:"JetBrains Mono",monospace;font-weight:700}
+  .pmt-row .pt{font-weight:700}
+  .pmt-row .pt .sub{font-size:10.5px;color:var(--ink-mute);font-weight:600;margin-top:2px}
+  .pmt-row .num{font-family:"JetBrains Mono",monospace;font-weight:700;text-align:right}
+  .pmt-row input[type="checkbox"]{width:16px;height:16px;accent-color:#0e1116;cursor:pointer}
+
+  .pmt-row .stat{font-size:9px;font-weight:800;padding:3px 7px;border-radius:5px;text-transform:uppercase}
+  .stat.auto{background:#dff7e7;color:#1a8a48}
+  .stat.man{background:#fff5e2;color:#a06e0d}
+  .stat.un{background:#ffe3e3;color:#c43c3c}
+
+  /* CARC strip */
+  .carc-row{display:grid;grid-template-columns:80px 1fr 80px 70px;gap:10px;padding:9px 18px;border-top:1px solid var(--line);font-size:11.5px;align-items:center}
+  .carc-row.h{font-size:9.5px;font-weight:800;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;border-top:0;padding:8px 18px;background:#fafbfc}
+  .carc-row .code{font-family:"JetBrains Mono",monospace;font-weight:800}
+  .carc-row .desc{color:var(--ink-soft)}
+  .carc-row .num{font-family:"JetBrains Mono",monospace;font-weight:700;text-align:right}
+  .carc-row .ct{font-size:10.5px;color:var(--ink-mute);font-family:"JetBrains Mono",monospace;text-align:right}
+
+  .ledger-row{padding:11px 18px;border-top:1px solid var(--line);display:grid;grid-template-columns:80px 1fr 90px;gap:10px;align-items:center;font-size:11.5px}
+  .ledger-row:first-of-type{border-top:0}
+  .ledger-row .dt{font-family:"JetBrains Mono",monospace;color:var(--ink-mute);font-size:10.5px}
+  .ledger-row .nm{font-weight:700;font-size:12px}
+  .ledger-row .sub{color:var(--ink-mute);font-size:10.5px;margin-top:2px}
+  .ledger-row .amt{font-family:"JetBrains Mono",monospace;font-weight:800;text-align:right}
+  .ledger-row .amt.cred{color:#1a8a48}
+  .ledger-row .amt.deb{color:#c43c3c}
+</style></head>
+<body data-page="billing" data-base="../">
+
+<div class="page" style="max-width:1500px"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div data-bc='[{"label":"Billing","href":"Billing.html"},{"label":"Payment posting"},{"label":"ERA-887441208"}]'></div>
+
+  <div class="head">
+    <div><h1 class="h1">Payment posting</h1><div class="meta">Auto-match 92% · 8 exceptions · ERA from Aetna received 06:14 today · ready to post</div></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn">Hold for review</button>
+      <button class="btn">Post selected</button>
+      <button class="btn primary">✓ Auto-post all matched</button>
+    </div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-card"><div class="lbl">Today's deposits</div><div class="num">$184k</div><div class="delta">3 ERAs · 2 EFTs</div></div>
+    <div class="stat-card"><div class="lbl">Auto-matched</div><div class="num" style="color:#1a8a48">92%</div><div class="delta">156 of 169 lines</div></div>
+    <div class="stat-card"><div class="lbl">Exceptions</div><div class="num" style="color:#a06e0d">8</div><div class="delta">$4,210 to reconcile</div></div>
+    <div class="stat-card"><div class="lbl">Unposted &gt; 24h</div><div class="num">2</div><div class="delta">$840 — needs review</div></div>
+    <div class="stat-card"><div class="lbl">Posting lag</div><div class="num">0.4d</div><div class="delta" style="color:#1a8a48">target ≤ 1d ✓</div></div>
+  </div>
+
+  <div class="layout">
+
+    <div class="card">
+
+      <div class="era-hero">
+        <div>
+          <div class="lbl">ERA / 835 batch</div>
+          <div class="v">$48,210.40</div>
+          <div class="delta">Aetna Health Inc · TRN 887441208</div>
+          <div class="check">
+            <span class="chip match">✓ EFT matched</span>
+            <span class="chip match">✓ 271 verified</span>
+            <span class="chip diff">⚠ 8 exceptions</span>
+          </div>
+        </div>
+        <div>
+          <div class="lbl">Claims paid</div>
+          <div class="v small">42</div>
+          <div class="delta">169 service lines</div>
+        </div>
+        <div>
+          <div class="lbl">Received</div>
+          <div class="v small">06:14 today</div>
+          <div class="delta">via Change Healthcare</div>
+        </div>
+      </div>
+
+      <div class="ch" style="border-bottom:0">
+        <span class="t">Claim-level matching</span>
+        <div class="seg">
+          <div class="s act">All · 42</div>
+          <div class="s">Auto · 34</div>
+          <div class="s">Manual · 5</div>
+          <div class="s" style="color:#c43c3c">Exception · 3</div>
+        </div>
+      </div>
+
+      <div class="pmt-row h">
+        <span></span>
+        <span>Claim</span>
+        <span>Patient</span>
+        <span style="text-align:right">Billed</span>
+        <span style="text-align:right">Paid</span>
+        <span style="text-align:right">Adj / Pt resp</span>
+        <span>Match</span>
+        <span></span>
+      </div>
+
+      <div class="pmt-row">
+        <input type="checkbox" checked>
+        <span class="clm">CLM-44872</span>
+        <div class="pt"><div>Aria Chen</div><div class="sub">Inpatient · 7 lines</div></div>
+        <span class="num">$1,399.00</span>
+        <span class="num" style="color:#1a8a48">$819.20</span>
+        <span class="num">$291 / $204.80</span>
+        <span class="stat auto">✓ Auto</span>
+        <span style="text-align:right;color:var(--ink-mute);font-size:14px">→</span>
+      </div>
+      <div class="pmt-row">
+        <input type="checkbox" checked>
+        <span class="clm">CLM-44871</span>
+        <div class="pt"><div>Daniel Park</div><div class="sub">Office visit · 2 lines</div></div>
+        <span class="num">$280.00</span>
+        <span class="num" style="color:#1a8a48">$224.00</span>
+        <span class="num">$31 / $25.00</span>
+        <span class="stat auto">✓ Auto</span>
+        <span style="text-align:right;color:var(--ink-mute);font-size:14px">→</span>
+      </div>
+      <div class="pmt-row">
+        <input type="checkbox" checked>
+        <span class="clm">CLM-44869</span>
+        <div class="pt"><div>Mei Tanaka</div><div class="sub">Imaging · 3 lines</div></div>
+        <span class="num">$1,840.00</span>
+        <span class="num" style="color:#1a8a48">$1,472.00</span>
+        <span class="num">$0 / $368.00</span>
+        <span class="stat auto">✓ Auto</span>
+        <span style="text-align:right;color:var(--ink-mute);font-size:14px">→</span>
+      </div>
+      <div class="pmt-row" style="background:#fff5e2">
+        <input type="checkbox">
+        <span class="clm">CLM-44866</span>
+        <div class="pt"><div>James Wu</div><div class="sub" style="color:#a06e0d">Allowed differs · expected $640, got $580</div></div>
+        <span class="num">$840.00</span>
+        <span class="num">$580.00</span>
+        <span class="num">$200 / $60.00</span>
+        <span class="stat man">⚠ Manual</span>
+        <span style="text-align:right;color:var(--ink-mute);font-size:14px">→</span>
+      </div>
+      <div class="pmt-row">
+        <input type="checkbox" checked>
+        <span class="clm">CLM-44864</span>
+        <div class="pt"><div>Sofia Russo</div><div class="sub">Cardio · 4 lines</div></div>
+        <span class="num">$1,425.00</span>
+        <span class="num" style="color:#1a8a48">$1,140.00</span>
+        <span class="num">$0 / $285.00</span>
+        <span class="stat auto">✓ Auto</span>
+        <span style="text-align:right;color:var(--ink-mute);font-size:14px">→</span>
+      </div>
+      <div class="pmt-row" style="background:#ffe3e3">
+        <input type="checkbox">
+        <span class="clm">CLM-44862</span>
+        <div class="pt"><div>Ben Goldberg</div><div class="sub" style="color:#c43c3c">No matching claim — possible duplicate ERA line</div></div>
+        <span class="num">—</span>
+        <span class="num">$340.00</span>
+        <span class="num">—</span>
+        <span class="stat un">✕ Unmatched</span>
+        <span style="text-align:right;color:var(--ink-mute);font-size:14px">→</span>
+      </div>
+      <div class="pmt-row">
+        <input type="checkbox" checked>
+        <span class="clm">CLM-44860</span>
+        <div class="pt"><div>Priya Sharma</div><div class="sub">PT · 3 visits</div></div>
+        <span class="num">$420.00</span>
+        <span class="num" style="color:#1a8a48">$336.00</span>
+        <span class="num">$0 / $84.00</span>
+        <span class="stat auto">✓ Auto</span>
+        <span style="text-align:right;color:var(--ink-mute);font-size:14px">→</span>
+      </div>
+      <div class="pmt-row">
+        <input type="checkbox" checked>
+        <span class="clm">CLM-44858</span>
+        <div class="pt"><div>Marcus Rivera</div><div class="sub">Lab · CMP/CBC</div></div>
+        <span class="num">$80.00</span>
+        <span class="num" style="color:#1a8a48">$40.00</span>
+        <span class="num">$40 / $0.00</span>
+        <span class="stat auto">✓ Auto</span>
+        <span style="text-align:right;color:var(--ink-mute);font-size:14px">→</span>
+      </div>
+
+      <div style="padding:12px 18px;border-top:1px solid var(--line);text-align:center;color:var(--ink-mute);font-size:11.5px;font-weight:600">… 34 more matched claims · auto-collapsed …</div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <div class="card">
+        <div class="ch"><span class="t">CARC / RARC summary</span><span style="font-size:11px;color:var(--ink-mute)">Adjustment reason codes</span></div>
+        <div class="carc-row h"><span>Code</span><span>Reason</span><span style="text-align:right">Total</span><span style="text-align:right">Lines</span></div>
+        <div class="carc-row"><span class="code">CO-45</span><span class="desc">Charge exceeds fee schedule</span><span class="num">$8,420</span><span class="ct">38</span></div>
+        <div class="carc-row"><span class="code">PR-1</span><span class="desc">Deductible</span><span class="num">$1,500</span><span class="ct">14</span></div>
+        <div class="carc-row"><span class="code">PR-2</span><span class="desc">Coinsurance</span><span class="num">$2,084</span><span class="ct">28</span></div>
+        <div class="carc-row"><span class="code">PR-3</span><span class="desc">Copay</span><span class="num">$840</span><span class="ct">22</span></div>
+        <div class="carc-row"><span class="code">CO-50</span><span class="desc">Not medically necessary</span><span class="num" style="color:#c43c3c">$84</span><span class="ct">1</span></div>
+        <div class="carc-row"><span class="code">CO-97</span><span class="desc">Bundled</span><span class="num">$216</span><span class="ct">8</span></div>
+        <div class="carc-row"><span class="code">CO-16</span><span class="desc">Info missing</span><span class="num" style="color:#c43c3c">$340</span><span class="ct">2</span></div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Cash drawer · today</span></div>
+        <div class="ledger-row"><span class="dt">14:32</span><div><div class="nm">Aetna ERA · TRN 887441208</div><div class="sub">42 claims · auto-posting</div></div><span class="amt cred">+$48,210</span></div>
+        <div class="ledger-row"><span class="dt">11:08</span><div><div class="nm">UHC EFT · TRN 994100221</div><div class="sub">28 claims · posted ✓</div></div><span class="amt cred">+$32,840</span></div>
+        <div class="ledger-row"><span class="dt">10:42</span><div><div class="nm">BCBS ERA · TRN 770214887</div><div class="sub">19 claims · posted ✓</div></div><span class="amt cred">+$28,140</span></div>
+        <div class="ledger-row"><span class="dt">09:18</span><div><div class="nm">Patient pmt · A. Chen</div><div class="sub">Card · auth 14887</div></div><span class="amt cred">+$204.80</span></div>
+        <div class="ledger-row"><span class="dt">08:50</span><div><div class="nm">Refund · M. Patel</div><div class="sub">Overpayment · check 1042</div></div><span class="amt deb">−$140.00</span></div>
+        <div class="ledger-row"><span class="dt">08:14</span><div><div class="nm">Humana ERA · TRN 332108774</div><div class="sub">12 claims · 2 exceptions</div></div><span class="amt cred">+$14,820</span></div>
+        <div class="ledger-row"><span class="dt">07:02</span><div><div class="nm">Cigna ERA · TRN 887210442</div><div class="sub">24 claims · posted ✓</div></div><span class="amt cred">+$22,400</span></div>
+      </div>
+
+    </div>
+  </div>
+
+</div></div>
+
+<script src="../scripts/nav.js"></script>
+<script src="../scripts/breadcrumbs.js"></script>
+</body>
+</html>

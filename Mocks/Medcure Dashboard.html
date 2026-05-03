@@ -1,0 +1,991 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Medcure — Medical Dashboard</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#dde2ea;
+    --surface:#ffffff;
+    --surface-2:#f6f7fa;
+    --ink:#0e1116;
+    --ink-soft:#5b6272;
+    --ink-mute:#9aa0ad;
+    --line:#ebedf1;
+    --line-2:#e3e6ec;
+    --accent:#ffe26b;     /* yellow CTA */
+    --accent-2:#fff3a8;
+    --good:#27c26b;
+    --bad:#ff4d6b;
+    --pin:#0e1116;
+    --shadow: 0 1px 0 rgba(16,18,23,.04), 0 6px 22px rgba(16,18,23,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"Plus Jakarta Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    background: linear-gradient(180deg,#e6eaf1 0%, #d7dde6 100%);
+    color:var(--ink);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+
+  /* ===== Outer page ===== */
+  .page{
+    max-width:1440px;
+    margin:24px auto;
+    padding:0 24px 64px;
+  }
+  .frame{
+    background: linear-gradient(180deg, #f1f3f7 0%, #e9ecf3 100%);
+    border-radius:28px;
+    padding:22px;
+    box-shadow: 0 1px 0 rgba(255,255,255,.7) inset, 0 30px 60px -30px rgba(20,24,32,.18);
+  }
+
+  /* ===== Top nav ===== */
+  .nav{
+    display:grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items:center;
+    gap:18px;
+    margin-bottom:18px;
+  }
+  .logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:20px;letter-spacing:-.01em}
+  .logo-mark{
+    width:28px;height:28px;border-radius:8px;
+    background:#0e1116;color:#fff;display:grid;place-items:center;
+    box-shadow: inset 0 0 0 2px #0e1116;
+  }
+  .logo-mark svg{width:16px;height:16px}
+
+  .tabs{
+    display:flex;gap:6px;
+    background:#fff;
+    padding:6px;
+    border-radius:999px;
+    box-shadow: var(--shadow);
+  }
+  .tab{
+    border:0;background:transparent;color:var(--ink-soft);
+    font:600 14px/1 "Plus Jakarta Sans";
+    padding:12px 18px;border-radius:999px;cursor:pointer;
+    display:flex;align-items:center;gap:8px;
+    transition:.18s ease;
+  }
+  .tab .ic{width:16px;height:16px;display:inline-grid;place-items:center}
+  .tab:hover{color:var(--ink)}
+  .tab.active{background:#0e1116;color:#fff}
+  .tab.active .ic{color:#fff}
+
+  .nav-right{display:flex;align-items:center;gap:14px;justify-content:flex-end}
+  .icon-btn{
+    width:42px;height:42px;border-radius:50%;
+    background:#fff;display:grid;place-items:center;cursor:pointer;
+    box-shadow:var(--shadow);border:0;color:var(--ink);
+    position:relative;transition:.15s;
+  }
+  .icon-btn:hover{transform:translateY(-1px)}
+  .icon-btn .dot{
+    position:absolute;top:9px;right:10px;width:8px;height:8px;border-radius:50%;
+    background:var(--good);border:2px solid #fff;
+  }
+  .profile{
+    display:flex;align-items:center;gap:10px;
+    background:#fff;padding:6px 14px 6px 6px;border-radius:999px;
+    box-shadow:var(--shadow);cursor:pointer;
+  }
+  .avatar{
+    width:34px;height:34px;border-radius:50%;
+    background:#d8b9a0 url('https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&h=120&fit=crop&crop=faces') center/cover;
+    flex:none;
+  }
+  .profile .who{line-height:1.15}
+  .profile .name{font-weight:700;font-size:14px}
+  .profile .handle{font-size:11px;color:var(--ink-mute)}
+  .profile .chev{color:var(--ink-mute);margin-left:2px}
+
+  /* ===== Main grid ===== */
+  .grid{
+    display:grid;
+    grid-template-columns: 340px 1fr 360px;
+    gap:18px;
+    align-items:start;
+  }
+
+  /* ===== Left column ===== */
+  .h1{
+    font-family:"Instrument Serif", "Plus Jakarta Sans", serif;
+    font-weight:400;
+    font-size:64px;
+    line-height:1.02;
+    letter-spacing:-.02em;
+    margin:8px 4px 22px;
+  }
+
+  .card{
+    background:#fff;border-radius:22px;padding:18px;
+    box-shadow:var(--shadow);
+  }
+  .card.tight{padding:16px}
+
+  .vitals{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .vital{
+    background:#fff;border-radius:20px;padding:16px 16px 14px;
+    box-shadow:var(--shadow);
+    position:relative;
+  }
+  .vital .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .pill{
+    display:inline-flex;align-items:center;gap:6px;
+    background:#f4f6f9;border-radius:999px;padding:5px 10px;
+    font-size:11px;font-weight:600;color:var(--ink-soft);
+  }
+  .pill .pdot{width:6px;height:6px;border-radius:50%;background:var(--good)}
+  .vital .ico{
+    width:34px;height:34px;border-radius:11px;background:#fbeaec;
+    display:grid;place-items:center;color:#e26079;
+  }
+  .vital .ico.blood{background:#fde7eb;color:#e15670}
+  .vital .ico.hemo{background:#fde7eb;color:#e15670}
+  .vital h4{margin:0;font-size:13px;color:var(--ink-soft);font-weight:500}
+  .vital .num{
+    font-family:"Instrument Serif",serif;font-weight:400;
+    font-size:36px;letter-spacing:-.02em;line-height:1;margin-top:6px;
+  }
+  .vital .num small{font-size:14px;color:var(--ink-mute);font-family:"Plus Jakarta Sans";font-weight:500;margin-left:2px}
+  .vital .spark{margin-top:10px;height:38px}
+
+  .appointments{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+  .appt{
+    background:#fff;border-radius:20px;padding:14px;
+    box-shadow:var(--shadow);
+  }
+  .appt .head{display:flex;justify-content:space-between;align-items:flex-start}
+  .appt .time{font-weight:700;font-size:15px;white-space:nowrap}
+  .appt .date{color:var(--ink-mute);font-size:11px;margin-top:2px}
+  .appt .more{color:var(--ink-mute);cursor:pointer}
+  .appt .who{display:flex;align-items:center;gap:10px;margin-top:18px}
+  .appt .pic{
+    width:34px;height:34px;border-radius:50%;flex:none;background:#eee center/cover;
+  }
+  .appt .name{font-size:13px;font-weight:700}
+  .appt .sub{font-size:11px;color:var(--ink-mute)}
+
+  .cta-row{display:flex;gap:8px;align-items:center;margin-top:12px}
+  .ico-circle{
+    width:42px;height:42px;border-radius:50%;background:#fff;
+    display:grid;place-items:center;box-shadow:var(--shadow);cursor:pointer;
+    color:var(--ink);transition:.15s;border:0;
+  }
+  .ico-circle:hover{background:#fafafa}
+  .book{
+    flex:1;background:var(--accent);
+    border-radius:999px;padding:13px 18px;
+    display:flex;align-items:center;justify-content:space-between;
+    font-weight:700;font-size:14px;cursor:pointer;border:0;
+    box-shadow: 0 8px 18px -8px rgba(255,210,0,.55);
+    transition:.15s;
+  }
+  .book:hover{filter:brightness(.97)}
+  .book .arrow{
+    width:28px;height:28px;border-radius:50%;background:#0e1116;color:#fff;
+    display:grid;place-items:center;
+  }
+
+  /* ===== Center column (anatomy) ===== */
+  .stage{
+    position:relative;
+    height:720px;
+    width:100%;
+    display:flex;align-items:flex-end;justify-content:center;
+    overflow:hidden;
+  }
+  .figure-wrap{
+    position:relative;width:100%;height:100%;
+    display:flex;justify-content:center;align-items:flex-start;
+    padding-top:8px;
+  }
+  .figure{
+    height:100%;
+    max-width:100%;
+    object-fit:contain;
+    filter: drop-shadow(0 30px 30px rgba(20,24,32,.08));
+    user-select:none;-webkit-user-drag:none;
+  }
+  .anatomy-svg{
+    height:100%;
+    max-width:100%;
+    display:block;
+    filter: drop-shadow(0 30px 30px rgba(20,24,32,.06));
+  }
+  .pin{
+    position:absolute;
+    background:#fff;border-radius:999px;
+    padding:7px 12px 7px 10px;
+    font-size:12px;font-weight:600;color:var(--ink);
+    box-shadow:var(--shadow);
+    display:flex;align-items:center;gap:7px;
+    cursor:pointer;
+    transition:.18s;
+    white-space:nowrap;
+  }
+  .pin:hover{transform:translateY(-1px)}
+  .pin .pdot{width:7px;height:7px;border-radius:50%;background:#ff7a4a}
+  .pin.b .pdot{background:#3a86ff}
+  .pin.g .pdot{background:#27c26b}
+  .pin .lead{
+    position:absolute;width:10px;height:10px;border-radius:50%;
+    background:#fff;border:2px solid #0e1116;
+  }
+
+  .zoom{
+    position:absolute;left:14px;top:50%;transform:translateY(-50%);
+    display:flex;flex-direction:column;gap:8px;
+  }
+  .zoom .icon-btn{width:34px;height:34px}
+
+  .ruler{
+    position:absolute;left:50%;bottom:8px;transform:translateX(-50%);
+    display:flex;flex-direction:column;align-items:center;gap:6px;
+    width:520px;
+  }
+  .ruler-arc{width:100%;height:46px;color:#cdd2dc}
+  .ruler-pin{
+    width:34px;height:34px;border-radius:50%;background:#fff;
+    border:2px solid #0e1116;display:grid;place-items:center;
+    box-shadow:var(--shadow);
+    margin-top:-32px;
+    position:relative;z-index:2;
+  }
+  .ruler-pin::after{
+    content:"";width:8px;height:8px;border-radius:50%;background:#0e1116;
+  }
+  .ruler-label{font-size:13px;font-weight:600;color:var(--ink)}
+
+  /* ===== Right column ===== */
+  .right{display:flex;flex-direction:column;gap:14px}
+  .stats-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .stat{
+    background:#fff;border-radius:20px;padding:14px 14px 16px;
+    box-shadow:var(--shadow);
+  }
+  .stat .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .stat .label{display:flex;align-items:center;gap:8px;color:var(--ink-soft);font-size:12px;font-weight:600}
+  .stat .label .si{
+    width:22px;height:22px;border-radius:7px;background:#fde7eb;color:#e15670;
+    display:grid;place-items:center;
+  }
+  .stat .more{color:var(--ink-mute);cursor:pointer;font-size:14px;line-height:1}
+  .stat .num{
+    font-family:"Instrument Serif",serif;font-size:30px;letter-spacing:-.02em;line-height:1;
+  }
+  .stat .foot{margin-top:6px;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-mute)}
+  .stat .foot .ok{color:var(--good);font-weight:600;display:inline-flex;align-items:center;gap:4px}
+  .stat .foot .ok::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--good)}
+
+  .heart-card{
+    background:#fff;border-radius:22px;padding:16px 16px 14px;box-shadow:var(--shadow);
+    position:relative;overflow:hidden;
+  }
+  .heart-card .head{display:flex;justify-content:space-between;align-items:center}
+  .heart-title{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px}
+  .heart-title .ti{
+    width:22px;height:22px;border-radius:7px;background:#fde7eb;color:#e15670;
+    display:grid;place-items:center;
+  }
+  .gauge-wrap{position:relative;display:flex;justify-content:center;margin-top:6px}
+  .gauge{width:240px;height:140px}
+  .gauge-center{
+    position:absolute;left:50%;top:78px;transform:translateX(-50%);
+    text-align:center;
+  }
+  .gauge-num{font-family:"Instrument Serif",serif;font-size:34px;letter-spacing:-.02em;line-height:1}
+  .gauge-num small{font-size:12px;font-family:"Plus Jakarta Sans";color:var(--ink-mute);margin-left:2px;font-weight:600}
+  .gauge-sub{font-size:11px;color:var(--ink-mute);margin-top:2px}
+  .gauge-heart{
+    position:absolute;left:50%;top:42px;transform:translateX(-50%);
+    width:18px;height:18px;color:#e15670;
+  }
+  .legend{display:flex;justify-content:space-between;gap:8px;margin-top:8px}
+  .lg{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--ink-soft);font-weight:600}
+  .lg .d{width:6px;height:6px;border-radius:50%}
+  .lg.h .d{background:#ff4d6b}
+  .lg.m .d{background:#ffb84d}
+  .lg.n .d{background:#27c26b}
+  .lg.l .d{background:#3a86ff}
+
+  .dna{
+    position:absolute;right:-14px;top:10px;width:64px;height:200px;opacity:.85;
+    pointer-events:none;
+  }
+
+  .cardio{
+    background:#fff;border-radius:22px;padding:16px;box-shadow:var(--shadow);
+  }
+  .cardio .head{display:flex;justify-content:space-between;align-items:flex-start}
+  .cardio .ttl{font-weight:700;font-size:14px}
+  .cardio .sub{font-size:11px;color:var(--ink-mute);margin-top:2px}
+  .seg{
+    background:#f4f6f9;border-radius:999px;padding:4px;display:flex;gap:2px;
+    font-size:11px;font-weight:600;color:var(--ink-soft);
+  }
+  .seg .s{padding:6px 10px;border-radius:999px;cursor:pointer}
+  .seg .s.active{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+  .cardio-num{
+    display:flex;align-items:flex-end;gap:8px;margin-top:14px;
+  }
+  .cardio-num .big{
+    font-family:"Instrument Serif",serif;font-size:48px;letter-spacing:-.02em;line-height:1;
+  }
+  .cardio-num .delta{
+    color:var(--bad);font-size:11px;font-weight:700;display:flex;align-items:center;gap:3px;
+    margin-bottom:8px;
+  }
+  .cardio-num .lab{color:var(--ink-mute);font-size:12px;margin-bottom:8px;margin-left:auto}
+  .bars{margin-top:10px;display:flex;align-items:flex-end;gap:2px;height:80px}
+  .bar{flex:1;background:#e7eaf0;border-radius:2px;transition:.2s}
+  .bar.hi{background:#0e1116}
+  .x-axis{display:flex;justify-content:space-between;margin-top:8px;font-size:10px;color:var(--ink-mute);font-weight:600}
+  .x-tick{display:flex;align-items:center;gap:5px}
+  .x-tick .td{width:6px;height:6px;border-radius:50%;background:#0e1116}
+  .x-tick.b .td{background:#3a86ff}
+  .x-tick.r .td{background:#ff4d6b}
+
+  /* ===== Pins positions ===== */
+  .pin-protein{ top:32%; left:60%; }
+  .pin-bases  { top:42%; left:32%; }
+  .pin-major  { top:50%; left:62%; }
+  .pin-minor  { top:64%; left:28%; }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="frame">
+
+    <!-- ============ NAV ============ -->
+    <div class="nav">
+      <div class="logo">
+        <span class="logo-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12c0-4 3-7 7-7s7 3 7 7-3 7-7 7"/><path d="M20 12c0 4-3 7-7 7"/></svg>
+        </span>
+        <span>Medcure</span>
+      </div>
+
+      <div class="tabs" id="tabs">
+        <button class="tab active" data-tab="overview">
+          <span class="ic">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          </span>
+          Overview
+        </button>
+        <a class="tab" href="pages/Documents.html">Documents</a>
+        <a class="tab" href="pages/Messages.html">Message</a>
+        <a class="tab" href="pages/Labs.html">Labs</a>
+        <a class="tab" href="pages/Patients.html">Patients</a>
+        <a class="tab" href="pages/Appointments.html">Appointments</a>
+        <a class="tab" href="pages/Pharmacy.html">Pharmacy</a>
+        <a class="tab" href="pages/Billing.html">Billing</a>
+        <a class="tab" href="pages/Inventory.html">Stock</a>
+        <a class="tab" href="pages/Staff.html">Staff</a>
+        <a class="tab" href="pages/ED.html">ED</a>
+        <a class="tab" href="pages/Settings.html">Settings</a>
+      </div>
+
+      <div class="nav-right">
+        <button class="icon-btn" aria-label="search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        </button>
+        <button class="icon-btn" aria-label="notifications">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>
+          <span class="dot"></span>
+        </button>
+        <div class="profile">
+          <div class="avatar"></div>
+          <div class="who">
+            <div class="name">Albert Drobo</div>
+            <div class="handle">@alexenderyuo</div>
+          </div>
+          <span class="chev">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ MAIN GRID ============ -->
+    <div class="grid">
+
+      <!-- =========== LEFT =========== -->
+      <div class="left">
+        <h1 class="h1">Medical<br/>Dashboard</h1>
+
+        <!-- Vitals -->
+        <div class="vitals">
+          <div class="vital">
+            <div class="top">
+              <div class="ico blood">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2s6 7 6 12a6 6 0 1 1-12 0c0-5 6-12 6-12z"/></svg>
+              </div>
+              <span class="pill"><span class="pdot"></span>Normal</span>
+            </div>
+            <h4>Blood Status</h4>
+            <div class="num">130<small>/80</small></div>
+            <svg class="spark" viewBox="0 0 160 38" preserveAspectRatio="none">
+              <polyline fill="none" stroke="#ff4d6b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"
+                points="0,22 12,22 18,22 24,8 30,30 36,12 42,28 48,22 60,22 70,22 78,18 84,26 90,14 96,28 102,22 120,22 140,22 160,22"/>
+            </svg>
+          </div>
+
+          <div class="vital">
+            <div class="top">
+              <div class="ico hemo">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2s6 7 6 12a6 6 0 1 1-12 0c0-5 6-12 6-12z"/></svg>
+              </div>
+              <span class="pill"><span class="pdot"></span>Normal</span>
+            </div>
+            <h4>Hemoglobin Level</h4>
+            <div class="num">19.3<small>/ gdl</small></div>
+            <svg class="spark" viewBox="0 0 160 38" preserveAspectRatio="none">
+              <path fill="none" stroke="#0e1116" stroke-width="1.4" stroke-linecap="round"
+                d="M0,28 C20,28 30,20 50,20 S80,30 100,18 130,8 160,18"/>
+              <circle cx="100" cy="18" r="3" fill="#ff4d6b"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Appointments -->
+        <div class="appointments">
+          <div class="appt">
+            <div class="head">
+              <div>
+                <div class="time">11:30 AM</div>
+                <div class="date">01/20</div>
+              </div>
+              <span class="more">⋯</span>
+            </div>
+            <div class="who">
+              <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=120&h=120&fit=crop&crop=faces')"></div>
+              <div>
+                <div class="name">Albert Smith</div>
+                <div class="sub">08 years old</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="appt">
+            <div class="head">
+              <div>
+                <div class="time">12:30 PM</div>
+                <div class="date">01/20</div>
+              </div>
+              <span class="more">⋯</span>
+            </div>
+            <div class="who">
+              <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&h=120&fit=crop&crop=faces')"></div>
+              <div>
+                <div class="name">Adison</div>
+                <div class="sub">06 years old</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CTA row -->
+        <div class="cta-row">
+          <button class="ico-circle" aria-label="send">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-11 11"/><path d="m22 2-7 20-4-9-9-4z"/></svg>
+          </button>
+          <button class="ico-circle" aria-label="call">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.91.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          </button>
+          <button class="book">
+            Book an Appoinment
+            <span class="arrow">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <!-- =========== CENTER =========== -->
+      <div class="center">
+        <div class="stage">
+          <div class="zoom">
+            <button class="icon-btn" aria-label="zoom in">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/><path d="M11 8v6"/><path d="M8 11h6"/></svg>
+            </button>
+            <button class="icon-btn" aria-label="recenter">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9V5a2 2 0 0 1 2-2h4"/><path d="M21 9V5a2 2 0 0 0-2-2h-4"/><path d="M3 15v4a2 2 0 0 0 2 2h4"/><path d="M21 15v4a2 2 0 0 1-2 2h-4"/><circle cx="12" cy="12" r="2"/></svg>
+            </button>
+            <button class="icon-btn" aria-label="zoom out">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/><path d="M8 11h6"/></svg>
+            </button>
+          </div>
+
+          <div class="figure-wrap">
+            <!-- Anatomical figure illustration -->
+            <svg class="anatomy-svg" viewBox="0 0 380 760" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <radialGradient id="bg" cx=".5" cy=".5" r=".7">
+                  <stop offset="0" stop-color="#fff" stop-opacity=".8"/>
+                  <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+                </radialGradient>
+                <linearGradient id="mGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#f0a585"/>
+                  <stop offset=".4" stop-color="#c4684a"/>
+                  <stop offset="1" stop-color="#6b2c1a"/>
+                </linearGradient>
+                <linearGradient id="mGradL" x1="1" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#f0a585"/>
+                  <stop offset=".4" stop-color="#c4684a"/>
+                  <stop offset="1" stop-color="#6b2c1a"/>
+                </linearGradient>
+                <radialGradient id="hd" cx=".4" cy=".35" r=".7">
+                  <stop offset="0" stop-color="#f6cfb5"/>
+                  <stop offset=".6" stop-color="#c08566"/>
+                  <stop offset="1" stop-color="#6b3a25"/>
+                </radialGradient>
+                <linearGradient id="sk" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#e8b59b"/>
+                  <stop offset="1" stop-color="#9b6044"/>
+                </linearGradient>
+                <filter id="blur1"><feGaussianBlur stdDeviation=".6"/></filter>
+                <filter id="blur2"><feGaussianBlur stdDeviation="1.2"/></filter>
+              </defs>
+
+              <!-- soft background glow -->
+              <ellipse cx="190" cy="380" rx="170" ry="360" fill="url(#bg)"/>
+
+              <g filter="url(#blur1)">
+                <!-- HEAD: skull with exposed musculature feel -->
+                <ellipse cx="190" cy="68" rx="38" ry="46" fill="url(#hd)"/>
+                <!-- temporalis -->
+                <path d="M158 50 q12 -16 32 -16 q20 0 32 16 q4 18 -2 36 l-60 0 q-6 -18 -2 -36z" fill="#a85234" opacity=".55"/>
+                <!-- eye sockets -->
+                <ellipse cx="176" cy="65" rx="6" ry="4" fill="#3a1810" opacity=".7"/>
+                <ellipse cx="204" cy="65" rx="6" ry="4" fill="#3a1810" opacity=".7"/>
+                <!-- nose -->
+                <path d="M188 72 q4 8 4 14 q-4 4 -8 0 q0 -8 4 -14z" fill="#7c3a26" opacity=".7"/>
+                <!-- mouth/jaw -->
+                <path d="M174 92 q16 8 32 0 q-2 10 -16 12 q-14 -2 -16 -12z" fill="#5a2818" opacity=".75"/>
+                <!-- jawline shading -->
+                <path d="M156 80 q4 22 16 30 q18 6 36 0 q12 -8 16 -30 q-4 14 -16 22 q-18 6 -36 0 q-12 -8 -16 -22z" fill="#7c3a26" opacity=".4"/>
+
+                <!-- NECK: sternocleidomastoid -->
+                <path d="M170 108 l-6 24 q26 12 52 0 l-6 -24 q-20 8 -40 0z" fill="url(#sk)"/>
+                <path d="M174 116 q16 6 32 0 l-2 14 q-14 6 -28 0z" fill="#7c3a26" opacity=".55"/>
+
+                <!-- TRAPEZIUS / shoulders -->
+                <path d="M120 140 q70 -22 140 0 q10 16 6 30 q-76 -20 -152 0 q-4 -14 6 -30z" fill="url(#mGrad)"/>
+                <path d="M155 144 q35 -12 70 0 q3 8 0 16 q-35 -10 -70 0 q-3 -8 0 -16z" fill="#5a2818" opacity=".5"/>
+                <!-- collarbone hint -->
+                <path d="M148 158 q42 -8 84 0" stroke="#3a1810" stroke-width="1.5" fill="none" opacity=".5"/>
+
+                <!-- DELTOIDS -->
+                <path d="M108 158 q-4 18 0 36 q14 6 24 -2 q4 -18 -2 -36 q-12 -6 -22 2z" fill="url(#mGrad)"/>
+                <path d="M272 158 q4 18 0 36 q-14 6 -24 -2 q-4 -18 2 -36 q12 -6 22 2z" fill="url(#mGradL)"/>
+                <!-- deltoid striations -->
+                <path d="M114 168 q8 -2 14 4 q-2 12 -8 18 q-8 -8 -6 -22z" fill="#5a2818" opacity=".4"/>
+                <path d="M266 168 q-8 -2 -14 4 q2 12 8 18 q8 -8 6 -22z" fill="#5a2818" opacity=".4"/>
+
+                <!-- PECTORALS - more detailed with striations -->
+                <path d="M132 168 q26 -8 56 0 q4 28 -10 50 q-26 6 -42 -10 q-10 -18 -4 -40z" fill="url(#mGrad)"/>
+                <path d="M248 168 q-26 -8 -56 0 q-4 28 10 50 q26 6 42 -10 q10 -18 4 -40z" fill="url(#mGradL)"/>
+                <!-- pec striation lines -->
+                <g stroke="#5a2818" stroke-width=".8" fill="none" opacity=".5">
+                  <path d="M138 184 q22 -4 42 6"/>
+                  <path d="M142 196 q20 -2 38 8"/>
+                  <path d="M146 208 q16 -2 32 8"/>
+                  <path d="M242 184 q-22 -4 -42 6"/>
+                  <path d="M238 196 q-20 -2 -38 8"/>
+                  <path d="M234 208 q-16 -2 -32 8"/>
+                </g>
+                <!-- sternum/center groove -->
+                <path d="M190 168 l0 50" stroke="#3a1810" stroke-width="2" fill="none" opacity=".7"/>
+                <ellipse cx="190" cy="172" rx="3" ry="4" fill="#3a1810" opacity=".5"/>
+
+                <!-- BICEPS -->
+                <path d="M104 196 q-8 36 -2 70 q14 6 26 -2 q4 -34 -4 -66 q-12 -8 -20 -2z" fill="url(#mGrad)"/>
+                <path d="M276 196 q8 36 2 70 q-14 6 -26 -2 q-4 -34 4 -66 q12 -8 20 -2z" fill="url(#mGradL)"/>
+                <!-- biceps detail -->
+                <ellipse cx="116" cy="222" rx="8" ry="22" fill="#a85234" opacity=".6"/>
+                <ellipse cx="264" cy="222" rx="8" ry="22" fill="#a85234" opacity=".6"/>
+                <path d="M110 210 q10 -4 18 0 q4 24 -4 44 q-12 4 -18 -2 q-4 -22 4 -42z" fill="#5a2818" opacity=".4"/>
+                <path d="M270 210 q-10 -4 -18 0 q-4 24 4 44 q12 4 18 -2 q4 -22 -4 -42z" fill="#5a2818" opacity=".4"/>
+
+                <!-- FOREARMS with brachioradialis -->
+                <path d="M100 266 q-12 38 -8 76 q14 4 24 -2 q6 -38 -2 -74 q-8 -4 -14 0z" fill="url(#mGrad)"/>
+                <path d="M280 266 q12 38 8 76 q-14 4 -24 -2 q-6 -38 2 -74 q8 -4 14 0z" fill="url(#mGradL)"/>
+                <path d="M104 280 q8 -2 14 2 q4 28 -2 54 q-10 2 -14 -2 q-4 -26 2 -54z" fill="#5a2818" opacity=".4"/>
+                <path d="M276 280 q-8 -2 -14 2 q-4 28 2 54 q10 2 14 -2 q4 -26 -2 -54z" fill="#5a2818" opacity=".4"/>
+
+                <!-- HANDS -->
+                <ellipse cx="106" cy="354" rx="12" ry="16" fill="url(#sk)"/>
+                <ellipse cx="274" cy="354" rx="12" ry="16" fill="url(#sk)"/>
+                <path d="M100 358 l2 14 M106 360 l0 16 M112 358 l-2 14" stroke="#7c3a26" stroke-width=".8" fill="none" opacity=".6"/>
+                <path d="M280 358 l-2 14 M274 360 l0 16 M268 358 l2 14" stroke="#7c3a26" stroke-width=".8" fill="none" opacity=".6"/>
+
+                <!-- ABS/RECTUS ABDOMINIS - prominent 6-pack -->
+                <path d="M150 218 q40 -8 80 0 l-4 134 q-36 10 -72 0z" fill="url(#mGrad)"/>
+                <!-- abs cells -->
+                <g fill="#a85234" opacity=".75">
+                  <rect x="156" y="226" width="22" height="20" rx="3"/>
+                  <rect x="182" y="226" width="22" height="20" rx="3"/>
+                  <rect x="156" y="252" width="22" height="22" rx="3"/>
+                  <rect x="182" y="252" width="22" height="22" rx="3"/>
+                  <rect x="158" y="280" width="20" height="22" rx="3"/>
+                  <rect x="182" y="280" width="20" height="22" rx="3"/>
+                  <rect x="160" y="308" width="18" height="20" rx="3"/>
+                  <rect x="182" y="308" width="18" height="20" rx="3"/>
+                </g>
+                <!-- linea alba -->
+                <path d="M190 220 l0 130" stroke="#3a1810" stroke-width="1.5" fill="none" opacity=".7"/>
+                <!-- horizontal abs lines -->
+                <g stroke="#3a1810" stroke-width=".8" fill="none" opacity=".55">
+                  <path d="M152 248 q38 -4 76 0"/>
+                  <path d="M152 276 q38 -4 76 0"/>
+                  <path d="M154 304 q36 -4 72 0"/>
+                  <path d="M156 330 q34 -4 68 0"/>
+                </g>
+
+                <!-- SERRATUS / OBLIQUES -->
+                <path d="M148 224 q-10 50 -2 124 q-12 4 -16 -4 q-2 -64 6 -118 q4 -6 12 -2z" fill="#a85234" opacity=".7"/>
+                <path d="M232 224 q10 50 2 124 q12 4 16 -4 q2 -64 -6 -118 q-4 -6 -12 -2z" fill="#a85234" opacity=".7"/>
+                <!-- serratus finger striations -->
+                <g stroke="#5a2818" stroke-width=".8" fill="none" opacity=".55">
+                  <path d="M134 232 l14 4"/>
+                  <path d="M132 248 l16 4"/>
+                  <path d="M132 264 l16 4"/>
+                  <path d="M132 280 l16 4"/>
+                  <path d="M246 232 l-14 4"/>
+                  <path d="M248 248 l-16 4"/>
+                  <path d="M248 264 l-16 4"/>
+                  <path d="M248 280 l-16 4"/>
+                </g>
+
+                <!-- HIPS / inguinal area -->
+                <path d="M146 350 q44 14 88 0 q4 18 -4 36 q-40 14 -80 0 q-8 -18 -4 -36z" fill="url(#mGrad)"/>
+                <!-- inguinal V lines -->
+                <path d="M158 360 q32 8 64 0 l-12 22 q-20 6 -40 0z" fill="#5a2818" opacity=".55"/>
+                <path d="M170 366 l20 24 l20 -24" stroke="#3a1810" stroke-width="1.2" fill="none" opacity=".7"/>
+
+                <!-- QUADRICEPS - 4-headed thigh muscles -->
+                <path d="M150 384 q-10 70 -4 134 q18 8 32 -2 q6 -64 0 -130 q-14 -10 -28 -2z" fill="url(#mGrad)"/>
+                <path d="M230 384 q10 70 4 134 q-18 8 -32 -2 q-6 -64 0 -130 q14 -10 28 -2z" fill="url(#mGradL)"/>
+                <!-- vastus lateralis (outer) -->
+                <path d="M152 392 q-6 30 -4 90 q-10 0 -12 -8 q-2 -52 6 -84z" fill="#a85234" opacity=".6"/>
+                <path d="M228 392 q6 30 4 90 q10 0 12 -8 q2 -52 -6 -84z" fill="#a85234" opacity=".6"/>
+                <!-- vastus medialis (inner teardrop near knee) -->
+                <ellipse cx="174" cy="500" rx="10" ry="22" fill="#a85234" opacity=".7"/>
+                <ellipse cx="206" cy="500" rx="10" ry="22" fill="#a85234" opacity=".7"/>
+                <!-- rectus femoris center groove -->
+                <path d="M168 392 l4 0 l0 124 l-4 0z" fill="#3a1810" opacity=".5"/>
+                <path d="M208 392 l4 0 l0 124 l-4 0z" fill="#3a1810" opacity=".5"/>
+                <!-- striations -->
+                <g stroke="#3a1810" stroke-width=".7" fill="none" opacity=".4">
+                  <path d="M156 410 q12 -2 22 4"/>
+                  <path d="M156 440 q12 -2 22 4"/>
+                  <path d="M156 470 q12 -2 22 4"/>
+                  <path d="M224 410 q-12 -2 -22 4"/>
+                  <path d="M224 440 q-12 -2 -22 4"/>
+                  <path d="M224 470 q-12 -2 -22 4"/>
+                </g>
+
+                <!-- KNEES (patella) -->
+                <ellipse cx="166" cy="528" rx="14" ry="12" fill="url(#sk)"/>
+                <ellipse cx="214" cy="528" rx="14" ry="12" fill="url(#sk)"/>
+                <ellipse cx="166" cy="528" rx="9" ry="7" fill="#7c3a26" opacity=".5"/>
+                <ellipse cx="214" cy="528" rx="9" ry="7" fill="#7c3a26" opacity=".5"/>
+
+                <!-- CALVES (gastrocnemius) -->
+                <path d="M154 540 q-6 60 0 116 q14 4 24 -2 q2 -58 -4 -114 q-10 -4 -20 0z" fill="url(#mGrad)"/>
+                <path d="M226 540 q6 60 0 116 q-14 4 -24 -2 q-2 -58 4 -114 q10 -4 20 0z" fill="url(#mGradL)"/>
+                <!-- gastroc heads -->
+                <ellipse cx="164" cy="572" rx="8" ry="20" fill="#a85234" opacity=".7"/>
+                <ellipse cx="216" cy="572" rx="8" ry="20" fill="#a85234" opacity=".7"/>
+                <path d="M158 568 q10 -2 16 2 q2 26 -2 50 q-10 2 -14 -2 q-2 -24 0 -50z" fill="#5a2818" opacity=".4"/>
+                <path d="M222 568 q-10 -2 -16 2 q-2 26 2 50 q10 2 14 -2 q2 -24 0 -50z" fill="#5a2818" opacity=".4"/>
+                <!-- achilles taper -->
+                <path d="M160 640 q12 4 22 0 l-2 16 q-9 4 -18 0z" fill="#7c3a26"/>
+                <path d="M220 640 q-12 4 -22 0 l2 16 q9 4 18 0z" fill="#7c3a26"/>
+
+                <!-- FEET -->
+                <path d="M150 656 q-4 16 0 28 q14 6 28 -2 q4 -16 -2 -26 q-12 -4 -26 0z" fill="url(#sk)"/>
+                <path d="M210 656 q4 16 0 28 q-14 6 -28 -2 q-4 -16 2 -26 q12 -4 26 0z" fill="url(#sk)"/>
+                <!-- toes -->
+                <g fill="#7c3a26" opacity=".55">
+                  <ellipse cx="155" cy="688" rx="3" ry="4"/>
+                  <ellipse cx="162" cy="690" rx="3" ry="4"/>
+                  <ellipse cx="169" cy="690" rx="3" ry="4"/>
+                  <ellipse cx="176" cy="688" rx="3" ry="3"/>
+                  <ellipse cx="225" cy="688" rx="3" ry="4"/>
+                  <ellipse cx="218" cy="690" rx="3" ry="4"/>
+                  <ellipse cx="211" cy="690" rx="3" ry="4"/>
+                  <ellipse cx="204" cy="688" rx="3" ry="3"/>
+                </g>
+              </g>
+
+              <!-- highlights layer (no blur) -->
+              <g opacity=".55">
+                <path d="M160 168 q10 -4 16 4 q-2 14 -8 24" stroke="#ffd9c2" stroke-width="2" fill="none" stroke-linecap="round"/>
+                <path d="M220 168 q-10 -4 -16 4 q2 14 8 24" stroke="#ffd9c2" stroke-width="2" fill="none" stroke-linecap="round"/>
+                <path d="M114 210 q4 14 2 28" stroke="#ffd9c2" stroke-width="2" fill="none" stroke-linecap="round"/>
+                <path d="M266 210 q-4 14 -2 28" stroke="#ffd9c2" stroke-width="2" fill="none" stroke-linecap="round"/>
+                <path d="M158 400 q4 30 0 80" stroke="#ffd9c2" stroke-width="2" fill="none" stroke-linecap="round"/>
+                <path d="M222 400 q-4 30 0 80" stroke="#ffd9c2" stroke-width="2" fill="none" stroke-linecap="round"/>
+                <path d="M160 552 q4 30 0 70" stroke="#ffd9c2" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                <path d="M220 552 q-4 30 0 70" stroke="#ffd9c2" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+              </g>
+            </svg>
+
+                        <!-- pins -->
+            <div class="pin pin-protein"><span class="pdot"></span>Protein Clamp</div>
+            <div class="pin b pin-bases"><span class="pdot"></span>Between Bases</div>
+            <div class="pin pin-major"><span class="pdot"></span>Major Grove</div>
+            <div class="pin b pin-minor"><span class="pdot"></span>Minor Grove</div>
+          </div>
+
+          <div class="ruler">
+            <svg class="ruler-arc" viewBox="0 0 520 46" preserveAspectRatio="none">
+              <!-- arc baseline -->
+              <path d="M10 36 Q 260 -18 510 36" fill="none" stroke="currentColor" stroke-width="1"/>
+              <!-- ticks -->
+              <g stroke="currentColor" stroke-width="1" stroke-linecap="round">
+                <!-- generated ticks -->
+                <g id="ticks"></g>
+              </g>
+            </svg>
+            <div class="ruler-pin"></div>
+            <div class="ruler-label">3.8 nm</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =========== RIGHT =========== -->
+      <div class="right">
+
+        <div class="stats-row">
+          <div class="stat">
+            <div class="top">
+              <div class="label">
+                <span class="si">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2s6 7 6 12a6 6 0 1 1-12 0c0-5 6-12 6-12z"/></svg>
+                </span>
+                Blood Glucose
+              </div>
+              <span class="more">⋯</span>
+            </div>
+            <div class="num">98<span style="font-family:'Plus Jakarta Sans';font-size:18px;color:#9aa0ad;font-weight:600">/56</span></div>
+            <div class="foot"><span class="ok">Good</span></div>
+          </div>
+
+          <div class="stat">
+            <div class="top">
+              <div class="label">
+                <span class="si">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                </span>
+                Heart Rate
+              </div>
+              <span class="more">⋯</span>
+            </div>
+            <div class="num">108<span style="font-family:'Plus Jakarta Sans';font-size:14px;color:#9aa0ad;font-weight:600">/Bmp</span></div>
+            <div class="foot"><span class="ok">Good</span></div>
+          </div>
+        </div>
+
+        <!-- Heart rate gauge -->
+        <div class="heart-card">
+          <div class="head">
+            <div class="heart-title">
+              <span class="ti">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              </span>
+              Heart Rate
+            </div>
+            <span class="more" style="color:#9aa0ad;cursor:pointer">⋯</span>
+          </div>
+
+          <div class="gauge-wrap">
+            <svg class="gauge" viewBox="0 0 240 140">
+              <defs>
+                <linearGradient id="ggrad" x1="0" x2="1">
+                  <stop offset="0" stop-color="#ff4d6b"/>
+                  <stop offset=".5" stop-color="#ffb84d"/>
+                  <stop offset="1" stop-color="#ffd9c2"/>
+                </linearGradient>
+              </defs>
+              <!-- gauge ticks -->
+              <g id="gauge-ticks"></g>
+            </svg>
+            <span class="gauge-heart">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </span>
+            <div class="gauge-center">
+              <div class="gauge-num">80<small>BPM</small></div>
+              <div class="gauge-sub">Normal Heart Rate</div>
+            </div>
+          </div>
+
+          <div class="legend">
+            <span class="lg h"><span class="d"></span>High</span>
+            <span class="lg m"><span class="d"></span>Medium</span>
+            <span class="lg n"><span class="d"></span>Normal</span>
+            <span class="lg l"><span class="d"></span>Low</span>
+          </div>
+
+          <svg class="dna" viewBox="0 0 60 200" fill="none" stroke="#cfd4de" stroke-width="1.4">
+            <path d="M10 0 C 50 50, 10 100, 50 150"/>
+            <path d="M50 0 C 10 50, 50 100, 10 150"/>
+            <g stroke="#dfe3eb">
+              <line x1="14" y1="20" x2="46" y2="20"/>
+              <line x1="20" y1="40" x2="40" y2="40"/>
+              <line x1="20" y1="60" x2="40" y2="60"/>
+              <line x1="14" y1="80" x2="46" y2="80"/>
+              <line x1="20" y1="100" x2="40" y2="100"/>
+              <line x1="14" y1="120" x2="46" y2="120"/>
+              <line x1="20" y1="140" x2="40" y2="140"/>
+            </g>
+          </svg>
+        </div>
+
+        <!-- Cardiovascular -->
+        <div class="cardio">
+          <div class="head">
+            <div>
+              <div class="ttl">Cardiovascular System</div>
+              <div class="sub">Total average heart bpm</div>
+            </div>
+            <div class="seg">
+              <div class="s active">Heart Rate</div>
+            </div>
+          </div>
+
+          <div class="cardio-num">
+            <div class="big">78</div>
+            <div class="delta">2% <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg></div>
+            <div class="lab">Average BPM</div>
+          </div>
+
+          <div class="bars" id="bars"></div>
+          <div class="x-axis">
+            <span class="x-tick"><span class="td"></span>89%</span>
+            <span class="x-tick b"><span class="td"></span>89%</span>
+            <span class="x-tick r"><span class="td"></span>78%</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Tabs
+  document.querySelectorAll('.tab').forEach(t=>{
+    t.addEventListener('click',()=>{
+      document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+      t.classList.add('active');
+    });
+  });
+
+  // Ruler ticks (along arc)
+  (function(){
+    const g = document.getElementById('ticks');
+    if(!g) return;
+    const W = 520, count = 70;
+    let html = '';
+    for(let i=0;i<count;i++){
+      const t = i/(count-1);
+      const x = 10 + (W-20)*t;
+      // arc y at given x: same quadratic Q used in path
+      const y = (1-t)*(1-t)*36 + 2*(1-t)*t*(-18) + t*t*36;
+      const major = i%5===0;
+      const len = major?9:5;
+      html += `<line x1="${x}" y1="${y}" x2="${x}" y2="${y+len}" stroke-width="${major?1.2:.7}" />`;
+    }
+    g.innerHTML = html;
+  })();
+
+  // Gauge ticks (semicircle) – pink/red gradient bars
+  (function(){
+    const g = document.getElementById('gauge-ticks');
+    if(!g) return;
+    const cx=120, cy=120, r=92, count=44;
+    const start = Math.PI, end = 0; // top semicircle
+    let html='';
+    for(let i=0;i<count;i++){
+      const t = i/(count-1);
+      const a = start + (end-start)*t;
+      const x1 = cx + Math.cos(a)*r;
+      const y1 = cy + Math.sin(a)*r * -1; // flip y so curve is on top? we want top semicircle so y above cy
+      // actually we want y = cy - sin(angle)*r if angle from 0..pi sweeps top
+      const ang = Math.PI - t*Math.PI; // from PI to 0
+      const X1 = cx + Math.cos(ang)*r;
+      const Y1 = cy - Math.sin(ang)*r;
+      const X2 = cx + Math.cos(ang)*(r-18);
+      const Y2 = cy - Math.sin(ang)*(r-18);
+      // color: red->pink->soft, with pointer at ~0.45
+      let color;
+      if(t<0.45) color = `hsl(${350+t*15} 90% ${55+t*15}%)`;
+      else if(t<0.55) color = '#0e1116';
+      else color = `hsl(${20-t*5} 70% ${78-t*8}%)`;
+      const w = (Math.abs(t-0.5)<0.04)?3.2:2.2;
+      html += `<line x1="${X1}" y1="${Y1}" x2="${X2}" y2="${Y2}" stroke="${color}" stroke-width="${w}" stroke-linecap="round" />`;
+    }
+    // pointer dot at center top
+    g.innerHTML = html;
+  })();
+
+  // ===== Wire dashboard click targets to detail pages =====
+  window.MC_ROUTES = [
+    // Vital cards → patient chart vitals tab
+    {sel:'.vital:nth-of-type(1)', href:'pages/PatientChart.html#vitals', title:'View blood pressure history'},
+    {sel:'.vital:nth-of-type(2)', href:'pages/PatientChart.html#labs', title:'View lab results'},
+    // Appointment cards → patient chart
+    {sel:'.appt:nth-of-type(1)', href:'pages/PatientChart.html', title:'Open Albert Smith chart'},
+    {sel:'.appt:nth-of-type(2)', href:'pages/PatientChart.html', title:'Open patient chart'},
+    // CTA row buttons
+    {sel:'.cta-row .ico-circle[aria-label="send"]', href:'pages/Messages.html', title:'Send message'},
+    {sel:'.cta-row .ico-circle[aria-label="call"]', href:'pages/Messages.html', title:'Start call'},
+    {sel:'.cta-row .book', href:'pages/ScheduleAppointment.html', title:'Book appointment'},
+    // Cardiovascular card → patient chart
+    {sel:'.cardio', href:'pages/PatientChart.html#vitals', title:'View vitals trends'},
+    // Heart rate gauge → patient chart
+    {sel:'.gauge-wrap', href:'pages/PatientChart.html#vitals', title:'View heart rate'},
+    // Profile → settings
+    {sel:'.profile', href:'pages/Settings.html', title:'Account settings'},
+    {sel:'.icon-btn[aria-label="notifications"]', href:'pages/Messages.html', title:'Notifications'},
+    {sel:'.icon-btn[aria-label="search"]', href:'pages/Patients.html', title:'Search'},
+  ];
+
+  // Bars chart
+  (function(){
+    const wrap = document.getElementById('bars');
+    if(!wrap) return;
+    const N = 56;
+    // pseudo-random heights (deterministic)
+    let html='';
+    let seed=7;
+    function rnd(){ seed=(seed*9301+49297)%233280; return seed/233280; }
+    const peaks = [12, 28, 44]; // indices roughly aligned with x-axis ticks
+    for(let i=0;i<N;i++){
+      const base = 30 + rnd()*45;
+      const h = base + (i%3===0? 8:0);
+      const isPeak = peaks.includes(i) || (i===peaks[0]+1) || (i===peaks[1]+1) || (i===peaks[2]+1);
+      html += `<div class="bar${isPeak?' hi':''}" style="height:${Math.min(95,h)}%"></div>`;
+    }
+    wrap.innerHTML = html;
+  })();
+</script>
+<script src="scripts/router.js"></script>
+
+</body>
+</html>

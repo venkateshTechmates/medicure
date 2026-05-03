@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Pathology report</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin:8px 4px 22px;flex-wrap:wrap;gap:14px}
+  .head .h1{font-size:46px}
+  .head .meta{color:var(--ink-soft);font-size:13px;margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}
+  .head .meta b{color:var(--ink)}
+
+  .layout{display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start}
+  .card{padding:0;overflow:hidden}
+  .ch{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:14px}
+  .ch .t{font-weight:800;font-size:14px}
+  .ch .s{font-size:11px;color:var(--ink-mute);font-family:"JetBrains Mono",monospace}
+
+  /* Diagnosis hero */
+  .dx-hero{padding:22px;background:#0e1116;color:#fff}
+  .dx-hero .ck{display:flex;align-items:center;gap:10px;font-family:"JetBrains Mono",monospace;font-size:11px;color:rgba(255,255,255,.65);font-weight:700}
+  .dx-hero .ck b{color:#fff;letter-spacing:.05em}
+  .dx-hero h2{font-family:"Instrument Serif",serif;font-size:38px;line-height:1.1;letter-spacing:-.015em;margin:14px 0 6px;font-weight:400;max-width:90%}
+  .dx-hero .sub{font-size:14px;color:rgba(255,255,255,.78);max-width:80%;line-height:1.5}
+  .dx-tags{display:flex;gap:6px;margin-top:14px;flex-wrap:wrap;font-family:"JetBrains Mono",monospace}
+  .tag{background:rgba(255,255,255,.1);padding:5px 10px;border-radius:5px;font-size:10.5px;font-weight:700}
+  .tag.crit{background:#7a1f1f}
+  .tag.warn{background:#5c4108}
+  .tag.ok{background:#1a6d3c}
+
+  /* Synoptic */
+  .syn{padding:0}
+  .syn-row{display:grid;grid-template-columns:240px 1fr 90px;gap:14px;padding:11px 18px;border-top:1px solid var(--line);font-size:12px;align-items:baseline}
+  .syn-row:first-child{border-top:0}
+  .syn-row .l{color:var(--ink-mute);font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+  .syn-row .v{font-weight:700;line-height:1.5}
+  .syn-row .v small{display:block;color:var(--ink-mute);font-weight:500;font-size:10.5px;margin-top:2px;font-family:"JetBrains Mono",monospace}
+  .syn-row .pT{font-family:"JetBrains Mono",monospace;font-weight:800;text-align:right;font-size:11px}
+  .pT.bad{color:#c43c3c}
+  .pT.warn{color:#a06e0d}
+  .pT.ok{color:#1a8a48}
+
+  /* Sections — gross/micro */
+  .sec-body{padding:18px;font-size:13px;line-height:1.65;color:var(--ink-soft)}
+  .sec-body p{margin:0 0 12px}
+  .sec-body p b{color:var(--ink)}
+  .sec-body .term{background:#fff5e2;padding:0 3px;border-radius:3px;font-weight:700;color:#5c4108}
+
+  /* Specimen list */
+  .sp-row{display:grid;grid-template-columns:80px 1fr 90px 90px;gap:10px;padding:11px 18px;border-top:1px solid var(--line);font-size:11.5px;align-items:center}
+  .sp-row.h{font-size:9.5px;font-weight:800;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;background:#fafbfc;border-top:0;padding:8px 18px}
+  .sp-row .id{font-family:"JetBrains Mono",monospace;font-weight:800}
+  .sp-row .nm{font-weight:700}
+  .sp-row .nm small{display:block;color:var(--ink-mute);font-weight:500;font-size:10.5px;margin-top:2px;font-family:"JetBrains Mono",monospace}
+
+  /* IHC panel */
+  .ihc{padding:14px 18px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .ihc-cell{background:#fafbfc;border:1px solid var(--line);border-radius:10px;padding:11px}
+  .ihc-cell .nm{font-weight:800;font-size:12px}
+  .ihc-cell .nm small{display:block;color:var(--ink-mute);font-weight:500;font-size:9.5px;margin-top:1px;font-family:"JetBrains Mono",monospace}
+  .ihc-cell .res{font-family:"Instrument Serif",serif;font-size:24px;line-height:1;margin-top:8px;letter-spacing:-.01em}
+  .ihc-cell .pct{font-size:10.5px;color:var(--ink-mute);font-family:"JetBrains Mono",monospace;margin-top:3px}
+  .ihc-cell.pos{background:#ffe3e3;border-color:#e29292}
+  .ihc-cell.pos .res{color:#7a1f1f}
+  .ihc-cell.neg .res{color:#1a6d3c}
+  .ihc-cell.equ{background:#fff5e2;border-color:#e8c779}
+  .ihc-cell.equ .res{color:#5c4108}
+
+  /* Slide thumbnails */
+  .slides{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px}
+  .slide{aspect-ratio:1.25;border-radius:10px;overflow:hidden;position:relative;background:#fafbfc;border:1px solid var(--line);cursor:pointer}
+  .slide:hover{border-color:#0e1116}
+  .slide .img{width:100%;height:100%}
+  .slide .lbl{position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.7);color:#fff;padding:3px 8px;border-radius:4px;font-size:10px;font-family:"JetBrains Mono",monospace;font-weight:700}
+  .slide .stain{position:absolute;right:8px;top:8px;background:rgba(255,255,255,.95);color:#0e1116;padding:3px 7px;border-radius:4px;font-size:9.5px;font-family:"JetBrains Mono",monospace;font-weight:800}
+
+  /* Sign-out timeline */
+  .so-row{display:grid;grid-template-columns:80px 1fr 100px;gap:10px;padding:9px 18px;border-top:1px solid var(--line);font-size:11.5px;align-items:center}
+  .so-row:first-child{border-top:0}
+  .so-row .when{font-family:"JetBrains Mono",monospace;font-weight:700;color:var(--ink-mute);font-size:10.5px}
+  .so-row .who{font-weight:700}
+  .so-row .who small{display:block;color:var(--ink-mute);font-weight:500;font-size:10px;margin-top:1px;font-family:"JetBrains Mono",monospace}
+  .so-row .pill{font-size:9.5px;font-weight:800;padding:3px 8px;border-radius:5px;text-align:center;text-transform:uppercase}
+  .pill.fin{background:#dff7e7;color:#1a6d3c}
+  .pill.draft{background:#fff5e2;color:#a06e0d}
+  .pill.assign{background:#fafbfc;color:var(--ink-mute)}
+
+  /* Mol */
+  .mol{padding:0}
+  .mol-row{display:grid;grid-template-columns:160px 1fr 130px;gap:10px;padding:10px 18px;border-top:1px solid var(--line);font-size:11.5px;align-items:center}
+  .mol-row:first-child{border-top:0}
+  .mol-row .gn{font-weight:800;font-family:"JetBrains Mono",monospace}
+  .mol-row .vr{font-family:"JetBrains Mono",monospace;font-size:11px}
+  .mol-row .vr.pos{color:#c43c3c;font-weight:800}
+  .mol-row .vr.neg{color:#1a8a48;font-weight:700}
+  .mol-row .stat{font-family:"JetBrains Mono",monospace;font-size:10px;font-weight:700;color:var(--ink-mute);text-align:right}
+
+  /* Stains thumbs (CSS-painted "tissue") */
+  .he-bg{background:
+    radial-gradient(circle at 20% 30%, rgba(196,60,60,.5) 0 18px, transparent 19px),
+    radial-gradient(circle at 70% 60%, rgba(196,60,60,.6) 0 14px, transparent 15px),
+    radial-gradient(circle at 40% 80%, rgba(196,60,60,.4) 0 22px, transparent 23px),
+    radial-gradient(circle at 80% 20%, rgba(120,60,180,.4) 0 16px, transparent 17px),
+    radial-gradient(circle at 50% 50%, rgba(196,60,60,.3) 0 30px, transparent 31px),
+    radial-gradient(circle at 30% 60%, rgba(120,60,180,.3) 0 18px, transparent 19px),
+    linear-gradient(135deg,#fcd6dd,#f49aab)}
+  .ihc-bg{background:
+    radial-gradient(circle at 30% 40%, rgba(150,80,40,.7) 0 14px, transparent 15px),
+    radial-gradient(circle at 70% 50%, rgba(150,80,40,.6) 0 20px, transparent 21px),
+    radial-gradient(circle at 50% 75%, rgba(80,40,20,.5) 0 16px, transparent 17px),
+    radial-gradient(circle at 20% 80%, rgba(150,80,40,.5) 0 18px, transparent 19px),
+    linear-gradient(135deg,#e8d5c4,#c19a7e)}
+  .gross-bg{background:
+    radial-gradient(circle at 50% 50%, rgba(180,80,80,.7) 0 60px, transparent 61px),
+    radial-gradient(circle at 70% 30%, rgba(120,40,40,.5) 0 18px, transparent 19px),
+    linear-gradient(135deg,#fdb6b6,#e07171)}
+  .her2-bg{background:
+    radial-gradient(circle at 30% 35%, rgba(80,40,20,.85) 0 14px, transparent 15px),
+    radial-gradient(circle at 65% 55%, rgba(80,40,20,.85) 0 18px, transparent 19px),
+    radial-gradient(circle at 45% 75%, rgba(80,40,20,.7) 0 12px, transparent 13px),
+    linear-gradient(135deg,#e8d5c4,#a37855)}
+</style></head>
+<body data-page="overview" data-base="../">
+
+<div class="page" style="max-width:1500px"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div data-bc='[{"label":"Lab"},{"label":"Pathology"},{"label":"S26-12882 — Voss, M."}]'></div>
+
+  <div class="head">
+    <div>
+      <h1 class="h1">Surgical pathology</h1>
+      <div class="meta">
+        <span><b>S26-12882</b> · final report · v1</span>
+        <span>Margaret Voss · F · 71 · MRN 7741281</span>
+        <span>Submitted 2026-04-14 · signed-out 2026-04-22 16:08</span>
+        <span>Pathologist · <b>Dr. R. Eshcol, MD</b></span>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn">⤓ PDF</button>
+      <button class="btn">+ Addendum</button>
+      <button class="btn primary">Send to ordering MD →</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- LEFT -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <div class="card">
+        <div class="dx-hero">
+          <div class="ck">
+            <span><b>FINAL DIAGNOSIS</b></span><span>·</span><span>S26-12882</span><span>·</span><span>signed-out 04/22 16:08</span>
+          </div>
+          <h2>Invasive ductal carcinoma · grade 2 of 3 · 2.4 cm · margins free · 1 of 4 sentinel nodes positive (micrometastasis 1.8 mm)</h2>
+          <div class="sub">A. Right breast, 2-o'clock, lumpectomy: invasive ductal carcinoma (NST), Nottingham grade 2 (3+2+2=7), 2.4 cm. Lymphovascular invasion present. All inked margins negative (closest 4 mm, posterior).</div>
+          <div class="dx-tags">
+            <span class="tag warn">pT2</span>
+            <span class="tag warn">pN1mi</span>
+            <span class="tag ok">pMx</span>
+            <span class="tag crit">ER+ 95% strong</span>
+            <span class="tag crit">PR+ 80% strong</span>
+            <span class="tag ok">HER2 1+ neg</span>
+            <span class="tag warn">Ki-67 18%</span>
+            <span class="tag">Oncotype pending</span>
+          </div>
+        </div>
+
+        <div class="syn">
+          <div class="syn-row"><span class="l">Specimen</span><span class="v">R breast lumpectomy + L1+L2 SLNB<small>3 specimens · gross 04-14 · final 04-22</small></span><span class="pT">A · B · C</span></div>
+          <div class="syn-row"><span class="l">Procedure</span><span class="v">Partial mastectomy w/ wire-loc · sentinel LN biopsy<small>OR1 · Dr. Hatcher · 04-14</small></span><span class="pT"></span></div>
+          <div class="syn-row"><span class="l">Histologic type</span><span class="v">Invasive ductal carcinoma, no special type (NST)<small>WHO 2019 · IDC of breast</small></span><span class="pT"></span></div>
+          <div class="syn-row"><span class="l">Tumor size</span><span class="v">2.4 cm (greatest dim, gross + micro)<small>upper outer quadrant · 2-o'clock</small></span><span class="pT bad">pT2</span></div>
+          <div class="syn-row"><span class="l">Nottingham grade</span><span class="v">Grade 2 of 3 (score 7)<small>tubule 3 · pleomorph 2 · mitoses 2 (8/10 HPF)</small></span><span class="pT warn">G2</span></div>
+          <div class="syn-row"><span class="l">Margins</span><span class="v">All inked margins negative<small>closest 4 mm posterior · ant 8 · sup 12 · inf 9 · med 7 · lat 6</small></span><span class="pT ok">free</span></div>
+          <div class="syn-row"><span class="l">Lymphovascular invasion</span><span class="v">Present<small>peritumoral · &gt; 3 foci</small></span><span class="pT bad">+</span></div>
+          <div class="syn-row"><span class="l">Sentinel nodes</span><span class="v">1 of 4 positive · micrometastasis 1.8 mm<small>L1 (+ micromet) · L2/L3/L4 negative · no extranodal extension</small></span><span class="pT warn">pN1mi</span></div>
+          <div class="syn-row"><span class="l">Stage (AJCC 8e)</span><span class="v">pT2 pN1mi pMx · prognostic stage IIA<small>requires ER/PR/HER2/grade for prognostic — see addendum</small></span><span class="pT bad">IIA</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Specimens received</span><span class="s">3 parts · A B C</span></div>
+        <div class="sp-row h"><span>Part</span><span>Description / source</span><span>Cassettes</span><span>Slides</span></div>
+        <div class="sp-row"><span class="id">A</span><span class="nm">R breast partial mastectomy<small>72 g · 6.4 × 5.1 × 3.0 cm · oriented (sutures: short=sup, long=lat)</small></span><span style="font-family:'JetBrains Mono',monospace">A1–A14</span><span style="font-family:'JetBrains Mono',monospace">14 H&E + 6 IHC</span></div>
+        <div class="sp-row"><span class="id">B</span><span class="nm">SLN — first echelon<small>L axilla · 4 nodes (largest 1.4 cm)</small></span><span style="font-family:'JetBrains Mono',monospace">B1–B4</span><span style="font-family:'JetBrains Mono',monospace">4 H&E + CK</span></div>
+        <div class="sp-row"><span class="id">C</span><span class="nm">Cavity shave margins<small>6 separately oriented shaves: ant/post/sup/inf/med/lat</small></span><span style="font-family:'JetBrains Mono',monospace">C1–C6</span><span style="font-family:'JetBrains Mono',monospace">6 H&E</span></div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Gross description</span><span class="s">Entered by Dr. R. Eshcol · 04-14 17:22</span></div>
+        <div class="sec-body">
+          <p><b>Specimen A</b> — Received fresh, labeled "right breast partial mastectomy, short stitch superior, long stitch lateral", consisting of an oriented portion of fibrofatty breast tissue measuring 6.4 × 5.1 × 3.0 cm and weighing 72 g. The specimen is inked: <span class="term">anterior — blue</span>, <span class="term">posterior — black</span>, <span class="term">superior — green</span>, <span class="term">inferior — yellow</span>, <span class="term">medial — red</span>, <span class="term">lateral — orange</span>. Serial sectioning reveals a <b>firm, gritty, white-tan, stellate mass measuring 2.4 × 1.9 × 1.6 cm</b>, located 4 mm from the closest (posterior) margin. The remaining parenchyma shows yellow-tan adipose tissue with focal areas of fibrosis. Representative sections in cassettes A1–A14.</p>
+          <p><b>Specimen B</b> — Received in formalin, labeled "left axillary sentinel nodes", consisting of four (4) tan-pink lymph nodes, ranging from 0.6 to 1.4 cm. Each is bisected and submitted entirely; B1 = node 1 (1.4 cm, gross unremarkable); B2-B4 likewise.</p>
+          <p><b>Specimen C</b> — Received in formalin, labeled "cavity shaves", consisting of six (6) separately oriented and inked tissue fragments, each ranging from 0.5–1.2 cm in greatest dimension. Each is submitted entirely; C1=anterior, C2=posterior, C3=superior, C4=inferior, C5=medial, C6=lateral.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Microscopic description</span></div>
+        <div class="sec-body">
+          <p><b>A1–A8 (tumor)</b> — Sections show an <span class="term">invasive ductal carcinoma</span> arranged in nests, cords, and tubules, infiltrating fibrous stroma. Tubule formation in &lt;10% of the tumor (score 3). Nuclei are mildly enlarged with moderate pleomorphism (score 2). Mitotic count is <b>8 mitoses per 10 HPF</b> (score 2). <b>Nottingham grade 2 of 3 (score 7)</b>. Foci of <span class="term">lymphovascular invasion</span> are identified at the periphery, &gt; 3 foci. No definite perineural invasion. Adjacent ductal carcinoma in situ, low-intermediate grade, cribriform pattern, ~5% of tumor volume; no necrosis, no microcalcifications in DCIS.</p>
+          <p><b>A9–A14 (margins, normal parenchyma)</b> — All inked margins are <b>negative for invasive carcinoma and DCIS</b>. Closest margin is posterior at <b>4 mm</b>. Background breast shows usual ductal hyperplasia and columnar cell change.</p>
+          <p><b>B1 (SLN-1)</b> — One focus of <span class="term">tumor cells measuring 1.8 mm</span> in greatest dimension within the subcapsular sinus, confirmed on cytokeratin (AE1/AE3) immunostain. Consistent with <b>micrometastasis (pN1mi)</b>. No extranodal extension. <b>B2–B4</b> — negative for metastatic carcinoma on H&E and CK; isolated tumor cells not identified.</p>
+          <p><b>C1–C6</b> — All shave margins negative for invasive carcinoma and DCIS.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <div class="card">
+        <div class="ch"><span class="t">Slides · A8 region</span><span class="s">14 H&E · 6 IHC · scanned</span></div>
+        <div class="slides">
+          <div class="slide"><div class="img gross-bg"></div><div class="stain">GROSS</div><div class="lbl">A · 04-14</div></div>
+          <div class="slide"><div class="img he-bg"></div><div class="stain">H&E 4×</div><div class="lbl">A8 · IDC</div></div>
+          <div class="slide"><div class="img ihc-bg"></div><div class="stain">ER</div><div class="lbl">A8 · 95%+</div></div>
+          <div class="slide"><div class="img her2-bg"></div><div class="stain">HER2 IHC</div><div class="lbl">A8 · 1+</div></div>
+          <div class="slide"><div class="img he-bg"></div><div class="stain">H&E SLN</div><div class="lbl">B1 · 1.8mm</div></div>
+          <div class="slide"><div class="img ihc-bg"></div><div class="stain">CK AE1/3</div><div class="lbl">B1 · pos</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">IHC · biomarker panel</span><span class="s">CAP-validated · 04-19</span></div>
+        <div class="ihc">
+          <div class="ihc-cell pos"><div class="nm">ER<small>SP1 · clone</small></div><div class="res">Positive</div><div class="pct">95% · strong</div></div>
+          <div class="ihc-cell pos"><div class="nm">PR<small>1E2 · clone</small></div><div class="res">Positive</div><div class="pct">80% · strong</div></div>
+          <div class="ihc-cell neg"><div class="nm">HER2 IHC<small>4B5</small></div><div class="res">1+</div><div class="pct">negative</div></div>
+          <div class="ihc-cell neg"><div class="nm">Ki-67<small>MIB-1</small></div><div class="res">18%</div><div class="pct">low–int</div></div>
+          <div class="ihc-cell neg"><div class="nm">E-cadherin</div><div class="res">Pos</div><div class="pct">membranous</div></div>
+          <div class="ihc-cell neg"><div class="nm">p120</div><div class="res">Memb</div><div class="pct">— not LCIS</div></div>
+          <div class="ihc-cell neg"><div class="nm">CK AE1/3<br><small>SLN B1</small></div><div class="res">Pos</div><div class="pct">1.8mm focus</div></div>
+          <div class="ihc-cell equ"><div class="nm">HER2 ISH<small>reflex</small></div><div class="res">N/A</div><div class="pct">not indicated · IHC 1+</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Molecular / send-out</span><span class="s">Pending</span></div>
+        <div class="mol">
+          <div class="mol-row"><span class="gn">Oncotype DX</span><span class="vr">Recurrence Score · prognostic + chemo benefit (TAILORx)</span><span class="stat">PENDING<br>~10 d</span></div>
+          <div class="mol-row"><span class="gn">BRCA1 / BRCA2</span><span class="vr">germline · per genetic counseling — referred</span><span class="stat">REFERRED<br>genetics</span></div>
+          <div class="mol-row"><span class="gn">PIK3CA hot-spot</span><span class="vr">considered if mets · not on this specimen</span><span class="stat">N/A</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Sign-out chain</span><span class="s">Resident → attending → final</span></div>
+        <div class="so-row"><span class="when">04-14<br>14:08</span><span class="who">Specimen accessioned<small>S26-12882 · gross-room</small></span><span class="pill assign">received</span></div>
+        <div class="so-row"><span class="when">04-14<br>17:22</span><span class="who">Gross — Dr. P. Garg, PGY-3<small>3 parts described · A1–A14, B1–B4, C1–C6</small></span><span class="pill draft">grossed</span></div>
+        <div class="so-row"><span class="when">04-15<br>09:14</span><span class="who">Slides cut + H&E stained<small>histology · Tech B. Lee</small></span><span class="pill assign">stained</span></div>
+        <div class="so-row"><span class="when">04-19<br>11:40</span><span class="who">IHC ER · PR · HER2 · Ki-67 · CK<small>auto-stainer · validated controls passed</small></span><span class="pill assign">IHC</span></div>
+        <div class="so-row"><span class="when">04-21<br>13:02</span><span class="who">Preview · Dr. P. Garg<small>diagnosis drafted · sent to attending</small></span><span class="pill draft">draft</span></div>
+        <div class="so-row"><span class="when">04-22<br>16:08</span><span class="who">Final sign-out · Dr. R. Eshcol, MD<small>electronic signature · CAP-templated synoptic</small></span><span class="pill fin">FINAL</span></div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Clinical correlation</span></div>
+        <div style="padding:12px 16px;font-size:11.5px;line-height:1.55">
+          <div style="padding:8px 10px;background:#e6efff;border-radius:8px;margin-bottom:6px"><b style="color:#1a4fb3">Tumor board</b> — case scheduled for breast MDT 04-25 · CAP-templated report attached.</div>
+          <div style="padding:8px 10px;background:#fff5e2;border-radius:8px;margin-bottom:6px"><b style="color:#5c4108">Adjuvant decision</b> — pN1mi + LVI + grade 2 → consider chemo per Oncotype RS; awaiting result.</div>
+          <div style="padding:8px 10px;background:#dff7e7;border-radius:8px"><b style="color:#1a6d3c">Endocrine therapy</b> — strong ER+/PR+ supports adjuvant endocrine therapy; HER2 1+ → no anti-HER2 therapy.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div></div>
+
+<script src="../scripts/nav.js"></script>
+<script src="../scripts/breadcrumbs.js"></script>
+</body></html>

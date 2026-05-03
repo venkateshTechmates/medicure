@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Pharmacy verify queue</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .crumb{font-size:11px;color:var(--ink-mute);margin:4px 0 14px;display:flex;gap:6px}
+  .crumb a{color:var(--ink-soft);text-decoration:none}.crumb .cur{color:var(--ink)}
+
+  .head{display:flex;justify-content:space-between;align-items:flex-end;margin:0 4px 18px;flex-wrap:wrap;gap:12px}
+  .head .h1{font-size:54px}
+
+  .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:18px}
+  .kpi{background:#fff;border-radius:16px;padding:14px;box-shadow:var(--shadow)}
+  .kpi .l{font-size:10px;color:var(--ink-mute);font-weight:700;text-transform:uppercase}
+  .kpi .v{font-family:"Instrument Serif",serif;font-size:30px;letter-spacing:-.02em;line-height:1;margin-top:6px}
+
+  .layout{display:grid;grid-template-columns:380px 1fr;gap:14px;align-items:start}
+
+  .queue{background:#fff;border-radius:18px;padding:14px;box-shadow:var(--shadow);max-height:78vh;overflow-y:auto}
+  .qrow{padding:12px;border-radius:12px;border:1px solid transparent;margin-bottom:6px;cursor:pointer;font-size:12px;transition:.15s}
+  .qrow:hover{background:#fafbfc}
+  .qrow.active{background:#0e1116;color:#fff;border-color:#0e1116}
+  .qrow .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+  .qrow .drug{font-weight:800;font-size:13px;line-height:1.2}
+  .qrow .pt{font-size:11px;opacity:.85;margin-top:2px}
+  .qrow .meta{font-size:10px;opacity:.7;font-family:'SF Mono',monospace;margin-top:4px}
+  .qrow .age{font-family:'SF Mono',monospace;font-weight:800;font-size:11px}
+  .badge{padding:2px 6px;border-radius:5px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+  .b-stat{background:#ff4d6b;color:#fff}.b-iv{background:#3a86ff;color:#fff}.b-narc{background:#ffb84d;color:#0e1116}.b-new{background:#27c26b;color:#fff}
+
+  /* Detail */
+  .detail{background:#fff;border-radius:18px;padding:22px;box-shadow:var(--shadow)}
+  .detail .pt-head{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;padding-bottom:14px;border-bottom:1px solid var(--line);margin-bottom:14px}
+  .detail .pic{width:54px;height:54px;border-radius:14px;background:center/cover}
+  .detail .nm{font-family:"Instrument Serif",serif;font-size:26px;letter-spacing:-.02em;line-height:1}
+  .detail .meta{font-size:11px;color:var(--ink-mute);margin-top:3px;display:flex;gap:14px;flex-wrap:wrap}
+  .detail .meta b{color:var(--ink)}
+
+  .order-card{background:#fafbfc;border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
+  .order-card h4{margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-mute);font-weight:800;display:flex;justify-content:space-between}
+  .order-card .drug{font-family:"Instrument Serif",serif;font-size:24px;letter-spacing:-.02em;line-height:1.1}
+  .order-card .sig{font-size:13px;color:var(--ink-soft);margin-top:4px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+  .row .blk{font-size:11px}
+  .row .blk .k{color:var(--ink-mute);text-transform:uppercase;font-size:9px;font-weight:800;letter-spacing:.04em}
+  .row .blk .v{font-weight:700;font-size:13px;margin-top:2px}
+
+  .checks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+  .check{padding:10px 12px;background:#fafbfc;border:1px solid var(--line);border-radius:10px;display:flex;align-items:center;gap:10px;font-size:11px}
+  .check .ic{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:12px;flex:none}
+  .check.ok .ic{background:#dff7e7;color:#1a8a48}.check.ok{border-color:#27c26b;background:#f4fbf6}
+  .check.warn .ic{background:#fff3df;color:#a05a00}.check.warn{border-color:#ffb84d;background:#fff9ef}
+  .check.bad .ic{background:#ffe7eb;color:#b3263d}.check.bad{border-color:#ff4d6b;background:#fff5f7}
+  .check .t{font-weight:800;font-size:11px}
+  .check .b{font-size:10px;color:var(--ink-mute);margin-top:2px}
+
+  /* CrCl, dose calc */
+  .calc{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;background:#0e1116;color:#fff;border-radius:14px;padding:14px;margin-top:14px}
+  .calc .blk{display:flex;flex-direction:column;gap:2px}
+  .calc .l{font-size:9px;color:#9aa0ad;text-transform:uppercase;font-weight:700;letter-spacing:.04em}
+  .calc .v{font-family:'Instrument Serif',serif;font-size:22px;line-height:1}
+
+  .actions{display:flex;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+  .actions .btn{flex:1;justify-content:center}
+  .actions .btn.primary{background:#27c26b}
+
+  .filters{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+  .filters .filt{padding:6px 10px;border-radius:999px;font:700 10px "Plus Jakarta Sans";background:#f4f6f9;cursor:pointer;border:0}
+  .filters .filt.active{background:#0e1116;color:#fff}
+</style></head>
+<body data-page="pharmacy" data-base="../">
+
+<div class="page"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div class="crumb"><a href="Pharmacy.html">Pharmacy</a> › <span class="cur">Verification queue</span></div>
+
+  <div class="head">
+    <div><h1 class="h1">Verify queue</h1><div style="font-size:13px;color:var(--ink-soft);margin-top:4px">PharmD M. Cole · 22 awaiting · oldest 8 min · target ≤15 min</div></div>
+    <div style="display:flex;gap:8px"><button class="btn">My queue</button><button class="btn">All pharmacists</button><button class="btn primary">Take next</button></div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="l">In queue</div><div class="v">22</div></div>
+    <div class="kpi"><div class="l">STAT</div><div class="v" style="color:var(--bad)">3</div></div>
+    <div class="kpi"><div class="l">Verified today</div><div class="v">142</div></div>
+    <div class="kpi"><div class="l">Avg verify time</div><div class="v">3m 14s</div></div>
+    <div class="kpi"><div class="l">Pharmacist online</div><div class="v">5</div></div>
+    <div class="kpi"><div class="l">Held / clarify</div><div class="v">8</div></div>
+  </div>
+
+  <div class="layout">
+    <!-- Queue -->
+    <div class="queue">
+      <div class="filters">
+        <button class="filt active">All (22)</button>
+        <button class="filt">STAT (3)</button>
+        <button class="filt">IV (8)</button>
+        <button class="filt">Narc (4)</button>
+        <button class="filt">High-alert (2)</button>
+      </div>
+
+      <div class="qrow"><div class="top"><span class="badge b-stat">STAT</span><span class="age">8m</span></div><div class="drug">Vancomycin 1500 mg IV</div><div class="pt">Aria Chen · F 34 · ICU-12</div><div class="meta">Dr. Achebe · MRSA bact</div></div>
+      <div class="qrow active"><div class="top"><span class="badge b-iv">IV</span><span class="age">5m</span></div><div class="drug">Heparin gtt 18 U/kg/hr</div><div class="pt">Idris Bello · M 67 · CCU-04</div><div class="meta">Dr. Vasquez · PE</div></div>
+      <div class="qrow"><div class="top"><span class="badge b-stat">STAT</span><span class="age">5m</span></div><div class="drug">Tenecteplase 50 mg IV</div><div class="pt">Tomás Rivera · M 58 · ED-4</div><div class="meta">Dr. Lin · STEMI</div></div>
+      <div class="qrow"><div class="top"><span class="badge b-narc">NARC</span><span class="age">4m</span></div><div class="drug">Hydromorphone 1 mg IV q4h PRN</div><div class="pt">Marcus Holloway · M 42 · M-08</div><div class="meta">Dr. Vasquez · post-op</div></div>
+      <div class="qrow"><div class="top"><span class="badge b-new">NEW</span><span class="age">3m</span></div><div class="drug">Cefepime 2 g IV q8h</div><div class="pt">Helen Okonkwo · F 71 · CCU-02</div><div class="meta">Dr. Mendez · pneumonia</div></div>
+      <div class="qrow"><div class="top"><span class="badge b-iv">IV</span><span class="age">3m</span></div><div class="drug">KCl 40 mEq IV in 250 mL NS</div><div class="pt">Sandra Pham · F 64 · M-22</div><div class="meta">K 2.8</div></div>
+      <div class="qrow"><div class="top"><span class="badge b-narc">NARC</span><span class="age">2m</span></div><div class="drug">Oxycodone 5 mg PO q6h</div><div class="pt">Patricia Wills · F 64 · OR-2</div><div class="meta">Post-op TKA</div></div>
+      <div class="qrow"><div class="top"><span class="badge b-new">NEW</span><span class="age">2m</span></div><div class="drug">Insulin gtt · DKA protocol</div><div class="pt">Joelle Kim · F 14 · P-11</div><div class="meta">Glu 612</div></div>
+      <div class="qrow"><div class="top"><span class="badge b-iv">IV</span><span class="age">1m</span></div><div class="drug">NS bolus 1 L ×2</div><div class="pt">Selene Vargas · F 24 · ED-2</div><div class="meta">Hypovolemia</div></div>
+      <div class="qrow"><div class="top"><span class="badge b-new">NEW</span><span class="age">1m</span></div><div class="drug">Ondansetron 4 mg IV q8h PRN</div><div class="pt">Albert Smith · M 9 · P-14</div><div class="meta">Nausea</div></div>
+      <div class="qrow"><div class="top"><span class="badge b-narc">NARC</span><span class="age">0m</span></div><div class="drug">Fentanyl 50 mcg IV q1h PRN</div><div class="pt">Helen Okonkwo · F 71 · OR-3</div><div class="meta">Intra-op</div></div>
+      <div class="qrow"><div class="top"><span class="badge b-new">NEW</span><span class="age">0m</span></div><div class="drug">Methylprednisolone 40 mg IV</div><div class="pt">Albert Smith · M 9 · P-14</div><div class="meta">Asthma exac</div></div>
+    </div>
+
+    <!-- Detail -->
+    <div class="detail">
+      <div class="pt-head">
+        <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1560250097-0b93528c311a?w=120&h=120&fit=crop&crop=faces')"></div>
+        <div>
+          <div class="nm">Idris Bello</div>
+          <div class="meta">
+            <span><b>M · 67</b></span><span><b>MRN</b> 8814</span>
+            <span><b>CCU-04</b></span><span><b>Wt</b> 92 kg</span>
+            <span><b>Allergies</b> NKDA</span>
+            <span><b>SCr</b> 1.1 · CrCl 78</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px"><a href="PatientChart.html" class="btn" style="text-decoration:none">Chart</a><button class="btn">Profile review</button></div>
+      </div>
+
+      <div class="order-card">
+        <h4><span>Order #PHX-44218 · received 11:43</span><span class="pill bad"><span class="pdot"></span>High-alert</span></h4>
+        <div class="drug">Heparin sodium · weight-based gtt</div>
+        <div class="sig">18 units/kg/hr IV continuous · max 1800 U/hr · titrate per nomogram · aPTT q6h</div>
+        <div class="row">
+          <div class="blk"><div class="k">Indication</div><div class="v">PE · acute</div></div>
+          <div class="blk"><div class="k">Ordered by</div><div class="v">Dr. R. Vasquez</div></div>
+          <div class="blk"><div class="k">Bolus</div><div class="v">80 U/kg = 7360 U</div></div>
+          <div class="blk"><div class="k">Initial rate</div><div class="v">18 U/kg/hr = 1656 U/hr</div></div>
+          <div class="blk"><div class="k">Concentration</div><div class="v">25,000 U / 250 mL D5W</div></div>
+          <div class="blk"><div class="k">Duration</div><div class="v">Until therapeutic + 24h</div></div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr;gap:0">
+        <h4 style="margin:6px 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-mute);font-weight:800">Pharmacist 7-rights check</h4>
+        <div class="checks">
+          <div class="check ok"><div class="ic">✓</div><div><div class="t">Right patient</div><div class="b">2-ID match · MRN 8814</div></div></div>
+          <div class="check ok"><div class="ic">✓</div><div><div class="t">Right drug</div><div class="b">Heparin Na · USP grade</div></div></div>
+          <div class="check ok"><div class="ic">✓</div><div><div class="t">Right dose</div><div class="b">18 U/kg/hr · 92 kg → 1656 U/hr ✓</div></div></div>
+          <div class="check ok"><div class="ic">✓</div><div><div class="t">Right route</div><div class="b">IV continuous · pump #4421</div></div></div>
+          <div class="check ok"><div class="ic">✓</div><div><div class="t">Right time</div><div class="b">Start 14:00 · ASAP</div></div></div>
+          <div class="check ok"><div class="ic">✓</div><div><div class="t">Right indication</div><div class="b">PE confirmed CT 11:42</div></div></div>
+          <div class="check warn"><div class="ic">!</div><div><div class="t">Right monitoring</div><div class="b">aPTT q6h required · last 28 (low)</div></div></div>
+          <div class="check ok"><div class="ic">✓</div><div><div class="t">Allergy / contra</div><div class="b">No HIT history · NKDA</div></div></div>
+        </div>
+      </div>
+
+      <div class="calc">
+        <div class="blk"><div class="l">Wt-based dose</div><div class="v">1656 U/hr</div></div>
+        <div class="blk"><div class="l">Bolus</div><div class="v">7360 U</div></div>
+        <div class="blk"><div class="l">aPTT goal</div><div class="v">60–90 s</div></div>
+        <div class="blk"><div class="l">Dispense</div><div class="v">2 bags</div></div>
+      </div>
+
+      <div style="margin-top:14px;padding:12px;background:#fff3df;border:1px solid #ffb84d;border-radius:12px;font-size:12px;color:#7a4400;line-height:1.5">
+        <b>⚠ High-alert medication:</b> Heparin requires independent double-check by 2 RNs at the bedside. Pump should be programmed using the "Heparin – wt-based" library entry. Confirm aPTT drawn from non-infusing arm.
+      </div>
+
+      <div class="actions">
+        <button class="btn">Hold · clarify</button>
+        <button class="btn">Reject</button>
+        <button class="btn">Modify</button>
+        <button class="btn primary">Verify & dispense</button>
+      </div>
+    </div>
+  </div>
+</div></div>
+<script src="../scripts/nav.js"></script>
+
+<script>window.MC_ROUTES = [{"sel":".queue-row","href":"PharmacyVerify.html","soft":true,"title":"Open order"},{"sel":".btn.primary, button.primary","href":"eMAR.html","title":"Verify & release"}];</script>
+<script src="../scripts/router.js"></script>
+</body></html>

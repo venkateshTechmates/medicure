@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Charge Capture</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin:8px 4px 22px;flex-wrap:wrap;gap:14px}
+  .head .h1{font-size:54px}
+  .head .meta{color:var(--ink-soft);font-size:13px;margin-top:6px}
+
+  .stat-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
+  .stat-card{background:#fff;border-radius:16px;padding:14px 16px;box-shadow:var(--shadow)}
+  .stat-card .lbl{display:flex;align-items:center;gap:8px;color:var(--ink-soft);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+  .stat-card .num{font-family:"Instrument Serif",serif;font-size:32px;letter-spacing:-.02em;line-height:1;margin-top:6px}
+  .stat-card .delta{font-size:10px;color:var(--ink-mute);margin-top:4px}
+
+  .layout{display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start}
+
+  .card{padding:0;overflow:hidden}
+  .ch{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+  .ch .t{font-weight:800;font-size:14px}
+  .ch .s{font-size:11px;color:var(--ink-mute)}
+
+  .toolbar{display:flex;gap:10px;padding:12px 18px;border-bottom:1px solid var(--line);align-items:center;flex-wrap:wrap}
+  .seg{display:flex;background:#fafbfc;border-radius:10px;padding:3px;gap:2px}
+  .seg .s{padding:6px 12px;font:700 11.5px "Plus Jakarta Sans";color:var(--ink-soft);cursor:pointer;border-radius:7px}
+  .seg .s.act{background:#0e1116;color:#fff}
+
+  .filter-pill{font-size:11px;font-weight:700;color:var(--ink-soft);padding:6px 10px;background:#fafbfc;border:1px solid var(--line);border-radius:8px;cursor:pointer}
+  .filter-pill.act{background:#0e1116;color:#fff;border-color:#0e1116}
+
+  .search-input{flex:1;min-width:200px;border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;font:600 12px "Plus Jakarta Sans";background:#fff;outline:none}
+
+  /* Charge table */
+  .charge-row{display:grid;grid-template-columns:32px 90px 1fr 90px 70px 100px 80px 32px;gap:10px;padding:11px 18px;border-top:1px solid var(--line);align-items:center;font-size:12px;cursor:pointer;transition:.1s}
+  .charge-row:hover{background:#fafbfc}
+  .charge-row.h{font-size:9.5px;font-weight:800;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;border-top:0;padding:8px 18px;background:#fafbfc;cursor:default}
+  .charge-row.h:hover{background:#fafbfc}
+
+  .charge-row input[type="checkbox"]{width:16px;height:16px;accent-color:#0e1116;cursor:pointer}
+  .cpt{font-family:"JetBrains Mono",monospace;font-weight:700;color:var(--ink)}
+  .charge-row .desc{font-weight:700}
+  .charge-row .sub{font-size:10px;color:var(--ink-mute);margin-top:1px}
+  .charge-row .price{font-family:"JetBrains Mono",monospace;font-weight:700;text-align:right}
+  .charge-row .qty input{width:48px;border:1px solid var(--line);border-radius:6px;padding:4px 6px;font:700 12px "JetBrains Mono",monospace;text-align:center}
+  .charge-row .mod{font-family:"JetBrains Mono",monospace;font-size:10px;background:#fafbfc;padding:2px 6px;border-radius:5px;color:var(--ink-soft);font-weight:700}
+
+  .stat-pill{font-size:9px;font-weight:800;padding:3px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:.05em}
+  .stat-pill.ok{background:#dff7e7;color:#1a8a48}
+  .stat-pill.warn{background:#fff5e2;color:#a06e0d}
+  .stat-pill.err{background:#ffe3e3;color:#c43c3c}
+  .stat-pill.draft{background:#e6efff;color:#1a4fb3}
+
+  .row-act{width:24px;height:24px;border-radius:6px;background:#fafbfc;display:grid;place-items:center;color:var(--ink-mute);cursor:pointer;font-size:13px}
+  .row-act:hover{background:#0e1116;color:#fff}
+
+  /* CDM panel */
+  .cdm-search{padding:14px 16px;border-bottom:1px solid var(--line)}
+  .cdm-search input{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:9px 12px;font:600 12px "Plus Jakarta Sans";outline:none}
+  .cdm-search input:focus{border-color:#0e1116}
+
+  .cdm-cat{display:flex;justify-content:space-between;padding:9px 16px;font-size:12px;font-weight:700;color:var(--ink-soft);cursor:pointer;border-bottom:1px solid var(--line)}
+  .cdm-cat:hover{background:#fafbfc;color:var(--ink)}
+  .cdm-cat .ct{font-size:10px;color:var(--ink-mute);font-weight:700}
+
+  .cdm-item{padding:11px 16px;border-bottom:1px solid var(--line);cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+  .cdm-item:hover{background:#fafbfc}
+  .cdm-item .nm{font-weight:700;font-size:12px}
+  .cdm-item .meta{font-size:10px;color:var(--ink-mute);margin-top:2px;font-family:"JetBrains Mono",monospace}
+  .cdm-item .pr{font-family:"JetBrains Mono",monospace;font-weight:800;font-size:13px;color:#1a8a48}
+  .cdm-item .add{width:24px;height:24px;border-radius:7px;background:#0e1116;color:#fff;display:grid;place-items:center;font-size:14px;font-weight:800}
+
+  /* Summary */
+  .sum-row{display:flex;justify-content:space-between;padding:9px 18px;font-size:12.5px;border-top:1px solid var(--line)}
+  .sum-row:first-of-type{border-top:0;padding-top:14px}
+  .sum-row.tot{font-family:"Instrument Serif",serif;font-size:24px;font-weight:400;letter-spacing:-.01em;background:#0e1116;color:#fff;padding:14px 18px}
+  .sum-row .l{color:var(--ink-mute);font-weight:600}
+  .sum-row .v{font-weight:800;font-family:"JetBrains Mono",monospace}
+
+  .pt-mini{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line);background:#fafbfc}
+  .pt-mini .pic{width:32px;height:32px;border-radius:9px;background:url('https://images.unsplash.com/photo-1580489944761-15a19d654956?w=80&h=80&fit=crop&crop=faces') center/cover}
+  .pt-mini .nm{font-weight:800;font-size:13px}
+  .pt-mini .meta{font-size:10px;color:var(--ink-mute);font-family:"JetBrains Mono",monospace}
+
+  .alert-card{margin:14px;padding:11px 12px;background:#fff5e2;border:1px solid #f0d99c;border-radius:10px;font-size:11.5px;color:#5c4108;line-height:1.5;display:flex;gap:10px}
+  .alert-card .ic{flex:none;width:24px;height:24px;border-radius:7px;background:#a06e0d;color:#fff;display:grid;place-items:center;font-size:13px}
+  .alert-card b{display:block;color:#5c4108;font-size:12px;margin-bottom:2px}
+</style></head>
+<body data-page="billing" data-base="../">
+
+<div class="page" style="max-width:1500px"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div data-bc='[{"label":"Billing","href":"Billing.html"},{"label":"Charge capture"}]'></div>
+
+  <div class="head">
+    <div><h1 class="h1">Charge capture</h1><div class="meta">Aria Chen · Encounter #ENC-2026-887421 · 14 charges · $4,820 → claim ready</div></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn">Save as draft</button>
+      <button class="btn">Print superbill</button>
+      <button class="btn primary">Submit to coding →</button>
+    </div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-card"><div class="lbl">Total charges</div><div class="num">$4,820</div><div class="delta">14 line items</div></div>
+    <div class="stat-card"><div class="lbl">Posted</div><div class="num">12</div><div class="delta">$4,180 ready</div></div>
+    <div class="stat-card"><div class="lbl">Held</div><div class="num">2</div><div class="delta">$640 · missing modifier</div></div>
+    <div class="stat-card"><div class="lbl">RVU total</div><div class="num">28.4</div><div class="delta">work + practice</div></div>
+    <div class="stat-card"><div class="lbl">Coding lag</div><div class="num">0d</div><div class="delta">same-day capture ✓</div></div>
+  </div>
+
+  <div class="layout">
+
+    <div class="card">
+      <div class="ch"><span class="t">Charge sheet</span><span class="s">Encounter date · May 2, 2026 · 14:32</span></div>
+
+      <div class="toolbar">
+        <div class="seg">
+          <div class="s act">All · 14</div>
+          <div class="s">Posted · 12</div>
+          <div class="s">Held · 2</div>
+          <div class="s">Voided</div>
+        </div>
+        <input class="search-input" placeholder="Search by CPT, HCPCS, or description…" />
+        <span class="filter-pill act">E&amp;M</span>
+        <span class="filter-pill">Procedures</span>
+        <span class="filter-pill">Supplies</span>
+        <span class="filter-pill">Drugs</span>
+      </div>
+
+      <div class="charge-row h">
+        <span></span>
+        <span>CPT / HCPCS</span>
+        <span>Description / DX</span>
+        <span style="text-align:right">Charge</span>
+        <span style="text-align:center">Qty</span>
+        <span>Modifier</span>
+        <span>Status</span>
+        <span></span>
+      </div>
+
+      <div class="charge-row">
+        <input type="checkbox" checked>
+        <span class="cpt">99223</span>
+        <div>
+          <div class="desc">Initial hospital care · level 3</div>
+          <div class="sub">Dx · I50.9 (heart failure, unspecified)</div>
+        </div>
+        <span class="price">$520.00</span>
+        <span class="qty"><input value="1"></span>
+        <span class="mod">25</span>
+        <span class="stat-pill ok">✓ Posted</span>
+        <span class="row-act">⋯</span>
+      </div>
+
+      <div class="charge-row">
+        <input type="checkbox" checked>
+        <span class="cpt">93306</span>
+        <div>
+          <div class="desc">Echocardiogram · complete w/ Doppler</div>
+          <div class="sub">Dx · I50.9, I10</div>
+        </div>
+        <span class="price">$485.00</span>
+        <span class="qty"><input value="1"></span>
+        <span class="mod">26</span>
+        <span class="stat-pill ok">✓ Posted</span>
+        <span class="row-act">⋯</span>
+      </div>
+
+      <div class="charge-row">
+        <input type="checkbox" checked>
+        <span class="cpt">71046</span>
+        <div>
+          <div class="desc">Chest X-ray · 2 view</div>
+          <div class="sub">Dx · I50.9, J18.9</div>
+        </div>
+        <span class="price">$135.00</span>
+        <span class="qty"><input value="1"></span>
+        <span class="mod">—</span>
+        <span class="stat-pill ok">✓ Posted</span>
+        <span class="row-act">⋯</span>
+      </div>
+
+      <div class="charge-row" style="background:#fff5e2">
+        <input type="checkbox">
+        <span class="cpt">36415</span>
+        <div>
+          <div class="desc">Venipuncture · routine</div>
+          <div class="sub" style="color:#a06e0d">⚠ Bundled into 80053 — auto-removal suggested</div>
+        </div>
+        <span class="price" style="color:#a06e0d">$45.00</span>
+        <span class="qty"><input value="1"></span>
+        <span class="mod">—</span>
+        <span class="stat-pill warn">⚠ Held</span>
+        <span class="row-act">⋯</span>
+      </div>
+
+      <div class="charge-row">
+        <input type="checkbox" checked>
+        <span class="cpt">80053</span>
+        <div>
+          <div class="desc">Comprehensive metabolic panel</div>
+          <div class="sub">Dx · I50.9</div>
+        </div>
+        <span class="price">$48.00</span>
+        <span class="qty"><input value="1"></span>
+        <span class="mod">—</span>
+        <span class="stat-pill ok">✓ Posted</span>
+        <span class="row-act">⋯</span>
+      </div>
+
+      <div class="charge-row">
+        <input type="checkbox" checked>
+        <span class="cpt">85025</span>
+        <div>
+          <div class="desc">CBC w/ auto-differential</div>
+          <div class="sub">Dx · I50.9</div>
+        </div>
+        <span class="price">$32.00</span>
+        <span class="qty"><input value="1"></span>
+        <span class="mod">—</span>
+        <span class="stat-pill ok">✓ Posted</span>
+        <span class="row-act">⋯</span>
+      </div>
+
+      <div class="charge-row">
+        <input type="checkbox" checked>
+        <span class="cpt">93000</span>
+        <div>
+          <div class="desc">EKG · routine 12-lead</div>
+          <div class="sub">Dx · I50.9, R07.9</div>
+        </div>
+        <span class="price">$95.00</span>
+        <span class="qty"><input value="1"></span>
+        <span class="mod">—</span>
+        <span class="stat-pill ok">✓ Posted</span>
+        <span class="row-act">⋯</span>
+      </div>
+
+      <div class="charge-row">
+        <input type="checkbox" checked>
+        <span class="cpt">J1956</span>
+        <div>
+          <div class="desc">Levofloxacin · 250 mg IV</div>
+          <div class="sub">Dx · J18.9 · 1 dose given</div>
+        </div>
+        <span class="price">$84.00</span>
+        <span class="qty"><input value="2"></span>
+        <span class="mod">JW</span>
+        <span class="stat-pill ok">✓ Posted</span>
+        <span class="row-act">⋯</span>
+      </div>
+
+      <div class="charge-row" style="background:#ffe3e3">
+        <input type="checkbox">
+        <span class="cpt">99232</span>
+        <div>
+          <div class="desc">Subsequent hospital care · level 2</div>
+          <div class="sub" style="color:#c43c3c">⚠ Same-day duplicate of 99223 — choose one</div>
+        </div>
+        <span class="price" style="color:#c43c3c">$310.00</span>
+        <span class="qty"><input value="1"></span>
+        <span class="mod">—</span>
+        <span class="stat-pill err">✕ Held</span>
+        <span class="row-act">⋯</span>
+      </div>
+
+      <div class="charge-row">
+        <input type="checkbox" checked>
+        <span class="cpt">99406</span>
+        <div>
+          <div class="desc">Smoking cessation counseling · 3-10 min</div>
+          <div class="sub">Dx · F17.210</div>
+        </div>
+        <span class="price">$22.00</span>
+        <span class="qty"><input value="1"></span>
+        <span class="mod">—</span>
+        <span class="stat-pill ok">✓ Posted</span>
+        <span class="row-act">⋯</span>
+      </div>
+
+      <div class="charge-row">
+        <input type="checkbox" checked>
+        <span class="cpt">A4570</span>
+        <div>
+          <div class="desc">Splint · short-arm static</div>
+          <div class="sub">Dx · S52.501A · supply</div>
+        </div>
+        <span class="price">$48.00</span>
+        <span class="qty"><input value="1"></span>
+        <span class="mod">RT</span>
+        <span class="stat-pill ok">✓ Posted</span>
+        <span class="row-act">⋯</span>
+      </div>
+
+      <div class="ch" style="border-top:1px solid var(--line);border-bottom:0;padding:14px 18px">
+        <span style="font-weight:700;font-size:12px;color:var(--ink-soft)">Drag a CDM item from the right panel, or paste a CPT here →</span>
+        <span style="font-size:11px;color:var(--ink-mute)">⌘K to search · ⌘+ to add row</span>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: CDM browser + summary -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <div class="card">
+        <div class="pt-mini">
+          <div class="pic"></div>
+          <div>
+            <div class="nm">Aria Chen</div>
+            <div class="meta">MRN 012-887-43 · Aetna POS II</div>
+          </div>
+        </div>
+
+        <div class="alert-card">
+          <div class="ic">⚠</div>
+          <div>
+            <b>2 line items need attention</b>
+            • 36415 bundled into 80053 (auto-fix)<br>
+            • 99232 conflicts with 99223 same day
+          </div>
+        </div>
+
+        <div class="sum-row"><span class="l">Subtotal · 12 posted</span><span class="v">$1,824.00</span></div>
+        <div class="sum-row"><span class="l">Held · not submitted</span><span class="v" style="color:#c43c3c">$355.00</span></div>
+        <div class="sum-row"><span class="l">Bundling adjustments</span><span class="v">−$45.00</span></div>
+        <div class="sum-row"><span class="l">Insurance contractual adj.</span><span class="v">−$612.00</span></div>
+        <div class="sum-row tot"><span>Net to claim</span><span>$1,167.00</span></div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Charge master · CDM</span><span class="s">38,400 codes</span></div>
+        <div class="cdm-search"><input placeholder="🔍 CPT, HCPCS, drug, supply…" value="echo" /></div>
+
+        <div class="cdm-cat"><span>📋 Office &amp; outpatient E&amp;M</span><span class="ct">214</span></div>
+
+        <div class="cdm-item">
+          <div>
+            <div class="nm">Echocardiogram · complete</div>
+            <div class="meta">93306 · imaging · cardiology</div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <span class="pr">$485</span>
+            <span class="add">+</span>
+          </div>
+        </div>
+        <div class="cdm-item">
+          <div>
+            <div class="nm">Echocardiogram · stress</div>
+            <div class="meta">93350 · imaging · cardio</div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <span class="pr">$840</span>
+            <span class="add">+</span>
+          </div>
+        </div>
+        <div class="cdm-item">
+          <div>
+            <div class="nm">Echocardiogram · TEE</div>
+            <div class="meta">93312 · imaging · cardio</div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <span class="pr">$1,240</span>
+            <span class="add">+</span>
+          </div>
+        </div>
+        <div class="cdm-item">
+          <div>
+            <div class="nm">Echocardiogram · limited f/u</div>
+            <div class="meta">93308 · imaging · cardio</div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <span class="pr">$280</span>
+            <span class="add">+</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div></div>
+
+<script src="../scripts/nav.js"></script>
+<script src="../scripts/breadcrumbs.js"></script>
+</body>
+</html>

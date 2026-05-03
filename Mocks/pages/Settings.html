@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Settings</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin:8px 4px 22px;gap:20px;flex-wrap:wrap}
+  .head .h1{font-size:56px}.head .meta{color:var(--ink-soft);font-size:13px;margin-top:6px}
+
+  .grid{display:grid;grid-template-columns:240px 1fr;gap:18px;align-items:start}
+  .menu{padding:14px}
+  .menu .item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;cursor:pointer;font-size:13px;font-weight:600;color:var(--ink-soft)}
+  .menu .item.active{background:#0e1116;color:#fff}
+  .menu .item:hover:not(.active){background:#f4f6f9;color:var(--ink)}
+  .menu .item .ic{width:22px;height:22px;border-radius:7px;background:#f4f6f9;color:var(--ink-soft);display:grid;place-items:center;flex:none;font-size:11px;font-weight:700}
+  .menu .item.active .ic{background:rgba(255,255,255,.16);color:#fff}
+  .menu .group{font-size:10px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.06em;padding:14px 12px 6px;font-weight:700}
+
+  .panel{display:flex;flex-direction:column;gap:18px}
+  .sec{padding:22px}
+  .sec h2{font-family:"Instrument Serif",serif;font-size:28px;letter-spacing:-.02em;margin:0 0 4px}
+  .sec .sub{font-size:12px;color:var(--ink-soft);margin-bottom:18px}
+
+  .profile-row{display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;padding:14px 0;border-top:1px solid var(--line)}
+  .profile-row:first-of-type{border-top:0}
+  .profile-row .pic{width:64px;height:64px;border-radius:20px;background:#eee center/cover}
+  .profile-row .nm{font-weight:700}.profile-row .sub2{font-size:12px;color:var(--ink-mute)}
+
+  .field{display:grid;grid-template-columns:200px 1fr;gap:14px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+  .field:first-of-type{border-top:0}
+  .field .lbl{font-size:13px;font-weight:600}
+  .field .lbl .h{font-size:11px;color:var(--ink-mute);font-weight:500;margin-top:2px}
+  .field input,.field select{width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:#fff;font:600 13px "Plus Jakarta Sans";color:var(--ink)}
+  .field .row{display:flex;gap:8px;align-items:center}
+  .switch{width:44px;height:24px;background:#0e1116;border-radius:14px;position:relative;cursor:pointer;flex:none}
+  .switch::after{content:"";position:absolute;top:3px;left:23px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.18s}
+  .switch.off{background:#e1e4ea}.switch.off::after{left:3px}
+
+  .seg{display:flex;background:#f4f6f9;border-radius:999px;padding:4px;width:fit-content}
+  .seg .o{padding:7px 14px;border-radius:999px;font:600 11px "Plus Jakarta Sans";color:var(--ink-soft);cursor:pointer}
+  .seg .o.active{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+
+  .integ-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .integ{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--line);border-radius:16px}
+  .integ .lg{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-weight:700;font-size:13px;color:#fff}
+  .integ .nm{font-weight:700;font-size:13px}.integ .sub{font-size:11px;color:var(--ink-mute)}
+  .integ .badge{margin-left:auto;font-size:10px;font-weight:700;padding:4px 8px;border-radius:999px;background:#dff7e7;color:#1a8a48}
+  .integ .badge.off{background:#f4f6f9;color:var(--ink-mute)}
+
+  .session-row{display:grid;grid-template-columns:36px 1fr auto;gap:12px;padding:12px 0;border-top:1px solid var(--line);align-items:center;font-size:12px}
+  .session-row:first-of-type{border-top:0}
+  .session-row .ic{width:36px;height:36px;border-radius:10px;background:#f4f6f9;display:grid;place-items:center;font-weight:700}
+
+  .danger{padding:22px;border:1px solid #ffd1d8;background:#fff8f9}
+  .danger h2{color:#b3263d}
+  .danger button{padding:10px 16px;border-radius:999px;border:1px solid #ff4d6b;background:#fff;color:#b3263d;font:600 12px "Plus Jakarta Sans";cursor:pointer;margin-right:8px}
+</style></head>
+<body data-page="settings" data-base="../">
+
+<div class="page"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div class="head">
+    <div><h1 class="h1">Settings</h1><div class="meta">Account, organization, security and integrations</div></div>
+    <div style="display:flex;gap:10px"><button class="btn">Cancel</button><button class="btn primary">Save changes</button></div>
+  </div>
+
+  <div class="grid">
+    <div class="card menu">
+      <div class="group">Personal</div>
+      <div class="item active"><span class="ic">A</span>Account</div>
+      <div class="item"><span class="ic">N</span>Notifications</div>
+      <div class="item"><span class="ic">A</span>Appearance</div>
+      <div class="item"><span class="ic">L</span>Language &amp; region</div>
+
+      <div class="group">Security</div>
+      <div class="item"><span class="ic">P</span>Password</div>
+      <div class="item"><span class="ic">2</span>Two-factor</div>
+      <div class="item"><span class="ic">S</span>Active sessions</div>
+      <div class="item"><span class="ic">A</span>Audit log</div>
+
+      <div class="group">Organization</div>
+      <div class="item"><span class="ic">O</span>Clinic profile</div>
+      <div class="item"><span class="ic">B</span>Billing &amp; plan</div>
+      <div class="item"><span class="ic">U</span>Users &amp; roles</div>
+      <div class="item"><span class="ic">I</span>Integrations</div>
+
+      <div class="group">Compliance</div>
+      <div class="item"><span class="ic">H</span>HIPAA controls</div>
+      <div class="item"><span class="ic">B</span>BAA &amp; agreements</div>
+      <div class="item"><span class="ic">D</span>Data retention</div>
+    </div>
+
+    <div class="panel">
+      <div class="card sec">
+        <h2>Account</h2>
+        <div class="sub">How you appear across Medcure and how we reach you.</div>
+        <div class="profile-row">
+          <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=160&h=160&fit=crop&crop=faces')"></div>
+          <div><div class="nm">Albert Drobo</div><div class="sub2">@alexenderyuo · Pharmacist · NPI 1144829210</div></div>
+          <div style="display:flex;gap:8px"><button class="btn">Change photo</button><button class="btn">Remove</button></div>
+        </div>
+        <div class="field"><div class="lbl">Full name<div class="h">Shown on Rx, notes, audit log</div></div><input value="Albert Drobo, PharmD"/></div>
+        <div class="field"><div class="lbl">Email<div class="h">For sign-in and alerts</div></div><input value="adrobo@medcure.health"/></div>
+        <div class="field"><div class="lbl">Phone</div><input value="(617) 555-0144"/></div>
+        <div class="field"><div class="lbl">Time zone</div><select><option>America / New York (EDT)</option><option>America / Chicago</option><option>America / Los Angeles</option></select></div>
+        <div class="field"><div class="lbl">Default page<div class="h">Where you land at sign-in</div></div><select><option>Overview (Dashboard)</option><option>Pharmacy queue</option><option>Patients</option></select></div>
+      </div>
+
+      <div class="card sec">
+        <h2>Notifications</h2>
+        <div class="sub">Choose what reaches you and where.</div>
+        <div class="field"><div class="lbl">Critical alerts<div class="h">Code blue, sepsis, drug interactions</div></div><div class="row"><div class="switch"></div><span style="font-size:12px;color:var(--ink-soft)">Push · Email · SMS</span></div></div>
+        <div class="field"><div class="lbl">New Rx in queue</div><div class="row"><div class="switch"></div><span style="font-size:12px;color:var(--ink-soft)">Push only</span></div></div>
+        <div class="field"><div class="lbl">Lab results back</div><div class="row"><div class="switch"></div><span style="font-size:12px;color:var(--ink-soft)">Push · Email</span></div></div>
+        <div class="field"><div class="lbl">Schedule changes</div><div class="row"><div class="switch off"></div><span style="font-size:12px;color:var(--ink-mute)">Off</span></div></div>
+        <div class="field"><div class="lbl">Weekly digest<div class="h">Sunday 6:00 PM</div></div><div class="row"><div class="switch"></div><span style="font-size:12px;color:var(--ink-soft)">Email</span></div></div>
+        <div class="field"><div class="lbl">Quiet hours</div><div class="seg"><div class="o">Off</div><div class="o active">10 PM – 6 AM</div><div class="o">Custom</div></div></div>
+      </div>
+
+      <div class="card sec">
+        <h2>Appearance</h2>
+        <div class="sub">Theme and density preferences for your workspace.</div>
+        <div class="field"><div class="lbl">Theme</div><div class="seg"><div class="o active">Light</div><div class="o">Dark</div><div class="o">System</div></div></div>
+        <div class="field"><div class="lbl">Density</div><div class="seg"><div class="o">Comfortable</div><div class="o active">Default</div><div class="o">Compact</div></div></div>
+        <div class="field"><div class="lbl">Accent</div><div style="display:flex;gap:8px">
+          <span style="width:28px;height:28px;border-radius:50%;background:#0e1116;border:3px solid #fff;box-shadow:0 0 0 2px #0e1116;cursor:pointer"></span>
+          <span style="width:28px;height:28px;border-radius:50%;background:#3a86ff;cursor:pointer"></span>
+          <span style="width:28px;height:28px;border-radius:50%;background:#27c26b;cursor:pointer"></span>
+          <span style="width:28px;height:28px;border-radius:50%;background:#ff4d6b;cursor:pointer"></span>
+          <span style="width:28px;height:28px;border-radius:50%;background:#8b5cf6;cursor:pointer"></span>
+        </div></div>
+      </div>
+
+      <div class="card sec">
+        <h2>Two-factor authentication</h2>
+        <div class="sub">Required for all clinical roles. Last verified 2 hrs ago.</div>
+        <div class="field"><div class="lbl">Authenticator app<div class="h">Time-based · TOTP</div></div><div class="row"><div class="switch"></div><button class="btn">Reset</button></div></div>
+        <div class="field"><div class="lbl">Hardware key<div class="h">YubiKey · FIDO2</div></div><div class="row"><div class="switch"></div><span style="font-size:12px;color:var(--ink-soft)">2 keys registered</span></div></div>
+        <div class="field"><div class="lbl">SMS backup</div><div class="row"><div class="switch off"></div><span style="font-size:12px;color:var(--ink-mute)">Recommended off (HIPAA)</span></div></div>
+      </div>
+
+      <div class="card sec">
+        <h2>Active sessions</h2>
+        <div class="sub">Sign out of any device you don't recognize.</div>
+        <div class="session-row"><div class="ic">💻</div><div><div style="font-weight:700">MacBook Pro · Chrome 124</div><div style="color:var(--ink-mute)">Boston, MA · 192.168.1.4 · this device</div></div><span class="pill good"><span class="pdot"></span>Active now</span></div>
+        <div class="session-row"><div class="ic">📱</div><div><div style="font-weight:700">iPhone 15 · Medcure iOS</div><div style="color:var(--ink-mute)">Boston, MA · cellular · 14 min ago</div></div><button class="btn">Sign out</button></div>
+        <div class="session-row"><div class="ic">🖥</div><div><div style="font-weight:700">Workstation WS-PHARM-04</div><div style="color:var(--ink-mute)">Pharmacy · 10.0.4.21 · 2 hrs ago</div></div><button class="btn">Sign out</button></div>
+        <div class="session-row"><div class="ic">📱</div><div><div style="font-weight:700">iPad Air · Rounding cart</div><div style="color:var(--ink-mute)">ICU · 10.0.6.18 · yesterday</div></div><button class="btn">Sign out</button></div>
+      </div>
+
+      <div class="card sec">
+        <h2>Integrations</h2>
+        <div class="sub">Connected systems and partners. All BAAs current.</div>
+        <div class="integ-grid">
+          <div class="integ"><div class="lg" style="background:#3a86ff">Ep</div><div><div class="nm">Epic EHR · Bridge</div><div class="sub">HL7 FHIR · last sync 2 min</div></div><span class="badge">Connected</span></div>
+          <div class="integ"><div class="lg" style="background:#0e1116">Sr</div><div><div class="nm">Surescripts</div><div class="sub">e-Rx · routing 142/day</div></div><span class="badge">Connected</span></div>
+          <div class="integ"><div class="lg" style="background:#27c26b">Lc</div><div><div class="nm">LabCorp</div><div class="sub">Result feed · 6 / hr</div></div><span class="badge">Connected</span></div>
+          <div class="integ"><div class="lg" style="background:#ffb84d">Qd</div><div><div class="nm">Quest Diagnostics</div><div class="sub">Result feed · 4 / hr</div></div><span class="badge">Connected</span></div>
+          <div class="integ"><div class="lg" style="background:#8b5cf6">Pm</div><div><div class="nm">PMP — State</div><div class="sub">Schedule II / III queries</div></div><span class="badge">Connected</span></div>
+          <div class="integ"><div class="lg" style="background:#ff4d6b">Ip</div><div><div class="nm">Imprivata SSO</div><div class="sub">Tap-and-go badge</div></div><span class="badge">Connected</span></div>
+          <div class="integ"><div class="lg" style="background:#1a4fb3">Tw</div><div><div class="nm">Twilio · SMS</div><div class="sub">Patient reminders</div></div><span class="badge">Connected</span></div>
+          <div class="integ"><div class="lg" style="background:#9aa0ad">Sl</div><div><div class="nm">Slack · Internal</div><div class="sub">Non-PHI channel only</div></div><span class="badge off">Connect</span></div>
+        </div>
+      </div>
+
+      <div class="card sec danger">
+        <h2>Danger zone</h2>
+        <div class="sub" style="color:#a05a00">Destructive actions. Audit log entries are written for every operation.</div>
+        <div style="margin-top:8px">
+          <button>Export account data</button>
+          <button>Reset 2FA</button>
+          <button>Suspend access</button>
+          <button style="background:#b3263d;color:#fff;border-color:#b3263d">Deactivate account</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></div>
+
+<script src="../scripts/nav.js"></script>
+<script>
+  // Toggle switches
+  document.querySelectorAll('.switch').forEach(s => s.addEventListener('click', () => s.classList.toggle('off')));
+  // Segmented controls
+  document.querySelectorAll('.seg').forEach(g => g.querySelectorAll('.o').forEach(o => o.addEventListener('click', () => {
+    g.querySelectorAll('.o').forEach(x => x.classList.remove('active')); o.classList.add('active');
+  })));
+  // Menu items
+  document.querySelectorAll('.menu .item').forEach(i => i.addEventListener('click', () => {
+    document.querySelectorAll('.menu .item').forEach(x => x.classList.remove('active')); i.classList.add('active');
+  }));
+</script>
+
+<script>window.MC_ROUTES = [{"sel":".setting-row, .pref-row, .integration-card","href":"Settings.html","soft":true}];</script>
+<script src="../scripts/router.js"></script>
+</body></html>

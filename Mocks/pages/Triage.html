@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — ED Triage intake</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .crumb{font-size:11px;color:var(--ink-mute);margin:4px 0 14px;display:flex;gap:6px}
+  .crumb a{color:var(--ink-soft);text-decoration:none}.crumb .cur{color:var(--ink)}
+  .head{display:flex;justify-content:space-between;align-items:flex-end;margin:0 4px 18px;flex-wrap:wrap;gap:12px}
+  .head .h1{font-size:54px}
+
+  .layout{display:grid;grid-template-columns:1fr 380px;gap:14px;align-items:start}
+
+  .form{background:#fff;border-radius:18px;padding:22px;box-shadow:var(--shadow);margin-bottom:14px}
+  .form h3{font-family:"Instrument Serif",serif;font-size:24px;letter-spacing:-.02em;margin:0 0 4px}
+  .form .sub{font-size:11px;color:var(--ink-mute);margin-bottom:14px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+  .field label{font-size:10px;text-transform:uppercase;font-weight:800;letter-spacing:.05em;color:var(--ink-mute)}
+  .field input,.field select,.field textarea{padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#fafbfc;font:600 13px "Plus Jakarta Sans";color:var(--ink)}
+  .field input:focus,.field select:focus,.field textarea:focus{outline:2px solid #0e1116;background:#fff}
+
+  /* ESI badge picker */
+  .esi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:8px}
+  .esi{padding:14px;border-radius:14px;border:2px solid var(--line);background:#fff;cursor:pointer;text-align:center;transition:.15s}
+  .esi:hover{transform:translateY(-1px)}
+  .esi .num{font-family:"Instrument Serif",serif;font-size:38px;line-height:1}
+  .esi .lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-top:4px}
+  .esi .desc{font-size:9px;color:var(--ink-mute);margin-top:2px;line-height:1.3}
+  .esi.lvl1{color:#fff;background:#ff4d6b;border-color:#ff4d6b}
+  .esi.lvl2{color:#0e1116;background:#ffd633;border-color:#ffd633}
+  .esi.selected{outline:3px solid #0e1116;outline-offset:2px}
+
+  /* Vitals grid */
+  .vit-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+  .vit{padding:12px;background:#fafbfc;border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;align-items:center;text-align:center}
+  .vit .l{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-mute)}
+  .vit input{font-family:"Instrument Serif",serif;font-size:24px;font-weight:400;border:0;background:transparent;text-align:center;width:100%;padding:4px 0;outline:none}
+  .vit .u{font-size:9px;color:var(--ink-mute)}
+  .vit.abn{background:#ffe7eb;border-color:#ff4d6b}.vit.abn input{color:#b3263d}
+  .vit.warn{background:#fff3df;border-color:#ffb84d}.vit.warn input{color:#a05a00}
+
+  /* Body region picker */
+  .body-pick{display:flex;gap:14px;align-items:flex-start}
+  .body-pick svg{flex:none}
+  .body-pick .opts{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .body-pick label{display:flex;align-items:center;gap:6px;padding:7px 10px;background:#fafbfc;border:1px solid var(--line);border-radius:8px;font-size:11px;cursor:pointer}
+  .body-pick label.on{background:#0e1116;color:#fff;border-color:#0e1116}
+
+  /* Pain scale */
+  .pain{display:grid;grid-template-columns:repeat(11,1fr);gap:4px}
+  .pain button{padding:14px 0;border:1px solid var(--line);background:#fff;border-radius:8px;font:800 14px "Plus Jakarta Sans";cursor:pointer;font-family:'SF Mono',monospace}
+  .pain button.sel{background:#0e1116;color:#fff;border-color:#0e1116;transform:scale(1.05)}
+  .pain-scale{height:8px;border-radius:4px;background:linear-gradient(90deg,#27c26b,#ffd633,#ff4d6b);margin-top:6px}
+
+  /* Right summary */
+  .panel{background:#fff;border-radius:18px;padding:18px;box-shadow:var(--shadow);margin-bottom:12px}
+  .panel h4{margin:0 0 10px;font-size:13px;font-weight:700}
+
+  .esi-sum{padding:18px;background:#0e1116;color:#fff;border-radius:18px;margin-bottom:12px;text-align:center}
+  .esi-sum .l{font-size:10px;color:#9aa0ad;text-transform:uppercase;font-weight:700;letter-spacing:.05em}
+  .esi-sum .v{font-family:"Instrument Serif",serif;font-size:64px;line-height:1;color:#ffd633;margin:6px 0}
+  .esi-sum .n{font-size:14px;font-weight:700}
+  .esi-sum .why{font-size:11px;color:#9aa0ad;margin-top:8px;line-height:1.5}
+
+  .row{display:flex;justify-content:space-between;font-size:11px;padding:6px 0;border-top:1px solid var(--line)}
+  .row:first-of-type{border-top:0}.row .k{color:var(--ink-mute)}.row .v{font-weight:700}
+
+  .timer{font-family:"Instrument Serif",serif;font-size:32px;line-height:1;color:#ff4d6b;text-align:center;margin:6px 0}
+</style></head>
+<body data-page="ed" data-base="../">
+
+<div class="page"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div class="crumb"><a href="ED.html">ED</a> › <a href="EDLive.html">Live board</a> › <span class="cur">Triage intake · Riley Carpenter</span></div>
+
+  <div class="head">
+    <div><h1 class="h1">Triage intake</h1><div style="font-size:13px;color:var(--ink-soft);margin-top:4px">ESI 5-level · door-to-doc target 14 min</div></div>
+    <div style="display:flex;gap:8px"><button class="btn">Save & continue later</button><button class="btn">Send to fast track</button><button class="btn primary">Send to bay 4</button></div>
+  </div>
+
+  <div class="layout">
+    <div>
+      <!-- Identity -->
+      <div class="form">
+        <h3>Patient identification</h3>
+        <div class="sub">Capture or confirm before vitals · 2-ID minimum (name + DOB)</div>
+        <div class="grid3">
+          <div class="field"><label>Last name</label><input value="Carpenter"/></div>
+          <div class="field"><label>First name</label><input value="Riley"/></div>
+          <div class="field"><label>DOB</label><input value="03/14/1986"/></div>
+          <div class="field"><label>Sex / gender</label><select><option>Female</option></select></div>
+          <div class="field"><label>MRN (if known)</label><input value="—"/></div>
+          <div class="field"><label>Arrival mode</label><select><option>EMS – stretcher</option><option>Walk-in</option><option>POV</option></select></div>
+        </div>
+      </div>
+
+      <!-- Chief complaint -->
+      <div class="form">
+        <h3>Chief complaint</h3>
+        <div class="sub">In the patient's own words · then categorize</div>
+        <div class="field"><textarea rows="2">"Sudden severe chest pain on the left side started 40 min ago, sweating, short of breath, feels like an elephant on me." Patient pointing to substernal/left chest, radiates to L jaw and arm.</textarea></div>
+        <div class="grid3">
+          <div class="field"><label>Category</label><select><option>Chest pain – cardiac suspected</option></select></div>
+          <div class="field"><label>Onset</label><input value="40 min ago · sudden"/></div>
+          <div class="field"><label>Provoked by</label><input value="At rest · while watching TV"/></div>
+          <div class="field"><label>Quality</label><select><option>Pressure / heavy</option></select></div>
+          <div class="field"><label>Radiation</label><input value="L jaw, L arm"/></div>
+          <div class="field"><label>Associated</label><input value="Diaphoresis, SOB, nausea"/></div>
+        </div>
+      </div>
+
+      <!-- Vitals -->
+      <div class="form">
+        <h3>Initial vitals · 14:18</h3>
+        <div class="sub">Auto-pulled from monitor · click to override</div>
+        <div class="vit-grid">
+          <div class="vit warn"><div class="l">HR</div><input value="118"/><div class="u">bpm</div></div>
+          <div class="vit warn"><div class="l">BP</div><input value="92/58"/><div class="u">mmHg</div></div>
+          <div class="vit"><div class="l">RR</div><input value="22"/><div class="u">/min</div></div>
+          <div class="vit"><div class="l">SpO₂</div><input value="94"/><div class="u">% RA</div></div>
+          <div class="vit"><div class="l">Temp</div><input value="36.8"/><div class="u">°C</div></div>
+          <div class="vit abn"><div class="l">Pain</div><input value="9"/><div class="u">/10</div></div>
+        </div>
+
+        <div style="margin-top:14px">
+          <div style="font-size:10px;text-transform:uppercase;font-weight:800;letter-spacing:.05em;color:var(--ink-mute);margin-bottom:6px">Pain location</div>
+          <div class="body-pick">
+            <svg width="80" height="180" viewBox="0 0 80 180" fill="none" stroke="#0e1116" stroke-width="1.4">
+              <circle cx="40" cy="20" r="14"/>
+              <path d="M28 32 Q40 36 52 32 L58 60 L60 110 L52 170 L46 170 L42 120 L38 120 L34 170 L28 170 L20 110 L22 60 Z"/>
+              <circle cx="34" cy="62" r="6" fill="#ff4d6b" stroke="#ff4d6b"/>
+            </svg>
+            <div class="opts">
+              <label class="on"><input type="checkbox" checked/> L chest</label>
+              <label class="on"><input type="checkbox" checked/> L jaw</label>
+              <label class="on"><input type="checkbox" checked/> L arm</label>
+              <label><input type="checkbox"/> R chest</label>
+              <label><input type="checkbox"/> Back</label>
+              <label><input type="checkbox"/> Abdomen</label>
+              <label><input type="checkbox"/> Head</label>
+              <label><input type="checkbox"/> Other</label>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:14px">
+          <div style="font-size:10px;text-transform:uppercase;font-weight:800;letter-spacing:.05em;color:var(--ink-mute);margin-bottom:6px">Pain intensity · NRS 0–10</div>
+          <div class="pain">
+            <button>0</button><button>1</button><button>2</button><button>3</button><button>4</button>
+            <button>5</button><button>6</button><button>7</button><button>8</button><button class="sel">9</button><button>10</button>
+          </div>
+          <div class="pain-scale"></div>
+        </div>
+      </div>
+
+      <!-- ESI -->
+      <div class="form">
+        <h3>ESI level</h3>
+        <div class="sub">Algorithm: life threat? high risk? resources? vitals?</div>
+        <div class="esi-grid">
+          <div class="esi lvl1"><div class="num">1</div><div class="lbl">Resus</div><div class="desc">Imminent threat to life</div></div>
+          <div class="esi lvl2 selected"><div class="num">2</div><div class="lbl">Emergent</div><div class="desc">High risk · time-critical</div></div>
+          <div class="esi"><div class="num">3</div><div class="lbl">Urgent</div><div class="desc">Many resources</div></div>
+          <div class="esi"><div class="num">4</div><div class="lbl">Less-urgent</div><div class="desc">One resource</div></div>
+          <div class="esi"><div class="num">5</div><div class="lbl">Non-urgent</div><div class="desc">No resources</div></div>
+        </div>
+        <div style="background:#fef9d7;border:1px solid #ffd633;border-radius:12px;padding:12px;font-size:12px;color:#7a4400;line-height:1.5">
+          <b>Recommended ESI 2.</b> Algorithm: chest pain + diaphoresis + hypotension + tachycardia + age 38 = high-risk situation requiring time-critical evaluation. STEMI protocol candidate — page cardiology, EKG &lt; 10 min.
+        </div>
+      </div>
+
+      <!-- History snapshot -->
+      <div class="form">
+        <h3>Quick history</h3>
+        <div class="grid2">
+          <div class="field"><label>Allergies</label><input value="NKDA"/></div>
+          <div class="field"><label>Last meal</label><input value="Lunch 13:00 · sandwich"/></div>
+          <div class="field"><label>Pregnancy status</label><select><option>Not pregnant · LMP 14d</option></select></div>
+          <div class="field"><label>Current meds</label><input value="OCP, lisinopril 10 mg, atorvastatin 40 mg"/></div>
+          <div class="field"><label>PMH</label><input value="HTN, HLD, smoker 1ppd ×15y"/></div>
+          <div class="field"><label>Family hx</label><input value="Father MI age 52"/></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right summary -->
+    <div>
+      <div class="esi-sum">
+        <div class="l">Recommended ESI</div>
+        <div class="v">2</div>
+        <div class="n">Emergent · Bay 4</div>
+        <div class="why">High-risk presentation · activating STEMI protocol · door-to-EKG &lt; 10 min · door-to-cath &lt; 90 min</div>
+      </div>
+
+      <div class="panel">
+        <h4>Door clock</h4>
+        <div class="timer">02:42</div>
+        <div style="text-align:center;font-size:11px;color:var(--ink-mute)">Since arrival · 14:15</div>
+        <div class="row" style="margin-top:10px"><span class="k">Triage target</span><span class="v" style="color:var(--good)">≤ 5 min</span></div>
+        <div class="row"><span class="k">Doc target</span><span class="v">≤ 14 min</span></div>
+        <div class="row"><span class="k">EKG target</span><span class="v" style="color:var(--bad)">≤ 10 min · 7 left</span></div>
+      </div>
+
+      <div class="panel">
+        <h4>Auto-triggered actions</h4>
+        <div class="row"><span class="k">EKG order</span><span class="v" style="color:var(--good)">✓ placed</span></div>
+        <div class="row"><span class="k">Cardiac panel</span><span class="v" style="color:var(--good)">✓ placed</span></div>
+        <div class="row"><span class="k">IV access ×2</span><span class="v">In progress</span></div>
+        <div class="row"><span class="k">ASA 325 mg</span><span class="v">Pending RN</span></div>
+        <div class="row"><span class="k">Cards paged</span><span class="v" style="color:var(--good)">✓ Dr. Vasquez</span></div>
+      </div>
+
+      <div class="panel">
+        <h4>Bed assignment</h4>
+        <div style="font-size:11px;color:var(--ink-soft);line-height:1.6">
+          <b>Bay 4</b> — cardiac monitored, defib at bedside, RT on standby<br>
+          <b>RN:</b> J. Park (assigned)<br>
+          <b>MD:</b> Dr. Lin (next up)<br>
+          <b>ETA:</b> 90 sec (in transit)
+        </div>
+        <a href="EDLive.html" class="btn primary" style="margin-top:10px;width:100%;justify-content:center;text-decoration:none">Confirm & dispatch →</a>
+      </div>
+    </div>
+  </div>
+</div></div>
+<script src="../scripts/nav.js"></script>
+
+<script>window.MC_ROUTES = [{"sel":".btn.primary, button.primary","href":"EDLive.html","title":"Submit triage"},{"sel":".esi-tile","href":"#","soft":true,"title":"Select ESI level"}];</script>
+<script src="../scripts/router.js"></script>
+</body></html>

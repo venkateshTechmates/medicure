@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — ED Mission Control</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;justify-content:space-between;align-items:flex-end;margin:8px 4px 18px;flex-wrap:wrap;gap:12px}
+  .head .h1{font-size:54px}
+  .head .meta{color:var(--ink-soft);font-size:13px;margin-top:4px;display:flex;align-items:center;gap:14px}
+  .live-dot{width:8px;height:8px;border-radius:50%;background:var(--bad);display:inline-block;animation:pulse 1.4s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+  .kpis{display:grid;grid-template-columns:repeat(8,1fr);gap:10px;margin-bottom:14px}
+  .kpi{background:#fff;border-radius:16px;padding:14px;box-shadow:var(--shadow)}
+  .kpi .l{font-size:10px;color:var(--ink-mute);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+  .kpi .v{font-family:"Instrument Serif",serif;font-size:30px;letter-spacing:-.02em;line-height:1;margin-top:6px}
+  .kpi.bad .v{color:var(--bad)}
+  .kpi.warn .v{color:#a05a00}
+
+  .grid{display:grid;grid-template-columns:1fr 1.5fr 320px;gap:14px;align-items:start}
+  .col{display:flex;flex-direction:column;gap:14px}
+  .panel{padding:16px}
+  .panel h3{font-family:"Plus Jakarta Sans",sans-serif;margin:0 0 10px;font-size:14px;display:flex;justify-content:space-between;align-items:center}
+  .panel h3 .ct{font-size:11px;color:var(--ink-mute);font-weight:600}
+
+  /* Inbound EMS strip */
+  .ems{display:flex;flex-direction:column;gap:8px}
+  .ems-row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;padding:10px;background:#0e1116;color:#fff;border-radius:14px;align-items:center}
+  .ems-row .ic{width:32px;height:32px;border-radius:10px;background:#ff4d6b;display:grid;place-items:center;font-weight:800;font-size:13px}
+  .ems-row .nm{font-weight:700;font-size:13px}
+  .ems-row .sub{font-size:10px;color:#9aa0ad;margin-top:2px}
+  .ems-row .eta{text-align:right}
+  .ems-row .eta .t{font-family:"Instrument Serif",serif;font-size:22px;line-height:1}
+  .ems-row .eta .l{font-size:9px;color:#9aa0ad;text-transform:uppercase;letter-spacing:.05em}
+
+  /* Triage queue */
+  .triage-row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;padding:12px;border-radius:12px;align-items:center;border-left:4px solid var(--line);background:#fafbfc;margin-bottom:6px;cursor:pointer;transition:.15s}
+  .triage-row:hover{background:#fff;box-shadow:var(--shadow)}
+  .triage-row.esi1{border-left-color:#ff4d6b;background:#ffe7eb}
+  .triage-row.esi2{border-left-color:#ffb84d;background:#fff3df}
+  .triage-row.esi3{border-left-color:#ffe26b}
+  .triage-row.esi4{border-left-color:#27c26b}
+  .triage-row.esi5{border-left-color:#3a86ff}
+  .esi-badge{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-family:"Instrument Serif",serif;font-size:18px;color:#fff;font-weight:700}
+  .esi-badge.e1{background:#ff4d6b}.esi-badge.e2{background:#ff8b3a}.esi-badge.e3{background:#ffb84d}.esi-badge.e4{background:#27c26b}.esi-badge.e5{background:#3a86ff}
+  .triage-row .nm{font-weight:700;font-size:13px}
+  .triage-row .sub{font-size:11px;color:var(--ink-soft);margin-top:1px}
+  .triage-row .vit{font-size:10px;color:var(--ink-mute);margin-top:3px;font-family:'SF Mono',monospace}
+  .triage-row .timer{text-align:right;font-family:"Instrument Serif",serif;font-size:18px;line-height:1}
+  .triage-row .timer-l{font-size:9px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+
+  /* Bay map */
+  .bay-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+  .bay{background:#f4f6f9;border-radius:10px;padding:10px;font-size:11px;min-height:70px;display:flex;flex-direction:column;justify-content:space-between;border:2px solid transparent;transition:.15s;cursor:pointer}
+  .bay .lbl{font-weight:800;font-size:10px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em}
+  .bay .pt{font-weight:700;font-size:11px;margin-top:4px}
+  .bay .stat{font-size:10px;color:var(--ink-mute);margin-top:2px}
+  .bay.empty{background:#fff;border:2px dashed var(--line)}
+  .bay.empty .pt{color:var(--ink-mute);font-weight:500}
+  .bay.occ{background:#0e1116;color:#fff;border-color:#0e1116}
+  .bay.occ .lbl{color:#9aa0ad}.bay.occ .stat{color:#9aa0ad}
+  .bay.crit{background:#ffe7eb;border-color:#ff4d6b;color:#0e1116}
+  .bay.iso{background:#fef9d7;border-color:#ffd633}
+  .bay.disp{background:#dff7e7;border-color:#27c26b}
+  .bay.cleaning{background:#e6efff;border-color:#3a86ff}.bay.cleaning .pt{color:#1a4fb3}
+
+  .resus-row{margin-bottom:10px}
+  .resus-label{font-size:10px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin-bottom:4px}
+
+  /* Right rail */
+  .alert-card{padding:12px;border-radius:12px;margin-bottom:8px;font-size:11px;border:1px solid}
+  .alert-card.crit{background:#ffe7eb;border-color:#ff4d6b;color:#b3263d}
+  .alert-card.warn{background:#fff3df;border-color:#ffb84d;color:#a05a00}
+  .alert-card.info{background:#e6efff;border-color:#3a86ff;color:#1a4fb3}
+  .alert-card .t{font-weight:800;font-size:12px;margin-bottom:2px}
+  .alert-card .ack{margin-top:6px;background:#fff;border:0;padding:5px 10px;border-radius:999px;font:700 10px "Plus Jakarta Sans";cursor:pointer}
+
+  .codes{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+  .code-btn{padding:14px 10px;border-radius:12px;border:0;font:800 12px "Plus Jakarta Sans";color:#fff;cursor:pointer;text-align:left}
+  .code-btn .sub{font-weight:600;font-size:10px;opacity:.7;display:block;margin-top:2px}
+  .code-btn.stroke{background:#8b5cf6}
+  .code-btn.stemi{background:#ff4d6b}
+  .code-btn.trauma{background:#0e1116}
+  .code-btn.blue{background:#3a86ff}
+  .code-btn.mtp{background:#b3263d}
+  .code-btn.sepsis{background:#a05a00}
+
+  .staff-row{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:11px;border-top:1px solid var(--line)}
+  .staff-row:first-of-type{border-top:0}
+  .staff-row .pic{width:24px;height:24px;border-radius:50%;background:#eee center/cover;flex:none}
+  .staff-row .nm{font-weight:700;font-size:11px}
+  .staff-row .role{font-size:9px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.04em}
+
+  .boarding-bar{background:#0e1116;color:#fff;border-radius:14px;padding:12px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+  .boarding-bar .l{display:flex;align-items:center;gap:10px}
+  .boarding-bar b{font-family:"Instrument Serif",serif;font-size:24px;letter-spacing:-.02em}
+
+  .surge-banner{background:linear-gradient(90deg,#ff4d6b,#ff8b3a);color:#fff;border-radius:14px;padding:10px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px;font-weight:700;font-size:13px}
+</style></head>
+<body data-page="ed" data-base="../">
+
+<div class="page"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div class="head">
+    <div><h1 class="h1">ED Mission Control</h1>
+      <div class="meta"><span class="live-dot"></span> Live · last sync 2s ago · 12 staff on shift · Charge: Nurse A. Brooks</div>
+    </div>
+    <div style="display:flex;gap:10px"><button class="btn">Diversion mode</button><button class="btn">Downtime</button><button class="btn dark">+ Walk-in</button></div>
+  </div>
+
+  <div class="surge-banner">⚠ <span>Capacity at <b style="font-family:'Instrument Serif',serif;font-size:18px;margin:0 4px">94%</b> · 4 patients boarding · Consider activating surge protocol</span></div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="l">Waiting</div><div class="v">12</div></div>
+    <div class="kpi warn"><div class="l">Triaged</div><div class="v">8</div></div>
+    <div class="kpi"><div class="l">In treatment</div><div class="v">19</div></div>
+    <div class="kpi"><div class="l">Disp pending</div><div class="v">5</div></div>
+    <div class="kpi bad"><div class="l">Boarding</div><div class="v">4</div></div>
+    <div class="kpi"><div class="l">Departures /h</div><div class="v">7</div></div>
+    <div class="kpi"><div class="l">Avg LOS</div><div class="v">3:42</div></div>
+    <div class="kpi"><div class="l">LWOT today</div><div class="v">2</div></div>
+  </div>
+
+  <div class="boarding-bar">
+    <div class="l">⏱ <div><div style="font-size:11px;color:#9aa0ad;text-transform:uppercase;letter-spacing:.04em;font-weight:700">Boarding alert</div><b>4 admitted · awaiting inpatient bed</b></div></div>
+    <div style="font-size:11px;color:#9aa0ad">Longest: 6h 14m · ICU bed pending</div>
+    <button class="btn" style="background:#fff;color:#0e1116">Bed-board liaison</button>
+  </div>
+
+  <div class="grid">
+    <!-- LEFT: Inbound + Triage -->
+    <div class="col">
+      <div class="card panel">
+        <h3>EMS Inbound <span class="ct">3 incoming</span></h3>
+        <div class="ems">
+          <div class="ems-row">
+            <div class="ic">🚑</div>
+            <div><div class="nm">Medic 12 · Chest pain, M/64</div><div class="sub">STEMI activation · ASA 324mg given · cath lab notified</div></div>
+            <div class="eta"><div class="t">4m</div><div class="l">ETA</div></div>
+          </div>
+          <div class="ems-row">
+            <div class="ic" style="background:#ffb84d">🚑</div>
+            <div><div class="nm">Medic 8 · MVC, restrained driver F/28</div><div class="sub">GCS 14 · BP 102/68 · backboard · trauma alert L2</div></div>
+            <div class="eta"><div class="t">9m</div><div class="l">ETA</div></div>
+          </div>
+          <div class="ems-row">
+            <div class="ic" style="background:#3a86ff">🚑</div>
+            <div><div class="nm">Medic 21 · Stroke, F/72</div><div class="sub">LKW 0640 · NIHSS 8 · LVO suspected · bypass rule</div></div>
+            <div class="eta"><div class="t">14m</div><div class="l">ETA</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card panel">
+        <h3>Triage Queue <span class="ct">12 waiting · ESI 1–5</span></h3>
+        <div class="triage-row esi1">
+          <div class="esi-badge e1">1</div>
+          <div><div class="nm">Roxanne Patel · F / 58</div><div class="sub">Resp distress · accessory muscle use</div><div class="vit">HR 132 · BP 88/52 · SpO₂ 86% RA · RR 32 · T 38.4</div></div>
+          <div><div class="timer">2m</div><div class="timer-l">wait</div></div>
+        </div>
+        <div class="triage-row esi2">
+          <div class="esi-badge e2">2</div>
+          <div><div class="nm">Marcus Holloway · M / 42</div><div class="sub">Severe RUQ pain · jaundice</div><div class="vit">HR 108 · BP 142/88 · SpO₂ 97% · T 39.1</div></div>
+          <div><div class="timer">14m</div><div class="timer-l">wait</div></div>
+        </div>
+        <div class="triage-row esi2">
+          <div class="esi-badge e2">2</div>
+          <div><div class="nm">Liam Foster · M / 8</div><div class="sub">Asthma exac · accessory muscle use</div><div class="vit">HR 124 · SpO₂ 91% · RR 28 · peak flow 60% pred</div></div>
+          <div><div class="timer">22m</div><div class="timer-l">wait</div></div>
+        </div>
+        <div class="triage-row esi3">
+          <div class="esi-badge e3">3</div>
+          <div><div class="nm">Aria Chen · F / 34</div><div class="sub">Migraine, photophobia, vomiting ×3</div><div class="vit">HR 92 · BP 138/86 · SpO₂ 99%</div></div>
+          <div><div class="timer">38m</div><div class="timer-l">wait</div></div>
+        </div>
+        <div class="triage-row esi3">
+          <div class="esi-badge e3">3</div>
+          <div><div class="nm">Idris Bello · M / 67</div><div class="sub">Lac. R hand · MVA 1h ago · INR 2.3</div><div class="vit">HR 84 · BP 152/91 · SpO₂ 98%</div></div>
+          <div><div class="timer">52m</div><div class="timer-l">wait</div></div>
+        </div>
+        <div class="triage-row esi4">
+          <div class="esi-badge e4">4</div>
+          <div><div class="nm">Selene Vargas · F / 24</div><div class="sub">Sore throat, fever ×3d</div><div class="vit">HR 78 · BP 118/72 · T 38.8</div></div>
+          <div><div class="timer">1h 12m</div><div class="timer-l">wait</div></div>
+        </div>
+        <div class="triage-row esi4">
+          <div class="esi-badge e4">4</div>
+          <div><div class="nm">Tobias Reyes · M / 51</div><div class="sub">L ankle sprain · twisted on stairs</div><div class="vit">HR 72 · BP 124/76 · SpO₂ 99%</div></div>
+          <div><div class="timer">1h 28m</div><div class="timer-l">wait</div></div>
+        </div>
+        <div class="triage-row esi5">
+          <div class="esi-badge e5">5</div>
+          <div><div class="nm">Nadia Kowalski · F / 31</div><div class="sub">Med refill · ran out of inhaler</div><div class="vit">Stable · WNL</div></div>
+          <div><div class="timer">1h 54m</div><div class="timer-l">wait</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER: Bay Map + Treatment -->
+    <div class="col">
+      <div class="card panel">
+        <h3>Bay Map <span class="ct">28 / 32 occupied · 88%</span></h3>
+
+        <div class="resus-row">
+          <div class="resus-label">Resus rooms (4)</div>
+          <div class="bay-grid" style="grid-template-columns:repeat(4,1fr)">
+            <div class="bay crit"><div class="lbl">RES-1</div><div class="pt">Code STEMI · M/64</div><div class="stat">Dr. Vasquez · 2m in</div></div>
+            <div class="bay occ"><div class="lbl">RES-2</div><div class="pt">Septic shock · F/79</div><div class="stat">Dr. Park · 38m</div></div>
+            <div class="bay empty"><div class="lbl">RES-3</div><div class="pt">— Available —</div><div class="stat">Held for trauma</div></div>
+            <div class="bay occ"><div class="lbl">RES-4</div><div class="pt">CHF exac · M/71</div><div class="stat">PA Reyes · 1h 02m</div></div>
+          </div>
+        </div>
+
+        <div class="resus-row">
+          <div class="resus-label">Acute bays (12)</div>
+          <div class="bay-grid">
+            <div class="bay occ"><div class="lbl">B-01</div><div class="pt">DKA · F/19</div><div class="stat">52m</div></div>
+            <div class="bay iso"><div class="lbl">B-02</div><div class="pt">Influenza A · M/45</div><div class="stat">⚠ iso · 1h 18m</div></div>
+            <div class="bay occ"><div class="lbl">B-03</div><div class="pt">Lac. forearm · F/31</div><div class="stat">PA Reyes · 24m</div></div>
+            <div class="bay disp"><div class="lbl">B-04</div><div class="pt">Vertigo · F/68</div><div class="stat">Dispo: discharge</div></div>
+            <div class="bay occ"><div class="lbl">B-05</div><div class="pt">Abd pain · F/42</div><div class="stat">CT pending</div></div>
+            <div class="bay cleaning"><div class="lbl">B-06</div><div class="pt">Cleaning</div><div class="stat">EVS · 4m</div></div>
+            <div class="bay occ"><div class="lbl">B-07</div><div class="pt">Asthma · M/24</div><div class="stat">Nebs ×2</div></div>
+            <div class="bay disp"><div class="lbl">B-08</div><div class="pt">Cellulitis · M/55</div><div class="stat">Dispo: admit</div></div>
+            <div class="bay occ"><div class="lbl">B-09</div><div class="pt">Renal colic · M/38</div><div class="stat">42m</div></div>
+            <div class="bay empty"><div class="lbl">B-10</div><div class="pt">Available</div><div class="stat">Ready</div></div>
+            <div class="bay iso"><div class="lbl">B-11</div><div class="pt">SOB · MRSA hx · M/62</div><div class="stat">⚠ contact iso</div></div>
+            <div class="bay occ"><div class="lbl">B-12</div><div class="pt">Syncope · F/74</div><div class="stat">Tele · 38m</div></div>
+          </div>
+        </div>
+
+        <div class="resus-row">
+          <div class="resus-label">Fast track (8)</div>
+          <div class="bay-grid" style="grid-template-columns:repeat(8,1fr)">
+            <div class="bay occ"><div class="lbl">FT1</div><div class="pt">URI</div><div class="stat">12m</div></div>
+            <div class="bay occ"><div class="lbl">FT2</div><div class="pt">Sutures</div><div class="stat">8m</div></div>
+            <div class="bay disp"><div class="lbl">FT3</div><div class="pt">UTI</div><div class="stat">→DC</div></div>
+            <div class="bay empty"><div class="lbl">FT4</div><div class="pt">—</div><div class="stat"></div></div>
+            <div class="bay occ"><div class="lbl">FT5</div><div class="pt">Sprain</div><div class="stat">22m</div></div>
+            <div class="bay occ"><div class="lbl">FT6</div><div class="pt">Refill</div><div class="stat">14m</div></div>
+            <div class="bay disp"><div class="lbl">FT7</div><div class="pt">Conjunc.</div><div class="stat">→DC</div></div>
+            <div class="bay cleaning"><div class="lbl">FT8</div><div class="pt">Clean</div><div class="stat">EVS</div></div>
+          </div>
+        </div>
+
+        <div class="resus-row">
+          <div class="resus-label">Hallway / Boarding (8)</div>
+          <div class="bay-grid" style="grid-template-columns:repeat(8,1fr)">
+            <div class="bay occ" style="background:#a05a00"><div class="lbl" style="color:#fff3df">H-1 · BOARD</div><div class="pt">ICU pend</div><div class="stat">6h 14m</div></div>
+            <div class="bay occ" style="background:#a05a00"><div class="lbl" style="color:#fff3df">H-2 · BOARD</div><div class="pt">Tele</div><div class="stat">4h 32m</div></div>
+            <div class="bay occ" style="background:#a05a00"><div class="lbl" style="color:#fff3df">H-3 · BOARD</div><div class="pt">Med-surg</div><div class="stat">3h 18m</div></div>
+            <div class="bay occ" style="background:#a05a00"><div class="lbl" style="color:#fff3df">H-4 · BOARD</div><div class="pt">Med-surg</div><div class="stat">2h 04m</div></div>
+            <div class="bay empty"><div class="lbl">H-5</div></div>
+            <div class="bay empty"><div class="lbl">H-6</div></div>
+            <div class="bay empty"><div class="lbl">H-7</div></div>
+            <div class="bay empty"><div class="lbl">H-8</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Alerts, Codes, Staff -->
+    <div class="col">
+      <div class="card panel">
+        <h3>Active alerts <span class="ct">5</span></h3>
+        <div class="alert-card crit"><div class="t">⚠ Critical lactate · RES-2</div>Lactate 4.8 mmol/L · sepsis bundle initiated 38m ago<button class="ack">Acknowledge</button></div>
+        <div class="alert-card crit"><div class="t">⚠ STEMI activation</div>Cath lab notified · door-to-balloon goal 90m<button class="ack">View</button></div>
+        <div class="alert-card warn"><div class="t">↑ Deteriorating · Triage</div>Roxanne Patel · SpO₂ 86% trending down<button class="ack">Re-triage</button></div>
+        <div class="alert-card warn"><div class="t">⏱ Boarding > 6h · H-1</div>ICU bed assignment pending<button class="ack">Escalate</button></div>
+        <div class="alert-card info"><div class="t">ℹ Lab back · B-05</div>CT abd reading complete · view report<button class="ack">Open</button></div>
+      </div>
+
+      <div class="card panel">
+        <h3>Code activation</h3>
+        <div style="font-size:11px;color:var(--ink-mute);margin-bottom:6px">Press to start workflow + paging</div>
+        <div class="codes">
+          <button class="code-btn stroke">Code STROKE<span class="sub">tPA window · NIHSS</span></button>
+          <button class="code-btn stemi">Code STEMI<span class="sub">Cath lab · ASA</span></button>
+          <button class="code-btn trauma">Code TRAUMA<span class="sub">L1 / L2 activation</span></button>
+          <button class="code-btn blue">Code BLUE<span class="sub">ACLS · ROSC</span></button>
+          <button class="code-btn mtp">MTP<span class="sub">1:1:1 ratio</span></button>
+          <button class="code-btn sepsis">Sepsis<span class="sub">3-hr bundle</span></button>
+        </div>
+      </div>
+
+      <div class="card panel">
+        <h3>On shift now <span class="ct">12</span></h3>
+        <div class="staff-row"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=80&h=80&fit=crop&crop=faces')"></div><div style="flex:1"><div class="nm">Dr. S. Vasquez</div><div class="role">Attending</div></div><span class="pill bad" style="font-size:9px"><span class="pdot"></span>Resus</span></div>
+        <div class="staff-row"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=80&h=80&fit=crop&crop=faces')"></div><div style="flex:1"><div class="nm">Dr. H. Park</div><div class="role">Attending</div></div><span class="pill warn" style="font-size:9px"><span class="pdot"></span>RES-2</span></div>
+        <div class="staff-row"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=80&h=80&fit=crop&crop=faces')"></div><div style="flex:1"><div class="nm">PA Jordan Reyes</div><div class="role">Fast track</div></div><span class="pill good" style="font-size:9px"><span class="pdot"></span>Avail</span></div>
+        <div class="staff-row"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1587614382346-4ec70e388b28?w=80&h=80&fit=crop&crop=faces')"></div><div style="flex:1"><div class="nm">RN A. Brooks</div><div class="role">Charge</div></div><span class="pill good" style="font-size:9px"><span class="pdot"></span>Charge</span></div>
+        <div style="text-align:center;font-size:11px;color:var(--ink-mute);margin-top:10px;padding-top:10px;border-top:1px solid var(--line)">+ 8 more on shift</div>
+      </div>
+    </div>
+  </div>
+</div></div>
+<script src="../scripts/nav.js"></script>
+
+<script>window.MC_ROUTES = [{"sel":".bed-card, .ed-bed, .bed","href":"PatientChart.html","title":"Open patient"},{"sel":".triage-row, .arrival-row","href":"Triage.html","title":"Triage"},{"sel":".btn.primary, button.primary","href":"Triage.html","title":"New triage"}];</script>
+<script src="../scripts/router.js"></script>
+</body></html>

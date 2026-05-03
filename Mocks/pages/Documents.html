@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Medcure — Documents</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin:8px 4px 22px;gap:20px;flex-wrap:wrap}
+  .head .h1{font-size:56px}
+  .head .meta{color:var(--ink-soft);font-size:13px;margin-top:6px}
+  .grid{display:grid;grid-template-columns:260px 1fr 320px;gap:14px}
+  .side{background:#fff;border-radius:22px;padding:18px;box-shadow:var(--shadow);height:fit-content}
+  .side h4{font:600 11px/1 "Plus Jakarta Sans";text-transform:uppercase;color:var(--ink-mute);letter-spacing:.06em;margin:14px 0 8px}
+  .side h4:first-child{margin-top:0}
+  .side a{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-radius:12px;text-decoration:none;color:var(--ink-soft);font:600 13px "Plus Jakarta Sans"}
+  .side a.active{background:#0e1116;color:#fff}
+  .side a .ct{font-size:11px;color:var(--ink-mute);background:#f4f6f9;padding:3px 8px;border-radius:999px}
+  .side a.active .ct{background:rgba(255,255,255,.12);color:#fff}
+
+  .main{display:flex;flex-direction:column;gap:14px}
+  .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .doc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .doc{background:#fff;border-radius:20px;padding:18px;box-shadow:var(--shadow);position:relative;cursor:pointer;transition:.18s}
+  .doc:hover{transform:translateY(-2px)}
+  .doc .thumb{height:140px;border-radius:14px;background:linear-gradient(160deg,#f4f6f9,#e9ecf3);display:grid;place-items:center;margin-bottom:14px;position:relative;overflow:hidden}
+  .doc.pdf .thumb{background:linear-gradient(160deg,#ffe1e7,#fff);color:#d04d63}
+  .doc.img .thumb{background:linear-gradient(160deg,#e6efff,#fff);color:#3a86ff}
+  .doc.dicom .thumb{background:#0e1116;color:#fff}
+  .doc.signed .thumb{background:linear-gradient(160deg,#fff3a8,#fff);color:#a07b00}
+  .doc .thumb svg{width:46px;height:46px}
+  .doc .nm{font-weight:700;font-size:14px;margin-bottom:4px;text-wrap:pretty}
+  .doc .mt{font-size:11px;color:var(--ink-mute);display:flex;gap:8px;align-items:center}
+  .doc .badges{position:absolute;top:14px;left:14px;display:flex;gap:6px}
+  .doc .more{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.92);display:grid;place-items:center;color:var(--ink-soft)}
+
+  .side-r{display:flex;flex-direction:column;gap:14px}
+  .preview{background:#fff;border-radius:22px;box-shadow:var(--shadow);overflow:hidden}
+  .preview .ph{height:200px;background:linear-gradient(160deg,#fff3a8 0%,#fff 100%);position:relative;display:grid;place-items:center}
+  .preview .ph .pg{width:130px;height:170px;background:#fff;border-radius:8px;box-shadow:0 8px 24px -8px rgba(0,0,0,.18);position:relative;overflow:hidden;padding:14px 12px}
+  .preview .ph .pg .ln{height:4px;background:#e3e6ec;border-radius:2px;margin:6px 0}
+  .preview .ph .pg .ln.s{width:60%}
+  .preview .ph .pg .ln.m{width:90%}
+  .preview .ph .pg .ln.l{width:100%}
+  .preview .pb{padding:18px}
+  .preview h3{font-family:"Instrument Serif",serif;font-weight:400;font-size:22px;margin:0 0 6px}
+  .preview .row{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-soft);padding:6px 0;border-bottom:1px dashed var(--line)}
+  .preview .row:last-child{border-bottom:0}
+  .preview .row b{color:var(--ink);font-weight:700}
+  .preview .actions{display:flex;gap:8px;margin-top:14px}
+</style>
+</head>
+<body data-page="documents" data-base="../">
+
+<div class="page">
+  <div class="frame">
+    <div class="nav" id="medcure-nav"></div>
+
+    <div class="head">
+      <div>
+        <div class="eyebrow">Records · Patient files</div>
+        <h1 class="h1">Documents</h1>
+        <div class="meta">2,418 documents · 84 awaiting signature · synced via DocumentReference R4</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <div class="searchbox"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input placeholder="Search documents…"/></div>
+        <button class="btn primary">Upload <span class="arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></span></button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="side">
+        <h4>Library</h4>
+        <a class="active">All Documents <span class="ct">2,418</span></a>
+        <a>Recent <span class="ct">42</span></a>
+        <a>Shared with me <span class="ct">18</span></a>
+        <a>Awaiting signature <span class="ct">84</span></a>
+        <h4>Categories</h4>
+        <a>Clinical Notes <span class="ct">912</span></a>
+        <a>Imaging Studies <span class="ct">386</span></a>
+        <a>Lab Reports <span class="ct">624</span></a>
+        <a>Consents <span class="ct">218</span></a>
+        <a>Insurance <span class="ct">142</span></a>
+        <a>Discharge Summary <span class="ct">86</span></a>
+        <h4>Tags</h4>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;padding:0 4px">
+          <span class="pill">cardio</span><span class="pill">post-op</span><span class="pill">peds</span><span class="pill">lab</span>
+        </div>
+      </div>
+
+      <div class="main">
+        <div class="toolbar">
+          <div class="subnav">
+            <a class="active">All</a><a>PDF</a><a>Imaging</a><a>Signed</a><a>Drafts</a>
+          </div>
+          <div style="margin-left:auto;display:flex;gap:8px">
+            <button class="btn">Sort: Recent <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></button>
+          </div>
+        </div>
+
+        <div class="doc-grid" id="docs"></div>
+      </div>
+
+      <div class="side-r">
+        <div class="preview">
+          <div class="ph">
+            <div class="pg">
+              <div class="ln l"></div><div class="ln m"></div><div class="ln s"></div>
+              <div style="height:14px"></div>
+              <div class="ln l"></div><div class="ln l"></div><div class="ln m"></div><div class="ln l"></div><div class="ln s"></div>
+              <div style="height:10px"></div>
+              <div class="ln l"></div><div class="ln m"></div>
+            </div>
+          </div>
+          <div class="pb">
+            <h3>Discharge Summary</h3>
+            <div style="font-size:12px;color:var(--ink-mute);margin-bottom:14px">Albert Smith · MRN-08421</div>
+            <div class="row"><span>Author</span><b>Dr. Aanya Patel</b></div>
+            <div class="row"><span>Created</span><b>Jan 18, 2025</b></div>
+            <div class="row"><span>Status</span><b style="color:var(--good)">● Signed</b></div>
+            <div class="row"><span>Pages</span><b>4</b></div>
+            <div class="row"><span>Size</span><b>284 KB</b></div>
+            <div class="actions">
+              <button class="btn dark" style="flex:1;justify-content:center">Open</button>
+              <button class="btn" title="Download"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg></button>
+            </div>
+          </div>
+        </div>
+        <div class="card tight">
+          <div class="eyebrow" style="margin-bottom:8px">Activity</div>
+          <div style="font-size:12px;color:var(--ink-soft);line-height:1.7">
+            <div><b>Dr. Patel</b> signed Discharge Summary · 2h ago</div>
+            <div><b>R. Mendez</b> uploaded Insurance Card · 3h ago</div>
+            <div><b>Lab</b> released ORU R01 results · 5h ago</div>
+            <div><b>You</b> opened Imaging Study #2841 · yesterday</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../scripts/nav.js"></script>
+<script>
+const ic = {
+  pdf:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/>',
+  img:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/>',
+  dicom:'<path d="M12 2v20M2 12h20"/><circle cx="12" cy="12" r="9"/>',
+  signed:'<path d="M9 12l2 2 4-4"/><path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c2.5 0 4.76 1.02 6.4 2.66"/>'
+};
+const docs = [
+  {k:'signed', t:'Discharge Summary', m:'PDF · 4 pages', who:'Albert Smith', d:'2h ago', tag:'Signed'},
+  {k:'img', t:'CT Chest w/ Contrast', m:'DICOM · 142 frames', who:'Maria Hernandez', d:'5h ago', tag:'Imaging'},
+  {k:'pdf', t:'Op Note — Appendectomy', m:'PDF · 3 pages', who:'Sarah Johnson', d:'Today', tag:'Surgery'},
+  {k:'pdf', t:'Lab Report — CMP, CBC', m:'PDF · 2 pages', who:'James Liu', d:'Today', tag:'Lab'},
+  {k:'signed', t:'Consent — Anesthesia', m:'PDF · 2 pages · Signed', who:'Sarah Johnson', d:'Yesterday', tag:'Consent'},
+  {k:'pdf', t:'Progress Note Day 3', m:'PDF · 1 page', who:'Robert Kim', d:'Yesterday', tag:'Note'},
+  {k:'img', t:'XR Pelvis AP', m:'DICOM · 1 image', who:'Daniel Owusu', d:'Jan 17', tag:'Imaging'},
+  {k:'dicom', t:'MRI Brain T1/T2', m:'DICOM · 320 frames', who:'James Liu', d:'Jan 17', tag:'Imaging'},
+  {k:'pdf', t:'Insurance Authorization', m:'PDF · 1 page', who:'Priya Shah', d:'Jan 16', tag:'Insurance'},
+];
+document.getElementById('docs').innerHTML = docs.map(d => `
+  <div class="doc ${d.k}">
+    <div class="badges"><span class="pill ${d.k==='signed'?'good':d.k==='img'||d.k==='dicom'?'info':''}">${d.tag}</span></div>
+    <div class="more"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></div>
+    <div class="thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${ic[d.k]}</svg></div>
+    <div class="nm">${d.t}</div>
+    <div class="mt"><span>${d.who}</span> · <span>${d.m}</span> · <span>${d.d}</span></div>
+  </div>
+`).join('');
+</script>
+
+<script>window.MC_ROUTES = [{"sel":".doc-row, .file-card, .doc-card, tbody tr","href":"PatientChart.html#documents","title":"Open document"},{"sel":".btn.primary, button.primary","href":"PatientChart.html#documents","title":"Upload"}];</script>
+<script src="../scripts/router.js"></script>
+</body>
+</html>

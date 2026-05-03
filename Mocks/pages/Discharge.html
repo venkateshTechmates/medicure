@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Discharge · Albert Smith</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;justify-content:space-between;align-items:flex-end;margin:8px 4px 18px;flex-wrap:wrap;gap:12px}
+  .head .h1{font-size:48px}
+  .stepper{display:flex;background:#fff;border-radius:18px;padding:6px;box-shadow:var(--shadow);margin-bottom:18px}
+  .step{flex:1;display:flex;align-items:center;gap:10px;padding:12px;border-radius:14px;cursor:pointer;font-size:11px;font-weight:700;color:var(--ink-mute)}
+  .step.active{background:#fef9d7;color:var(--ink)}
+  .step.done{color:var(--ink-soft)}
+  .step .n{width:22px;height:22px;border-radius:50%;background:#f4f6f9;display:grid;place-items:center;font-weight:700;font-size:10px;color:var(--ink-soft)}
+  .step.active .n{background:#0e1116;color:#fff}
+  .step.done .n{background:var(--good);color:#fff}
+
+  .grid{display:grid;grid-template-columns:1fr 320px;gap:18px;align-items:start}
+  .panel{padding:22px}
+  .panel h2{font-family:"Instrument Serif",serif;font-size:30px;letter-spacing:-.02em;margin:0 0 4px}
+  .panel .sub{font-size:12px;color:var(--ink-soft);margin-bottom:18px}
+
+  .recon-table{width:100%;border-collapse:separate;border-spacing:0 6px;font-size:12px}
+  .recon-table thead th{text-align:left;font-size:10px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;font-weight:700;padding:0 10px 4px}
+  .recon-table tbody td{background:#fafbfc;padding:12px 10px;vertical-align:middle}
+  .recon-table tbody td:first-child{border-radius:10px 0 0 10px}
+  .recon-table tbody td:last-child{border-radius:0 10px 10px 0}
+  .recon-table tbody tr.continue td{background:#dff7e7}
+  .recon-table tbody tr.stop td{background:#ffe7eb}
+  .recon-table tbody tr.new td{background:#fff3df}
+  .recon-table tbody tr.modify td{background:#e6efff}
+  .recon-pill{display:inline-block;padding:3px 8px;border-radius:999px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+  .rp.continue{background:#27c26b;color:#fff}.rp.stop{background:#ff4d6b;color:#fff}.rp.new{background:#ffb84d;color:#0e1116}.rp.modify{background:#3a86ff;color:#fff}
+
+  .dx-row{display:flex;align-items:center;gap:10px;padding:10px;background:#fafbfc;border-radius:12px;margin-bottom:6px;font-size:12px}
+  .dx-row .code{background:#0e1116;color:#fff;padding:4px 8px;border-radius:8px;font-family:'SF Mono',monospace;font-size:11px;font-weight:700;flex:none}
+  .dx-row .nm{font-weight:700;flex:1}
+  .dx-row .pri{padding:3px 8px;border-radius:999px;font-size:9px;font-weight:800;background:#ff4d6b;color:#fff;text-transform:uppercase}
+  .dx-row .pri.sec{background:#9aa0ad}
+
+  .instr-tabs{display:flex;gap:4px;background:#f4f6f9;border-radius:999px;padding:4px;margin-bottom:12px;width:fit-content}
+  .instr-tabs .t{padding:6px 14px;border-radius:999px;font:700 11px "Plus Jakarta Sans";color:var(--ink-soft);cursor:pointer}
+  .instr-tabs .t.active{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+
+  .instr-card{background:#fafbfc;border-radius:14px;padding:14px;font-size:12px;line-height:1.55;border:1px solid var(--line);margin-bottom:8px}
+  .instr-card h4{margin:0 0 6px;font-size:13px}
+  .instr-card ul{margin:6px 0 0;padding-left:18px}
+
+  .followup-row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;padding:12px;background:#fafbfc;border-radius:12px;margin-bottom:6px;align-items:center}
+  .followup-row .pic{width:40px;height:40px;border-radius:12px;background:#eee center/cover}
+  .followup-row .nm{font-weight:700;font-size:13px}
+  .followup-row .sub{font-size:11px;color:var(--ink-mute);margin-top:1px}
+
+  .checks{padding:14px;background:#fef9d7;border:1px solid #ffd633;border-radius:14px;margin-top:10px}
+  .checks h4{margin:0 0 8px;color:#7a5c00}
+  .check{display:flex;align-items:center;gap:8px;font-size:11px;padding:4px 0;color:#7a5c00}
+  .check .b{width:14px;height:14px;border-radius:4px;background:#27c26b;color:#fff;display:grid;place-items:center;font-size:9px;font-weight:800;flex:none}
+  .check .b.x{background:#fff;border:1.5px solid #c4a200;color:transparent}
+</style></head>
+<body data-page="patients" data-base="../">
+
+<div class="page"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div class="head">
+    <div><h1 class="h1">Discharge wizard</h1><div style="font-size:13px;color:var(--ink-soft);margin-top:4px">Albert Smith · MRN 4421-08 · Day 3 admission · Asthma exacerbation</div></div>
+    <div style="display:flex;gap:8px"><button class="btn">Save draft</button><button class="btn">Cancel</button></div>
+  </div>
+
+  <div class="stepper">
+    <div class="step done"><span class="n">✓</span>Disposition</div>
+    <div class="step done"><span class="n">✓</span>Diagnoses</div>
+    <div class="step active"><span class="n">3</span>Med reconciliation</div>
+    <div class="step"><span class="n">4</span>Instructions</div>
+    <div class="step"><span class="n">5</span>Follow-up</div>
+    <div class="step"><span class="n">6</span>Sign</div>
+  </div>
+
+  <div class="grid">
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card panel">
+        <h2>Discharge diagnoses</h2>
+        <div class="sub">ICD-10 coded · primary diagnosis required for billing.</div>
+        <div class="dx-row"><span class="code">J45.901</span><div class="nm">Unspecified asthma with (acute) exacerbation</div><span class="pri">Primary</span></div>
+        <div class="dx-row"><span class="code">J06.9</span><div class="nm">Acute upper respiratory infection, unspecified</div><span class="pri sec">Sec</span></div>
+        <div class="dx-row"><span class="code">Z87.891</span><div class="nm">Personal history of nicotine dependence (parental, secondhand exposure)</div><span class="pri sec">Sec</span></div>
+        <button class="btn" style="margin-top:8px">+ Add diagnosis</button>
+      </div>
+
+      <div class="card panel">
+        <h2>Medication reconciliation</h2>
+        <div class="sub">Compare admission, current, and discharge meds. Resolve every line.</div>
+
+        <table class="recon-table">
+          <thead><tr><th>Drug</th><th>Admission</th><th>During stay</th><th>Discharge</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr class="continue">
+              <td><b>Albuterol HFA 90 mcg</b><br><span style="color:var(--ink-mute);font-size:10px">2 puffs q4–6h PRN</span></td>
+              <td>2 puffs q4–6h PRN</td><td>2 puffs q4h scheduled</td><td><b>2 puffs q4–6h PRN</b></td>
+              <td><span class="recon-pill rp continue">Continue</span></td>
+            </tr>
+            <tr class="new">
+              <td><b>Prednisolone 15 mg/5 mL</b><br><span style="color:var(--ink-mute);font-size:10px">New on discharge</span></td>
+              <td>—</td><td>—</td><td><b>2 mg/kg PO ×3 days</b></td>
+              <td><span class="recon-pill rp new">New</span></td>
+            </tr>
+            <tr class="modify">
+              <td><b>Fluticasone 50 mcg nasal</b><br><span style="color:var(--ink-mute);font-size:10px">Dose increased</span></td>
+              <td>1 spray daily</td><td>2 sprays BID</td><td><b>2 sprays each nostril BID ×30d, then re-eval</b></td>
+              <td><span class="recon-pill rp modify">Modify</span></td>
+            </tr>
+            <tr class="continue">
+              <td><b>Cetirizine 5 mg</b></td>
+              <td>Daily PRN</td><td>Daily PRN</td><td><b>Daily PRN</b></td>
+              <td><span class="recon-pill rp continue">Continue</span></td>
+            </tr>
+            <tr class="stop">
+              <td><b>Methylprednisolone IV 40 mg</b><br><span style="color:var(--ink-mute);font-size:10px">Inpatient only</span></td>
+              <td>—</td><td>q6h ×48h</td><td>—</td>
+              <td><span class="recon-pill rp stop">Stop</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="checks">
+          <h4>Reconciliation checks</h4>
+          <div class="check"><span class="b">✓</span>No drug-allergy conflicts (PCN, peanuts checked)</div>
+          <div class="check"><span class="b">✓</span>No therapeutic duplications</div>
+          <div class="check"><span class="b">✓</span>Pediatric weight-based dosing verified for all new meds (pt: 31 kg)</div>
+          <div class="check"><span class="b">✓</span>All home meds addressed (5 of 5)</div>
+          <div class="check"><span class="b x"></span>Patient/guardian education delivered (pending step 4)</div>
+        </div>
+      </div>
+
+      <div class="card panel">
+        <h2>Discharge instructions</h2>
+        <div class="sub">Templated, language-aware. Patient receives printed and portal copies.</div>
+
+        <div class="instr-tabs">
+          <div class="t active">Patient summary</div>
+          <div class="t">Activity</div>
+          <div class="t">Diet</div>
+          <div class="t">Warning signs</div>
+          <div class="t">Asthma action plan</div>
+        </div>
+
+        <div class="instr-card">
+          <h4>What you came in for</h4>
+          You came to the hospital because you were having a hard time breathing. Your asthma was flaring up. We gave you medicine through a mask (a "neb treatment") and steroid medicine to calm your lungs down. You stayed in the hospital for 2 nights so we could watch your breathing.
+        </div>
+        <div class="instr-card">
+          <h4>How you're doing now</h4>
+          Your breathing is much better. Your oxygen level is normal. You can go home today.
+        </div>
+        <div class="instr-card">
+          <h4>What to do at home</h4>
+          <ul>
+            <li>Take your blue inhaler (Albuterol) when you feel tight in your chest, or before exercise.</li>
+            <li>Take the pink medicine (Prednisolone) every morning for 3 more days.</li>
+            <li>Use the nasal spray every morning and night.</li>
+            <li>Stay away from smoke and strong smells. Keep windows closed if pollen is high.</li>
+            <li>Drink lots of water.</li>
+          </ul>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:8px"><button class="btn">📄 Generate PDF</button><button class="btn">🌐 Translate · ES, ZH, AR</button><button class="btn">📩 Send to portal</button></div>
+      </div>
+
+      <div class="card panel">
+        <h2>Follow-up appointments</h2>
+        <div class="sub">Scheduled now and confirmed before discharge.</div>
+        <div class="followup-row">
+          <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=120&h=120&fit=crop&crop=faces')"></div>
+          <div><div class="nm">Dr. M. Achebe · Primary care</div><div class="sub">Asthma re-eval · Mon May 11, 9:30 AM · Room 204</div></div>
+          <span class="pill good"><span class="pdot"></span>Confirmed</span>
+        </div>
+        <div class="followup-row">
+          <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=120&h=120&fit=crop&crop=faces')"></div>
+          <div><div class="nm">Dr. I. Tanaka · Allergy / immunology</div><div class="sub">New referral · Tue Jun 02, 2:00 PM · Spirometry</div></div>
+          <span class="pill warn"><span class="pdot"></span>Pending</span>
+        </div>
+        <div class="followup-row">
+          <div class="pic" style="background:#fff3df;display:grid;place-items:center;font-size:18px">📞</div>
+          <div><div class="nm">RN follow-up call</div><div class="sub">48 hr post-discharge · auto-scheduled May 04, 10 AM</div></div>
+          <span class="pill info"><span class="pdot"></span>Auto</span>
+        </div>
+        <button class="btn" style="margin-top:8px">+ Add follow-up</button>
+      </div>
+    </div>
+
+    <!-- Right summary -->
+    <div style="position:sticky;top:18px;display:flex;flex-direction:column;gap:14px">
+      <div class="card panel">
+        <h2 style="font-size:22px">Summary</h2>
+        <div style="font-size:11px;color:var(--ink-mute);margin-bottom:12px">Review before signing</div>
+
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 0;border-top:1px solid var(--line)"><span style="color:var(--ink-mute)">Disposition</span><b>Home</b></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 0;border-top:1px solid var(--line)"><span style="color:var(--ink-mute)">Length of stay</span><b>3 days</b></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 0;border-top:1px solid var(--line)"><span style="color:var(--ink-mute)">Primary Dx</span><b>J45.901</b></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 0;border-top:1px solid var(--line)"><span style="color:var(--ink-mute)">Meds reconciled</span><b style="color:var(--good)">5 of 5</b></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 0;border-top:1px solid var(--line)"><span style="color:var(--ink-mute)">Follow-ups</span><b>3 scheduled</b></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 0;border-top:1px solid var(--line)"><span style="color:var(--ink-mute)">Education</span><b style="color:var(--warn)">Pending</b></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 0;border-top:1px solid var(--line)"><span style="color:var(--ink-mute)">Estimated copay</span><b>$120</b></div>
+
+        <div style="margin-top:14px;padding:12px;background:#0e1116;color:#fff;border-radius:12px;font-size:11px;line-height:1.5">
+          <b style="color:#ffd633">Downstream events on sign:</b><br>
+          • Pharmacy queue: 2 new Rx<br>• EVS: bed cleaning ticket<br>• Transport: wheelchair to lobby<br>• Billing: charge capture closed<br>• Audit: discharge.signed event
+        </div>
+
+        <button class="btn primary" style="width:100%;margin-top:12px;justify-content:center">Continue to sign <span class="arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></span></button>
+      </div>
+
+      <div class="card panel">
+        <div style="font-weight:700;margin-bottom:8px;font-size:14px">Allergies &amp; alerts</div>
+        <span class="pill bad" style="margin:2px 4px 2px 0"><span class="pdot"></span>PCN · hives</span>
+        <span class="pill bad" style="margin:2px 4px 2px 0"><span class="pdot"></span>Peanuts</span>
+        <span class="pill warn" style="margin:2px 4px 2px 0"><span class="pdot"></span>Asthma</span>
+      </div>
+    </div>
+  </div>
+</div></div>
+<script src="../scripts/nav.js"></script>
+
+<script>window.MC_ROUTES = [{"sel":".btn.primary, button.primary","href":"PatientChart.html","title":"Complete discharge"},{"sel":".followup-row","href":"ScheduleAppointment.html","title":"Schedule follow-up"},{"sel":".recon-table tbody tr","href":"OrderDetail.html","title":"Edit medication"}];</script>
+<script src="../scripts/router.js"></script>
+</body></html>

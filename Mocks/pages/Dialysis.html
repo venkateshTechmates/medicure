@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Dialysis session</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin:8px 4px 22px;flex-wrap:wrap;gap:14px}
+  .head .h1{font-size:46px}
+  .head .meta{color:var(--ink-soft);font-size:13px;margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}
+  .head .meta b{color:var(--ink)}
+  .stat-row{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:18px}
+  .stat-card{background:#fff;border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+  .stat-card .lbl{color:var(--ink-soft);font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+  .stat-card .num{font-family:"Instrument Serif",serif;font-size:30px;letter-spacing:-.02em;line-height:1;margin-top:6px}
+  .stat-card .delta{font-size:10px;color:var(--ink-mute);margin-top:3px}
+
+  .layout{display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start}
+  .card{padding:0;overflow:hidden}
+  .ch{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+  .ch .t{font-weight:800;font-size:14px}
+  .ch .s{font-size:11px;color:var(--ink-mute);font-family:"JetBrains Mono",monospace}
+
+  /* Hero machine */
+  .machine{padding:18px;background:linear-gradient(135deg,#0a1d2a,#163a52);color:#fff;display:grid;grid-template-columns:1fr 1fr 1fr 260px;gap:14px;align-items:stretch}
+  .machine .ml{font-size:9.5px;color:rgba(255,255,255,.55);font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+  .machine .mv{font-family:"Instrument Serif",serif;font-size:46px;line-height:1;letter-spacing:-.02em;margin-top:6px}
+  .machine .mu{font-size:12px;color:rgba(255,255,255,.65);margin-top:2px;font-family:"JetBrains Mono",monospace}
+  .mblock{background:rgba(255,255,255,.06);border-radius:12px;padding:14px}
+  .mblock.warn{background:rgba(255,180,80,.15)}
+  .mblock.alarm{background:rgba(255,80,80,.18)}
+  .mblock .row{display:flex;justify-content:space-between;font-size:11px;margin-top:8px;color:rgba(255,255,255,.75);font-family:"JetBrains Mono",monospace}
+
+  /* Circuit svg */
+  .circuit{background:rgba(0,0,0,.2);border-radius:12px;padding:12px;display:flex;flex-direction:column;justify-content:space-between}
+  .circuit svg{width:100%;height:auto}
+
+  /* Ultrafiltration progress */
+  .uf-bar{height:14px;background:rgba(255,255,255,.1);border-radius:7px;overflow:hidden;margin:10px 0}
+  .uf-bar .f{height:100%;background:linear-gradient(90deg,#3a86ff,#27c26b);border-radius:7px}
+
+  /* Time grid */
+  .tgrid{padding:0}
+  .tgrid table{width:100%;border-collapse:collapse;font-size:11.5px;font-family:"JetBrains Mono",monospace}
+  .tgrid th{padding:9px 10px;text-align:left;font-size:9.5px;color:var(--ink-mute);font-weight:800;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line);background:#fafbfc;position:sticky;top:0}
+  .tgrid td{padding:9px 10px;border-bottom:1px solid var(--line)}
+  .tgrid td.t{font-weight:800;color:var(--ink);font-size:12px}
+  .tgrid td.bp{font-weight:700}
+  .tgrid td .e{font-size:10px;color:var(--ink-mute);margin-top:2px;font-family:"Plus Jakarta Sans",sans-serif}
+  .tgrid tr.now{background:#e6efff}
+  .tgrid tr.now td.t{color:#1a4fb3}
+  .tgrid td .warn{color:#a06e0d}
+  .tgrid td .bad{color:#c43c3c}
+  .tgrid td .ok{color:#1a8a48}
+
+  /* Access site */
+  .access{display:grid;grid-template-columns:120px 1fr;gap:14px;padding:14px 16px}
+  .arm{background:#fafbfc;border-radius:12px;display:grid;place-items:center;padding:12px}
+  .arm svg{width:100%}
+  .access dl{display:grid;grid-template-columns:auto 1fr;gap:5px 14px;font-size:11.5px;margin:0;align-self:center}
+  .access dt{color:var(--ink-mute);font-weight:600}
+  .access dd{margin:0;font-weight:700;font-family:"JetBrains Mono",monospace}
+
+  /* Prescription / orders */
+  .rx{padding:0}
+  .rxr{display:grid;grid-template-columns:140px 1fr 90px;padding:10px 18px;border-top:1px solid var(--line);font-size:11.5px;align-items:baseline}
+  .rxr:first-child{border-top:0}
+  .rxr .l{color:var(--ink-mute);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+  .rxr .v{font-weight:700}
+  .rxr .v small{display:block;font-weight:500;color:var(--ink-mute);font-size:10px;margin-top:2px;font-family:"JetBrains Mono",monospace}
+  .rxr .ed{text-align:right;color:var(--ink-mute);font-size:10px;font-family:"JetBrains Mono",monospace}
+
+  /* Adequacy bar */
+  .adq{padding:14px 18px}
+  .adq .row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px}
+  .adq .row b{font-family:"JetBrains Mono",monospace}
+  .adq-bar{height:24px;background:#fafbfc;border:1px solid var(--line);border-radius:6px;position:relative;overflow:hidden}
+  .adq-bar .target{position:absolute;left:60%;width:2px;top:0;bottom:0;background:#0e1116}
+  .adq-bar .target::after{content:"target 1.4";position:absolute;top:-15px;left:6px;font-size:9px;font-weight:800;color:#0e1116;font-family:"JetBrains Mono",monospace;white-space:nowrap}
+  .adq-bar .me{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#27c26b,#1a8a48);border-radius:6px 0 0 6px}
+  .adq-bar .meL{position:absolute;font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:800;color:#fff;left:8px;top:5px}
+
+  /* Trend mini */
+  .mini{padding:14px 18px}
+  .mini svg{width:100%;height:80px}
+  .mini .ax{font-size:9px;fill:var(--ink-mute);font-family:'JetBrains Mono',monospace;font-weight:700}
+
+  /* Lab compact */
+  .labtab{padding:0}
+  .lr{display:grid;grid-template-columns:1fr 70px 70px;gap:8px;padding:8px 16px;border-top:1px solid var(--line);font-size:11.5px;align-items:center}
+  .lr:first-child{border-top:0}
+  .lr .nm{font-weight:700}
+  .lr .ref{font-size:10px;color:var(--ink-mute);font-family:"JetBrains Mono",monospace;margin-top:2px}
+  .lr .v{font-family:"JetBrains Mono",monospace;font-weight:800;text-align:right}
+  .lr .v.bad{color:#c43c3c}
+  .lr .v.warn{color:#a06e0d}
+  .lr .v.ok{color:#1a8a48}
+</style></head>
+<body data-page="overview" data-base="../">
+
+<div class="page" style="max-width:1500px"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div data-bc='[{"label":"Nephrology"},{"label":"Hemodialysis"},{"label":"Station 4 — D. Okafor"}]'></div>
+
+  <div class="head">
+    <div>
+      <h1 class="h1">Hemodialysis · station 4</h1>
+      <div class="meta">
+        <span><b>Daniel Okafor</b> · M · 67 yo</span>
+        <span>ESRD · DM · HTN · CKD-5 since 2022</span>
+        <span>Schedule · M·W·F · 1530–1930</span>
+        <span>Treatment · <b>4123</b> · session 178 of program</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn">+ Vitals</button>
+      <button class="btn">⚠ Hold UF</button>
+      <button class="btn primary">End session →</button>
+    </div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-card"><div class="lbl">Treatment time</div><div class="num">2:48</div><div class="delta">of 4:00 · 70% complete</div></div>
+    <div class="stat-card"><div class="lbl">UF removed</div><div class="num">2.41 L</div><div class="delta">of 3.20 L target</div></div>
+    <div class="stat-card"><div class="lbl">Pre-weight</div><div class="num">82.6</div><div class="delta">EDW 79.4 kg · +3.2 IDWG</div></div>
+    <div class="stat-card"><div class="lbl">Current weight</div><div class="num">80.2</div><div class="delta">−2.4 kg this session</div></div>
+    <div class="stat-card"><div class="lbl">BP</div><div class="num">128/74</div><div class="delta">stable · pre 156/92</div></div>
+    <div class="stat-card"><div class="lbl">Last Kt/V</div><div class="num">1.48</div><div class="delta">target ≥ 1.4 ✓</div></div>
+  </div>
+
+  <div class="layout">
+    <!-- LEFT -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <div class="card">
+        <div class="machine">
+          <div>
+            <div class="ml">Blood flow · QB</div>
+            <div class="mv">380</div>
+            <div class="mu">mL/min · prescribed 400</div>
+            <div class="row"><span>Arterial −180 mmHg</span><span>Venous +145 mmHg</span></div>
+          </div>
+          <div>
+            <div class="ml">Dialysate · QD</div>
+            <div class="mv">600</div>
+            <div class="mu">mL/min · 36.7°C</div>
+            <div class="row"><span>Conductivity 14.0 mS</span><span>pH 7.35</span></div>
+          </div>
+          <div class="mblock warn">
+            <div class="ml" style="color:rgba(255,210,140,.85)">UF rate · throttled</div>
+            <div class="mv">0.84</div>
+            <div class="mu" style="color:rgba(255,210,140,.7)">L/hr · &lt; 13 mL/kg/hr ✓</div>
+            <div class="row" style="color:rgba(255,210,140,.7)"><span>Target 0.80</span><span>Cap 1.07 (13 mL/kg/hr)</span></div>
+          </div>
+          <div class="circuit">
+            <div class="ml">Extracorporeal circuit</div>
+            <svg viewBox="0 0 240 220" fill="none">
+              <!-- patient -->
+              <circle cx="30" cy="110" r="22" stroke="rgba(255,255,255,.4)" stroke-width="1.5"/>
+              <text x="30" y="113" text-anchor="middle" fill="rgba(255,255,255,.7)" font-size="9" font-family="JetBrains Mono" font-weight="700">PT</text>
+              <!-- arterial line (red) -->
+              <path d="M52 100 L100 100 L100 50 L150 50" stroke="#ff5c5c" stroke-width="2.5"/>
+              <text x="74" y="95" fill="#ff8888" font-size="8" font-family="JetBrains Mono">A</text>
+              <!-- pump -->
+              <circle cx="105" cy="100" r="14" stroke="#fff" stroke-width="1.5" fill="rgba(255,255,255,.08)"/>
+              <text x="105" y="103" text-anchor="middle" fill="#fff" font-size="8" font-family="JetBrains Mono" font-weight="700">QB</text>
+              <!-- dialyzer -->
+              <rect x="150" y="38" width="80" height="24" rx="3" fill="rgba(255,255,255,.08)" stroke="#fff" stroke-width="1.5"/>
+              <text x="190" y="54" text-anchor="middle" fill="#fff" font-size="9" font-family="JetBrains Mono" font-weight="700">F180NR</text>
+              <!-- venous line (blue) -->
+              <path d="M150 80 L100 80 L100 130 L52 130" stroke="#3a86ff" stroke-width="2.5"/>
+              <text x="74" y="125" fill="#7fa8ff" font-size="8" font-family="JetBrains Mono">V</text>
+              <!-- dialysate in/out -->
+              <path d="M170 80 L170 100" stroke="#27c26b" stroke-width="1.5" stroke-dasharray="3 2"/>
+              <path d="M210 80 L210 100" stroke="#a06e0d" stroke-width="1.5" stroke-dasharray="3 2"/>
+              <text x="170" y="115" fill="rgba(255,255,255,.6)" font-size="7" font-family="JetBrains Mono">DIN</text>
+              <text x="210" y="115" fill="rgba(255,255,255,.6)" font-size="7" font-family="JetBrains Mono">DOUT</text>
+              <!-- alarms -->
+              <g transform="translate(20 170)">
+                <rect width="200" height="34" rx="6" fill="rgba(39,194,107,.18)"/>
+                <text x="10" y="14" fill="#27c26b" font-size="9" font-family="JetBrains Mono" font-weight="700">ALL ALARMS · CLEAR</text>
+                <text x="10" y="27" fill="rgba(255,255,255,.7)" font-size="9" font-family="JetBrains Mono">Air det · Blood leak · TMP all OK</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Intra-treatment monitoring · q30min</span><span class="s">7 readings logged · next at 16:30</span></div>
+        <div class="tgrid">
+          <table>
+            <thead><tr>
+              <th>Time</th><th>BP (sit)</th><th>HR</th><th>Temp</th><th>UF tot</th><th>UF rate</th><th>QB</th><th>Symptoms / events</th><th>Charted by</th>
+            </tr></thead>
+            <tbody>
+              <tr><td class="t">15:30</td><td class="bp">156/92</td><td>78</td><td>36.5</td><td>0.00 L</td><td>—</td><td>200</td><td><div class="e">PRE · cannulation 16g+17g · brisk return both</div></td><td>R. Adeyemi</td></tr>
+              <tr><td class="t">16:00</td><td class="bp">148/86</td><td>82</td><td>36.6</td><td>0.42 L</td><td>0.84</td><td>380</td><td>tolerating well</td><td>R. Adeyemi</td></tr>
+              <tr><td class="t">16:30</td><td class="bp">142/82</td><td>79</td><td>36.6</td><td>0.84 L</td><td>0.84</td><td>380</td><td>—</td><td>R. Adeyemi</td></tr>
+              <tr><td class="t">17:00</td><td class="bp">138/80</td><td>76</td><td>36.7</td><td>1.26 L</td><td>0.84</td><td>380</td><td>asked for snack</td><td>R. Adeyemi</td></tr>
+              <tr><td class="t">17:30</td><td class="bp"><span class="warn">122/68</span></td><td>84</td><td>36.7</td><td>1.68 L</td><td>0.84</td><td>380</td><td><div class="e"><span class="warn">mild lightheadedness</span> · bolus 200mL NS · trend down</div></td><td>R. Adeyemi</td></tr>
+              <tr><td class="t">18:00</td><td class="bp">130/76</td><td>80</td><td>36.7</td><td>2.00 L</td><td>0.64</td><td>380</td><td><div class="e">UF reduced 0.84→0.64; symptoms resolved</div></td><td>R. Adeyemi</td></tr>
+              <tr class="now"><td class="t">18:18 · NOW</td><td class="bp">128/74</td><td>78</td><td>36.7</td><td>2.41 L</td><td>0.84</td><td>380</td><td><div class="e">stable · UF returned to plan</div></td><td>R. Adeyemi</td></tr>
+              <tr><td class="t">18:30</td><td colspan="7" style="color:var(--ink-mute);font-style:italic">scheduled — 30 min remaining</td><td></td></tr>
+              <tr><td class="t">19:00</td><td colspan="7" style="color:var(--ink-mute);font-style:italic">scheduled</td><td></td></tr>
+              <tr><td class="t">19:30</td><td colspan="7" style="color:var(--ink-mute);font-style:italic">scheduled · POST · post-weight + Kt/V</td><td></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">UF removed · trend</span><span class="s">target line 3.20 L · curr 2.41 L · 75%</span></div>
+        <div class="mini">
+          <svg viewBox="0 0 600 80">
+            <line x1="0" y1="20" x2="600" y2="20" stroke="#0e1116" stroke-dasharray="3 3" stroke-width="1"/>
+            <text x="6" y="14" class="ax">3.20 L target</text>
+            <polyline fill="none" stroke="#3a86ff" stroke-width="2.5" points="0,76 60,68 120,60 180,52 240,44 300,36 360,32 420,28 480,28 540,28 600,28"/>
+            <circle cx="420" cy="28" r="4" fill="#3a86ff"/>
+            <text x="430" y="20" class="ax" fill="#3a86ff">NOW · 2.41 L</text>
+            <text x="6" y="74" class="ax">15:30</text>
+            <text x="560" y="74" class="ax">19:30</text>
+          </svg>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <div class="card">
+        <div class="ch"><span class="t">Vascular access</span><span class="s">L upper-arm AV fistula · 2021</span></div>
+        <div class="access">
+          <div class="arm">
+            <svg viewBox="0 0 80 140">
+              <!-- arm shape -->
+              <path d="M30 10 Q22 60 30 130 L50 130 Q58 60 50 10 Z" fill="#f1eee5" stroke="var(--ink)" stroke-width="1.5"/>
+              <!-- vein -->
+              <path d="M40 22 Q34 60 38 110" stroke="#3a86ff" stroke-width="2" fill="none"/>
+              <!-- thrill bulge -->
+              <ellipse cx="40" cy="62" rx="5" ry="9" fill="#3a86ff" opacity=".45"/>
+              <!-- needles -->
+              <line x1="40" y1="48" x2="62" y2="40" stroke="#c43c3c" stroke-width="2"/>
+              <circle cx="62" cy="40" r="2" fill="#c43c3c"/>
+              <text x="64" y="38" font-size="7" font-family="JetBrains Mono" font-weight="700" fill="#c43c3c">A</text>
+              <line x1="40" y1="78" x2="62" y2="86" stroke="#3a86ff" stroke-width="2"/>
+              <circle cx="62" cy="86" r="2" fill="#3a86ff"/>
+              <text x="64" y="92" font-size="7" font-family="JetBrains Mono" font-weight="700" fill="#3a86ff">V</text>
+            </svg>
+          </div>
+          <dl>
+            <dt>Type</dt><dd>L brachiocephalic AVF</dd>
+            <dt>Created</dt><dd>2021-08 · matured 6w</dd>
+            <dt>Thrill</dt><dd style="color:#1a8a48">Strong ·  continuous</dd>
+            <dt>Bruit</dt><dd style="color:#1a8a48">Whoosh present</dd>
+            <dt>Cannulation</dt><dd>rope-ladder · 16g/17g</dd>
+            <dt>Recirc</dt><dd>&lt; 5% (Apr 2)</dd>
+            <dt>Last access flow</dt><dd>1,180 mL/min</dd>
+          </dl>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Today's prescription</span><span class="s">Dr. M. Singh · v3 · Apr 18</span></div>
+        <div class="rx">
+          <div class="rxr"><span class="l">Modality</span><span class="v">HD · 4 hr · 3×/wk<small>conventional · isolated UF if needed</small></span><span class="ed">v3</span></div>
+          <div class="rxr"><span class="l">Dialyzer</span><span class="v">F180NR · 1.8 m²<small>polysulfone · KoA 1080</small></span><span class="ed">prime 195mL</small></span></div>
+          <div class="rxr"><span class="l">Dialysate</span><span class="v">K+ 2.0 · Ca²⁺ 2.5 · HCO₃⁻ 35<small>Na 140 · 36.7°C · QD 600</small></span><span class="ed"></span></div>
+          <div class="rxr"><span class="l">QB</span><span class="v">400 mL/min<small>actual 380 — venous pressure ↑</small></span><span class="ed"></span></div>
+          <div class="rxr"><span class="l">UF goal</span><span class="v">3.20 L<small>EDW 79.4 · pre 82.6 · max rate 13 mL/kg/hr</small></span><span class="ed"></span></div>
+          <div class="rxr"><span class="l">Anticoag</span><span class="v">Heparin 2,000 U load<small>+ 1,000 U/hr · stop 30 min before end</small></span><span class="ed"></span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Adequacy · Kt/V</span><span class="s">Last 4 sessions</span></div>
+        <div class="adq">
+          <div class="row"><span>This session (est)</span><b style="color:#1a8a48">1.52 ✓</b></div>
+          <div class="adq-bar"><div class="me" style="width:65%"><div class="meL">1.52</div></div><div class="target"></div></div>
+          <div class="row" style="margin-top:14px"><span>Apr 17 · last</span><b>1.48</b></div>
+          <div class="adq-bar"><div class="me" style="width:63%;background:linear-gradient(90deg,#3a86ff,#3a86ff)"><div class="meL">1.48</div></div><div class="target"></div></div>
+          <div class="row" style="margin-top:14px"><span>Monthly avg</span><b>1.46</b></div>
+          <div class="adq-bar"><div class="me" style="width:62%;background:#9ca3af"><div class="meL">1.46</div></div><div class="target"></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Pre-treatment labs · this week</span><span class="s">Drawn Apr 22</span></div>
+        <div class="labtab">
+          <div class="lr"><div><div class="nm">Hgb</div><div class="ref">target 10–11.5</div></div><span class="v ok">10.6</span><span class="v" style="color:var(--ink-mute);text-align:right">10.4 →</span></div>
+          <div class="lr"><div><div class="nm">K⁺ pre</div><div class="ref">3.5–5.5</div></div><span class="v warn">5.6</span><span class="v" style="color:var(--ink-mute);text-align:right">5.2 ↑</span></div>
+          <div class="lr"><div><div class="nm">Ca²⁺ corrected</div><div class="ref">8.8–10.2</div></div><span class="v ok">9.2</span><span class="v" style="color:var(--ink-mute);text-align:right">9.4 →</span></div>
+          <div class="lr"><div><div class="nm">Phos</div><div class="ref">3.5–5.5</div></div><span class="v warn">5.9</span><span class="v" style="color:var(--ink-mute);text-align:right">5.4 ↑</span></div>
+          <div class="lr"><div><div class="nm">PTH</div><div class="ref">150–600</div></div><span class="v ok">320</span><span class="v" style="color:var(--ink-mute);text-align:right">280 ↗</span></div>
+          <div class="lr"><div><div class="nm">Albumin</div><div class="ref">≥ 4.0</div></div><span class="v ok">4.1</span><span class="v" style="color:var(--ink-mute);text-align:right">4.0 →</span></div>
+          <div class="lr"><div><div class="nm">URR last</div><div class="ref">≥ 65%</div></div><span class="v ok">72%</span><span class="v" style="color:var(--ink-mute);text-align:right">70 ↗</span></div>
+          <div class="lr"><div><div class="nm">TSAT</div><div class="ref">≥ 20%</div></div><span class="v ok">28%</span><span class="v" style="color:var(--ink-mute);text-align:right">30 →</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Plan · today</span></div>
+        <div style="padding:12px 16px;font-size:11.5px;line-height:1.5">
+          <div style="padding:8px 10px;background:#fff5e2;border-radius:8px;margin-bottom:6px"><b style="color:#5c4108">↑ K⁺ 5.6 / Phos 5.9</b> — 2K bath today · reinforce binders w/ meals · diet check next visit.</div>
+          <div style="padding:8px 10px;background:#e6efff;border-radius:8px;margin-bottom:6px"><b style="color:#1a4fb3">EPO + IV iron</b> — Epogen 4000 U IV at end · iron sucrose 100 mg if Hgb &lt; 10.5.</div>
+          <div style="padding:8px 10px;background:#dff7e7;border-radius:8px"><b style="color:#1a6d3c">Access</b> — fistula thrill strong, no infiltrates. Continue rope-ladder cannulation.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div></div>
+
+<script src="../scripts/nav.js"></script>
+<script src="../scripts/breadcrumbs.js"></script>
+</body></html>

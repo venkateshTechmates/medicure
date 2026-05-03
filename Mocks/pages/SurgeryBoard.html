@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Surgery / OR Board</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;justify-content:space-between;align-items:flex-end;margin:8px 4px 18px;flex-wrap:wrap;gap:12px}
+  .head .h1{font-size:54px}
+
+  .kpis{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-bottom:18px}
+  .kpi{background:#fff;border-radius:16px;padding:14px;box-shadow:var(--shadow)}
+  .kpi .l{font-size:10px;color:var(--ink-mute);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+  .kpi .v{font-family:"Instrument Serif",serif;font-size:30px;letter-spacing:-.02em;line-height:1;margin-top:6px}
+  .kpi .delta{font-size:10px;color:var(--ink-mute);margin-top:4px}
+
+  .filters{display:flex;gap:8px;align-items:center;margin-bottom:18px;flex-wrap:wrap}
+  .filt{padding:8px 14px;background:#fff;border-radius:999px;font:700 12px "Plus Jakarta Sans";box-shadow:var(--shadow);cursor:pointer;border:0;display:flex;align-items:center;gap:6px}
+  .filt.active{background:#0e1116;color:#fff}
+
+  .layout{display:grid;grid-template-columns:1fr 320px;gap:14px;align-items:start}
+
+  /* Gantt */
+  .gantt{background:#fff;border-radius:18px;padding:18px;box-shadow:var(--shadow);overflow:hidden}
+  .gantt-head{display:grid;grid-template-columns:120px 1fr;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:10px;font-size:11px;color:var(--ink-mute);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+  .ticks{display:grid;grid-template-columns:repeat(13,1fr);position:relative}
+  .ticks span{font-size:10px;color:var(--ink-mute);text-align:left;border-left:1px solid var(--line);padding-left:4px;font-family:'SF Mono',monospace;font-weight:600}
+  .ticks span:first-child{border-left:0}
+
+  .now-line{position:absolute;top:-8px;bottom:0;width:2px;background:#ff4d6b;z-index:5;left:32%}
+  .now-line::before{content:'NOW 11:42';position:absolute;top:-14px;left:-22px;background:#ff4d6b;color:#fff;font-family:'SF Mono',monospace;font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;white-space:nowrap}
+
+  .or-row{display:grid;grid-template-columns:120px 1fr;align-items:stretch;border-top:1px solid var(--line);min-height:64px;position:relative}
+  .or-row:first-of-type{border-top:0}
+  .or-label{padding:12px 10px;display:flex;flex-direction:column;justify-content:center;background:#fafbfc;border-right:1px solid var(--line)}
+  .or-label .nm{font-weight:800;font-size:13px}
+  .or-label .sub{font-size:10px;color:var(--ink-mute);margin-top:2px}
+  .or-label .util{font-size:10px;color:var(--ink-mute);font-family:'SF Mono',monospace;margin-top:4px}
+  .or-track{position:relative;padding:6px 0;background-image:repeating-linear-gradient(to right,transparent 0,transparent calc(100%/13 - 1px),#f1f3f7 calc(100%/13 - 1px),#f1f3f7 calc(100%/13))}
+
+  .case{position:absolute;top:6px;bottom:6px;border-radius:10px;padding:6px 10px;font-size:11px;color:#fff;display:flex;flex-direction:column;justify-content:center;cursor:pointer;overflow:hidden;border:2px solid transparent;transition:.15s}
+  .case:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.15);z-index:4}
+  .case .pt{font-weight:800;line-height:1.15;font-size:12px}
+  .case .proc{font-size:10px;opacity:.85;margin-top:2px;line-height:1.2}
+  .case .surg{font-size:9px;opacity:.7;margin-top:1px}
+  .case.in-prog{background:#ff4d6b;border-color:#fff}
+  .case.in-prog::after{content:'';position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:#fff;animation:pulse2 1.4s infinite}
+  @keyframes pulse2{0%,100%{opacity:1}50%{opacity:.3}}
+  .case.scheduled{background:#0e1116}
+  .case.completed{background:#27c26b}
+  .case.delayed{background:#a05a00}
+  .case.emergency{background:#3a86ff;border-color:#ffd633}
+  .case.turnover{background:repeating-linear-gradient(45deg,#d4d8df,#d4d8df 4px,#ebedf1 4px,#ebedf1 8px);color:var(--ink-soft);border:1px dashed var(--ink-mute)}
+  .case.turnover .pt{color:var(--ink)}
+
+  /* Right rail */
+  .panel{background:#fff;border-radius:18px;padding:18px;box-shadow:var(--shadow);margin-bottom:14px}
+  .panel h3{font-size:13px;font-weight:700;margin:0 0 10px;display:flex;justify-content:space-between;align-items:center}
+
+  .case-detail .case-h{font-family:"Instrument Serif",serif;font-size:24px;letter-spacing:-.02em;line-height:1.1;margin:0 0 4px}
+  .case-detail .case-meta{font-size:11px;color:var(--ink-mute);margin-bottom:14px}
+  .stage{display:flex;align-items:center;gap:8px;padding:10px;border-radius:12px;background:#fafbfc;margin-bottom:6px;font-size:11px}
+  .stage .num{width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid var(--line);display:grid;place-items:center;font-weight:800;font-size:10px;color:var(--ink-mute);flex:none}
+  .stage.done{background:#dff7e7}.stage.done .num{background:#27c26b;color:#fff;border-color:#27c26b}
+  .stage.active{background:#0e1116;color:#fff}.stage.active .num{background:#ffd633;color:#0e1116;border-color:#ffd633}
+  .stage .nm{font-weight:700}
+  .stage .t{margin-left:auto;font-size:10px;color:var(--ink-mute);font-family:'SF Mono',monospace}
+  .stage.active .t{color:#9aa0ad}
+
+  .vit-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:#0e1116;color:#fff;border-radius:12px;padding:10px;margin-top:12px}
+  .vit-strip .blk{display:flex;flex-direction:column;gap:2px}
+  .vit-strip .l{font-size:9px;color:#9aa0ad;text-transform:uppercase;font-weight:700;letter-spacing:.04em}
+  .vit-strip .v{font-family:'Instrument Serif',serif;font-size:20px;line-height:1;letter-spacing:-.02em}
+
+  /* Team */
+  .team-row{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:11px;border-top:1px solid var(--line)}
+  .team-row:first-of-type{border-top:0}
+  .team-row .pic{width:30px;height:30px;border-radius:50%;background:#eee center/cover;flex:none}
+  .team-row .nm{font-weight:700;font-size:11px}
+  .team-row .role{font-size:10px;color:var(--ink-mute)}
+
+  /* Up next list */
+  .up-row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;padding:10px 12px;background:#fafbfc;border-radius:10px;margin-bottom:6px;font-size:11px;align-items:center}
+  .up-row .t{font-family:'SF Mono',monospace;font-weight:800;font-size:11px;color:var(--ink-mute);min-width:48px}
+  .up-row .pt{font-weight:700;font-size:12px}
+  .up-row .proc{font-size:10px;color:var(--ink-mute);margin-top:1px}
+
+  .legend-row{display:flex;gap:10px;font-size:10px;color:var(--ink-soft);align-items:center;flex-wrap:wrap}
+  .legend-row span{display:flex;align-items:center;gap:5px}
+  .legend-row i{width:12px;height:12px;border-radius:3px;display:inline-block}
+</style></head>
+<body data-page="appointments" data-base="../">
+
+<div class="page"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div class="head">
+    <div><h1 class="h1">OR Board</h1><div style="font-size:13px;color:var(--ink-soft);margin-top:4px">8 ORs · Tue, May 2 · live · drag to reschedule</div></div>
+    <div style="display:flex;gap:8px"><button class="btn">Yesterday</button><button class="btn dark">Today</button><button class="btn">Tomorrow</button><button class="btn primary">+ Add case</button></div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="l">Cases scheduled</div><div class="v">42</div><div class="delta">22 done · 6 in OR · 14 pending</div></div>
+    <div class="kpi"><div class="l">In progress</div><div class="v" style="color:var(--bad)">6</div></div>
+    <div class="kpi"><div class="l">Add-ons today</div><div class="v">5</div><div class="delta">3 emergent · 2 urgent</div></div>
+    <div class="kpi"><div class="l">Avg turnover</div><div class="v">28m</div><div class="delta" style="color:var(--good)">↓ 4m vs target</div></div>
+    <div class="kpi"><div class="l">First case on-time</div><div class="v">87%</div><div class="delta" style="color:var(--good)">↑ 3pp w/w</div></div>
+    <div class="kpi"><div class="l">OR utilization</div><div class="v">78%</div><div class="delta">target 80%</div></div>
+    <div class="kpi"><div class="l">Cancel rate</div><div class="v">4.2%</div><div class="delta" style="color:var(--good)">↓ 1.1pp</div></div>
+  </div>
+
+  <div class="filters">
+    <button class="filt active">All ORs</button>
+    <button class="filt">General surg</button>
+    <button class="filt">Ortho</button>
+    <button class="filt">Cardio</button>
+    <button class="filt">Neuro</button>
+    <button class="filt">Vascular</button>
+    <button class="filt">Plastics</button>
+    <button class="filt">OB/Gyn</button>
+    <button class="filt">Peds</button>
+    <div style="flex:1"></div>
+    <div class="legend-row">
+      <span><i style="background:#27c26b"></i>Completed</span>
+      <span><i style="background:#ff4d6b"></i>In progress</span>
+      <span><i style="background:#0e1116"></i>Scheduled</span>
+      <span><i style="background:#3a86ff"></i>Emergency</span>
+      <span><i style="background:#a05a00"></i>Delayed</span>
+      <span><i style="background:#d4d8df;border:1px dashed #9aa0ad"></i>Turnover</span>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- Gantt -->
+    <div class="gantt">
+      <div class="gantt-head">
+        <div></div>
+        <div class="ticks">
+          <span>07:00</span><span>08:00</span><span>09:00</span><span>10:00</span>
+          <span>11:00</span><span>12:00</span><span>13:00</span><span>14:00</span>
+          <span>15:00</span><span>16:00</span><span>17:00</span><span>18:00</span><span>19:00</span>
+          <div class="now-line"></div>
+        </div>
+      </div>
+
+      <!-- OR-1 -->
+      <div class="or-row">
+        <div class="or-label"><div class="nm">OR-1</div><div class="sub">General surg</div><div class="util">82% util</div></div>
+        <div class="or-track">
+          <div class="case completed" style="left:0%;width:14%"><div class="pt">Maria L.</div><div class="proc">Lap chole</div><div class="surg">Dr. Vasquez · 1h 22m</div></div>
+          <div class="case turnover" style="left:14%;width:3%"><div class="pt">⟳ 24m</div></div>
+          <div class="case completed" style="left:17%;width:11%"><div class="pt">Eric P.</div><div class="proc">Hernia repair</div><div class="surg">Dr. Vasquez</div></div>
+          <div class="case turnover" style="left:28%;width:2.5%"><div class="pt">⟳</div></div>
+          <div class="case in-prog" style="left:30.5%;width:14%"><div class="pt">Marcus H. · 42</div><div class="proc">Open cholecyst + bx</div><div class="surg">Dr. Vasquez · in OR</div></div>
+          <div class="case turnover" style="left:44.5%;width:3%"><div class="pt">⟳</div></div>
+          <div class="case scheduled" style="left:47.5%;width:13%"><div class="pt">Janet F.</div><div class="proc">Sigmoid resection</div><div class="surg">Dr. Vasquez · 14:00</div></div>
+          <div class="case scheduled" style="left:62%;width:14%"><div class="pt">Rolando S.</div><div class="proc">Whipple</div><div class="surg">Dr. Khan · 16:00</div></div>
+        </div>
+      </div>
+
+      <!-- OR-2 -->
+      <div class="or-row">
+        <div class="or-label"><div class="nm">OR-2</div><div class="sub">Ortho</div><div class="util">76% util</div></div>
+        <div class="or-track">
+          <div class="case completed" style="left:0%;width:18%"><div class="pt">David M.</div><div class="proc">R hip arthroplasty</div><div class="surg">Dr. Park · 2h 14m</div></div>
+          <div class="case turnover" style="left:18%;width:3%"></div>
+          <div class="case in-prog" style="left:21%;width:18%"><div class="pt">Patricia W. · 64</div><div class="proc">L knee replacement</div><div class="surg">Dr. Park · in OR</div></div>
+          <div class="case turnover" style="left:39%;width:3%"></div>
+          <div class="case scheduled" style="left:42%;width:14%"><div class="pt">Tobias R.</div><div class="proc">Ankle ORIF</div><div class="surg">Dr. Park · 13:30</div></div>
+          <div class="case scheduled" style="left:57%;width:12%"><div class="pt">Ivy C.</div><div class="proc">Shoulder scope</div><div class="surg">Dr. Park · 15:30</div></div>
+        </div>
+      </div>
+
+      <!-- OR-3 -->
+      <div class="or-row">
+        <div class="or-label"><div class="nm">OR-3</div><div class="sub">Cardio</div><div class="util">94% util</div></div>
+        <div class="or-track">
+          <div class="case completed" style="left:0%;width:30%"><div class="pt">Reginald H. · 64</div><div class="proc">CABG ×4</div><div class="surg">Dr. Mendez · 4h 02m</div></div>
+          <div class="case turnover" style="left:30%;width:4%"></div>
+          <div class="case in-prog" style="left:34%;width:22%"><div class="pt">Helen O. · 71</div><div class="proc">AVR · bovine</div><div class="surg">Dr. Mendez · in OR</div></div>
+          <div class="case turnover" style="left:56%;width:4%"></div>
+          <div class="case scheduled" style="left:60%;width:16%"><div class="pt">Frank D.</div><div class="proc">PCI · 3-vessel</div><div class="surg">Dr. Mendez · 15:30</div></div>
+        </div>
+      </div>
+
+      <!-- OR-4 -->
+      <div class="or-row">
+        <div class="or-label"><div class="nm">OR-4</div><div class="sub">Neuro</div><div class="util">68% util</div></div>
+        <div class="or-track">
+          <div class="case completed" style="left:0%;width:24%"><div class="pt">Sandeep R.</div><div class="proc">Lumbar fusion L4-S1</div><div class="surg">Dr. Achebe</div></div>
+          <div class="case turnover" style="left:24%;width:3%"></div>
+          <div class="case emergency" style="left:27%;width:18%"><div class="pt">Roxanne P. · ⚡</div><div class="proc">Emergent crani · ICH</div><div class="surg">Dr. Achebe · added</div></div>
+          <div class="case turnover" style="left:45%;width:4%"></div>
+          <div class="case scheduled" style="left:49%;width:14%"><div class="pt">Linda K.</div><div class="proc">Cervical disc</div><div class="surg">Dr. Achebe · 14:30</div></div>
+        </div>
+      </div>
+
+      <!-- OR-5 -->
+      <div class="or-row">
+        <div class="or-label"><div class="nm">OR-5</div><div class="sub">Vascular</div><div class="util">71% util</div></div>
+        <div class="or-track">
+          <div class="case completed" style="left:0%;width:16%"><div class="pt">Yusuf B.</div><div class="proc">Fem-pop bypass</div><div class="surg">Dr. Vega</div></div>
+          <div class="case turnover" style="left:16%;width:3%"></div>
+          <div class="case completed" style="left:19%;width:12%"><div class="pt">Hank T.</div><div class="proc">AV fistula</div><div class="surg">Dr. Vega</div></div>
+          <div class="case delayed" style="left:31%;width:4%"><div class="pt">⏸ Delay</div></div>
+          <div class="case in-prog" style="left:35%;width:18%"><div class="pt">Idris B. · 67</div><div class="proc">EVAR · AAA</div><div class="surg">Dr. Vega · in OR</div></div>
+          <div class="case scheduled" style="left:55%;width:14%"><div class="pt">Eleanor M.</div><div class="proc">Carotid endart.</div><div class="surg">Dr. Vega · 15:30</div></div>
+        </div>
+      </div>
+
+      <!-- OR-6 -->
+      <div class="or-row">
+        <div class="or-label"><div class="nm">OR-6</div><div class="sub">Plastics</div><div class="util">62% util</div></div>
+        <div class="or-track">
+          <div class="case completed" style="left:0%;width:14%"><div class="pt">Ariana T.</div><div class="proc">Breast reconstr.</div><div class="surg">Dr. Lin</div></div>
+          <div class="case turnover" style="left:14%;width:3%"></div>
+          <div class="case completed" style="left:17%;width:10%"><div class="pt">Megan O.</div><div class="proc">Skin graft</div><div class="surg">Dr. Lin</div></div>
+          <div class="case scheduled" style="left:33%;width:13%"><div class="pt">Dawn V.</div><div class="proc">Mastectomy + recon</div><div class="surg">Dr. Lin · 13:00</div></div>
+          <div class="case scheduled" style="left:48%;width:11%"><div class="pt">Gloria H.</div><div class="proc">Lipoma excision</div><div class="surg">Dr. Lin · 15:00</div></div>
+        </div>
+      </div>
+
+      <!-- OR-7 -->
+      <div class="or-row">
+        <div class="or-label"><div class="nm">OR-7</div><div class="sub">OB/Gyn</div><div class="util">85% util</div></div>
+        <div class="or-track">
+          <div class="case completed" style="left:0%;width:11%"><div class="pt">Selene V.</div><div class="proc">C-section</div><div class="surg">Dr. Park-OB</div></div>
+          <div class="case turnover" style="left:11%;width:3%"></div>
+          <div class="case completed" style="left:14%;width:13%"><div class="pt">Joelle K.</div><div class="proc">Lap hysterect.</div><div class="surg">Dr. Park-OB</div></div>
+          <div class="case turnover" style="left:27%;width:3%"></div>
+          <div class="case in-prog" style="left:30%;width:14%"><div class="pt">Naomi G. · 38</div><div class="proc">Myomectomy</div><div class="surg">Dr. Park-OB · in OR</div></div>
+          <div class="case turnover" style="left:44%;width:3%"></div>
+          <div class="case scheduled" style="left:47%;width:11%"><div class="pt">Aria F.</div><div class="proc">D&C</div><div class="surg">Dr. Park-OB · 14:00</div></div>
+          <div class="case scheduled" style="left:60%;width:13%"><div class="pt">Sage W.</div><div class="proc">Tubal ligation</div><div class="surg">Dr. Park-OB · 16:00</div></div>
+        </div>
+      </div>
+
+      <!-- OR-8 -->
+      <div class="or-row">
+        <div class="or-label"><div class="nm">OR-8</div><div class="sub">Peds</div><div class="util">54% util</div></div>
+        <div class="or-track">
+          <div class="case completed" style="left:0%;width:9%"><div class="pt">Eli T. · 4</div><div class="proc">T&A</div><div class="surg">Dr. Achebe-P</div></div>
+          <div class="case turnover" style="left:9%;width:3%"></div>
+          <div class="case completed" style="left:12%;width:10%"><div class="pt">Mia P. · 7</div><div class="proc">Hernia repair</div><div class="surg">Dr. Achebe-P</div></div>
+          <div class="case turnover" style="left:22%;width:4%"></div>
+          <div class="case in-prog" style="left:26%;width:11%"><div class="pt">Owen S. · 11</div><div class="proc">Appendectomy</div><div class="surg">Dr. Achebe-P · in OR</div></div>
+          <div class="case scheduled" style="left:40%;width:11%"><div class="pt">Ada R. · 6</div><div class="proc">Tympan. tubes</div><div class="surg">ENT · 14:00</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right rail -->
+    <div>
+      <div class="panel case-detail">
+        <h3>Active case · OR-3 <span class="pill bad"><span class="pdot"></span>In OR</span></h3>
+        <div class="case-h">AVR · bovine pericardial</div>
+        <div class="case-meta">Helen Okonkwo · F / 71 · MRN 7782 · started 09:35 · est end 13:15</div>
+
+        <div class="stage done"><div class="num">✓</div><div><div class="nm">Pre-op holding</div></div><div class="t">07:42 → 08:18</div></div>
+        <div class="stage done"><div class="num">✓</div><div><div class="nm">Anesthesia induction</div></div><div class="t">08:18 → 08:54</div></div>
+        <div class="stage done"><div class="num">✓</div><div><div class="nm">Patient positioned & prep</div></div><div class="t">08:54 → 09:22</div></div>
+        <div class="stage done"><div class="num">✓</div><div><div class="nm">Time-out</div></div><div class="t">09:22</div></div>
+        <div class="stage done"><div class="num">✓</div><div><div class="nm">Incision · skin to bone</div></div><div class="t">09:35</div></div>
+        <div class="stage active"><div class="num">6</div><div><div class="nm">On bypass · valve excision</div></div><div class="t">10:48 — now</div></div>
+        <div class="stage"><div class="num">7</div><div><div class="nm">Valve seating + closure</div></div><div class="t">est 12:30</div></div>
+        <div class="stage"><div class="num">8</div><div><div class="nm">Off bypass · close</div></div><div class="t">est 13:15</div></div>
+
+        <div class="vit-strip">
+          <div class="blk"><div class="l">HR</div><div class="v">68</div></div>
+          <div class="blk"><div class="l">MAP</div><div class="v">72</div></div>
+          <div class="blk"><div class="l">SpO₂</div><div class="v">100</div></div>
+          <div class="blk"><div class="l">EBL</div><div class="v">340</div></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>OR-3 team</h3>
+        <div class="team-row"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=80&h=80&fit=crop&crop=faces')"></div><div style="flex:1"><div class="nm">Dr. R. Mendez</div><div class="role">Cardiothoracic · primary</div></div><span class="pill good"><span class="pdot"></span>Scrubbed</span></div>
+        <div class="team-row"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=80&h=80&fit=crop&crop=faces')"></div><div style="flex:1"><div class="nm">Dr. T. Park</div><div class="role">Anesthesia</div></div><span class="pill good"><span class="pdot"></span>At table</span></div>
+        <div class="team-row"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=80&h=80&fit=crop&crop=faces')"></div><div style="flex:1"><div class="nm">Dr. K. Lin</div><div class="role">Surgical fellow</div></div><span class="pill good"><span class="pdot"></span>Scrubbed</span></div>
+        <div class="team-row"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=80&h=80&fit=crop&crop=faces')"></div><div style="flex:1"><div class="nm">RN J. Brooks</div><div class="role">Circulator</div></div></div>
+        <div class="team-row"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1587614382346-4ec70e388b28?w=80&h=80&fit=crop&crop=faces')"></div><div style="flex:1"><div class="nm">RN C. Reyes</div><div class="role">Scrub tech</div></div></div>
+        <div class="team-row"><div class="pic" style="background-image:url('https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=80&h=80&fit=crop&crop=faces')"></div><div style="flex:1"><div class="nm">CCP M. Singh</div><div class="role">Perfusionist</div></div></div>
+      </div>
+
+      <div class="panel">
+        <h3>Up next · all rooms</h3>
+        <div class="up-row"><span class="t">13:00</span><div><div class="pt">Dawn V.</div><div class="proc">OR-6 · Mastectomy + recon · Dr. Lin</div></div><span class="pill warn"><span class="pdot"></span>Pre-op</span></div>
+        <div class="up-row"><span class="t">13:30</span><div><div class="pt">Tobias R.</div><div class="proc">OR-2 · Ankle ORIF · Dr. Park</div></div><span class="pill"><span class="pdot"></span>Ready</span></div>
+        <div class="up-row"><span class="t">14:00</span><div><div class="pt">Janet F.</div><div class="proc">OR-1 · Sigmoid resection · Dr. Vasquez</div></div><span class="pill warn"><span class="pdot"></span>Consent pending</span></div>
+        <div class="up-row"><span class="t">14:00</span><div><div class="pt">Aria F.</div><div class="proc">OR-7 · D&C · Dr. Park-OB</div></div><span class="pill"><span class="pdot"></span>Ready</span></div>
+        <div class="up-row"><span class="t">14:00</span><div><div class="pt">Ada R. · 6</div><div class="proc">OR-8 · Tympan. tubes · ENT</div></div><span class="pill"><span class="pdot"></span>Ready</span></div>
+        <div class="up-row"><span class="t">14:30</span><div><div class="pt">Linda K.</div><div class="proc">OR-4 · Cervical disc · Dr. Achebe</div></div><span class="pill bad"><span class="pdot"></span>NPO check</span></div>
+      </div>
+    </div>
+  </div>
+</div></div>
+<script src="../scripts/nav.js"></script>
+
+<script>window.MC_ROUTES = [{"sel":".case-block, .or-row .case","href":"PatientChart.html","title":"Open case"},{"sel":".btn.primary, button.primary","href":"PatientChart.html","title":"Schedule case"},{"sel":".up-next-row","href":"PatientChart.html"}];</script>
+<script src="../scripts/router.js"></script>
+</body></html>

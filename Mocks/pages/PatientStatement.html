@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Patient Statement</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin:8px 4px 22px;flex-wrap:wrap;gap:14px}
+  .head .h1{font-size:48px}
+  .head .meta{color:var(--ink-soft);font-size:13px;margin-top:6px}
+
+  .layout{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;align-items:start}
+
+  /* Statement preview — paper-like */
+  .stmt{background:#fff;padding:0;overflow:hidden;border-radius:18px;box-shadow:var(--shadow);position:relative}
+  .stmt .top{padding:32px;display:flex;justify-content:space-between;border-bottom:3px solid #0e1116;align-items:flex-end}
+  .stmt .logo{display:flex;align-items:center;gap:10px}
+  .stmt .logo .mark{width:44px;height:44px;background:#0e1116;border-radius:11px;display:grid;place-items:center;color:#fff;font:900 18px "Plus Jakarta Sans"}
+  .stmt .logo .nm{font-family:"Instrument Serif",serif;font-size:26px;letter-spacing:-.01em;line-height:1}
+  .stmt .logo .sub{font-size:11px;color:var(--ink-mute);margin-top:2px;letter-spacing:.04em;text-transform:uppercase;font-weight:700}
+  .stmt .top .right{text-align:right}
+  .stmt .top .right .lbl{font-size:10px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.06em;font-weight:800}
+  .stmt .top .right .v{font-family:"JetBrains Mono",monospace;font-size:13px;font-weight:700;margin-top:4px}
+
+  .stmt-body{padding:24px 32px}
+
+  .addr-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+  .addr-grid .lbl{font-size:9.5px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.06em;font-weight:800;margin-bottom:6px}
+  .addr-grid .nm{font-weight:800;font-size:14px}
+  .addr-grid .ln{font-size:12px;color:var(--ink-soft);line-height:1.6}
+
+  /* Big balance band */
+  .balance-band{background:#0e1116;color:#fff;border-radius:14px;padding:24px 28px;margin:18px 0 24px;display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:24px;align-items:end}
+  .balance-band .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.6);font-weight:800}
+  .balance-band .v{font-family:"Instrument Serif",serif;font-size:54px;letter-spacing:-.025em;line-height:1;margin-top:6px}
+  .balance-band .v.s{font-size:24px}
+  .balance-band .delta{font-size:11px;color:rgba(255,255,255,.7);margin-top:5px}
+  .balance-band .pay-by{background:#27c26b;color:#0e1116;padding:14px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .balance-band .pay-by .l{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+  .balance-band .pay-by .d{font-family:"Instrument Serif",serif;font-size:22px;letter-spacing:-.01em;line-height:1;margin-top:4px}
+
+  /* Service detail */
+  .svc-row{display:grid;grid-template-columns:90px 1fr 90px 90px 90px 90px;gap:12px;padding:10px 0;border-top:1px solid var(--line);font-size:12px;align-items:start}
+  .svc-row.h{font-size:9.5px;font-weight:800;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;border-top:0;padding:8px 0;background:transparent}
+  .svc-row .dt{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink-mute)}
+  .svc-row .desc{font-weight:700}
+  .svc-row .sub{font-size:10.5px;color:var(--ink-mute);margin-top:2px;font-family:"JetBrains Mono",monospace;font-weight:600}
+  .svc-row .num{font-family:"JetBrains Mono",monospace;font-weight:700;text-align:right}
+  .svc-row .you{color:#0e1116;font-weight:800}
+
+  .totals{margin-top:14px;padding:18px 0 0;border-top:2px solid #0e1116;display:grid;grid-template-columns:1fr 200px;gap:8px;justify-content:flex-end;align-items:center}
+  .totals .l{text-align:right;color:var(--ink-soft);font-size:12.5px;font-weight:600}
+  .totals .v{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:13px;text-align:right;padding:4px 0}
+  .totals .v.bold{font-weight:800;font-size:18px;color:#0e1116;font-family:"Instrument Serif",serif}
+  .totals .row-line{grid-column:1/-1;height:1px;background:var(--line);margin:4px 0}
+
+  /* Payment plan offer */
+  .plan-card{background:#fafbfc;border:2px dashed var(--line);border-radius:14px;padding:18px;margin-top:24px;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center}
+  .plan-card .l{font-size:10px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.06em;font-weight:800}
+  .plan-card .h{font-family:"Instrument Serif",serif;font-size:22px;letter-spacing:-.01em;line-height:1.2;margin-top:4px}
+  .plan-card .d{font-size:12px;color:var(--ink-soft);margin-top:4px;line-height:1.5}
+  .plan-card .opts{display:flex;gap:8px;margin-top:10px}
+  .plan-card .opt{padding:8px 12px;background:#fff;border:1.5px solid var(--line);border-radius:8px;font:800 11px "JetBrains Mono",monospace;cursor:pointer}
+  .plan-card .opt.sel{background:#0e1116;color:#fff;border-color:#0e1116}
+
+  /* Footer w/ remit slip */
+  .stmt-footer{margin-top:24px;border-top:1px dashed var(--ink-mute);padding-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .footer-tag{font-size:10px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.06em;font-weight:800;margin-bottom:6px}
+  .return-addr{font-size:11px;color:var(--ink-soft);line-height:1.6}
+
+  /* Sidebar (right column) */
+  .card{padding:0;overflow:hidden}
+  .ch{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+  .ch .t{font-weight:800;font-size:14px}
+
+  .pay-method{padding:14px 18px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:32px 1fr auto;gap:12px;align-items:center;cursor:pointer}
+  .pay-method:hover{background:#fafbfc}
+  .pay-method.sel{background:#fafbfc}
+  .pay-method.sel::before{content:'';position:absolute;left:0;width:3px;height:100%;background:#0e1116}
+  .pay-method{position:relative}
+  .pay-method .ic{width:36px;height:24px;border-radius:5px;background:linear-gradient(135deg,#3a86ff,#1a4fb3);display:grid;place-items:center;color:#fff;font:900 9px "Plus Jakarta Sans";letter-spacing:.05em}
+  .pay-method .ic.ach{background:#1a8a48}
+  .pay-method .ic.hsa{background:linear-gradient(135deg,#a06e0d,#5c4108)}
+  .pay-method .nm{font-weight:700;font-size:13px}
+  .pay-method .sub{font-size:10.5px;color:var(--ink-mute);margin-top:2px;font-family:"JetBrains Mono",monospace}
+  .pay-method input[type="radio"]{accent-color:#0e1116;width:16px;height:16px}
+
+  .delivery-row{padding:11px 18px;border-top:1px solid var(--line);display:grid;grid-template-columns:24px 1fr auto;gap:10px;align-items:center;font-size:12px}
+  .delivery-row:first-of-type{border-top:0}
+  .delivery-row .ic{width:24px;height:24px;border-radius:7px;background:#fafbfc;display:grid;place-items:center;font-size:11px}
+  .delivery-row .nm{font-weight:700;font-size:12px}
+  .delivery-row .sub{font-size:10.5px;color:var(--ink-mute);margin-top:2px}
+  .delivery-row .stat{font-size:9px;font-weight:800;padding:3px 7px;border-radius:5px;text-transform:uppercase}
+  .stat.sent{background:#dff7e7;color:#1a8a48}
+  .stat.draft{background:#e6efff;color:#1a4fb3}
+  .stat.fail{background:#ffe3e3;color:#c43c3c}
+
+  .pay-cta{margin:18px;padding:16px;background:#0e1116;color:#fff;border-radius:14px;text-align:center}
+  .pay-cta .l{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.6);font-weight:800}
+  .pay-cta .v{font-family:"Instrument Serif",serif;font-size:32px;letter-spacing:-.02em;line-height:1;margin-top:4px}
+  .pay-cta button{margin-top:12px;width:100%;background:#27c26b;color:#0e1116;border:0;padding:12px;border-radius:10px;font:800 13px "Plus Jakarta Sans";cursor:pointer}
+
+  .qr{width:80px;height:80px;background:repeating-linear-gradient(45deg,#0e1116 0 4px,#fff 4px 8px);border-radius:8px}
+</style></head>
+<body data-page="billing" data-base="../">
+
+<div class="page" style="max-width:1500px"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div data-bc='[{"label":"Billing","href":"Billing.html"},{"label":"Patient statement"},{"label":"Aria Chen"}]'></div>
+
+  <div class="head">
+    <div><h1 class="h1">Patient statement</h1><div class="meta">Aria Chen · MRN 012-887-43 · Statement #STM-2026-887421 · 1 of 4 cycles</div></div>
+    <div style="display:flex;gap:10px">
+      <a href="ClaimDetail.html" class="btn">← Back to claim</a>
+      <button class="btn">Print PDF</button>
+      <button class="btn primary">Send to portal + email →</button>
+    </div>
+  </div>
+
+  <div class="layout">
+
+    <!-- STATEMENT -->
+    <div class="stmt">
+      <div class="top">
+        <div class="logo">
+          <div class="mark">M</div>
+          <div>
+            <div class="nm">Mercy Health System</div>
+            <div class="sub">200 Riverside Dr · Austin, TX 78704</div>
+          </div>
+        </div>
+        <div class="right">
+          <div class="lbl">Statement #</div>
+          <div class="v">STM-2026-887421</div>
+          <div class="lbl" style="margin-top:8px">Statement date</div>
+          <div class="v">May 2, 2026</div>
+        </div>
+      </div>
+
+      <div class="stmt-body">
+
+        <div class="addr-grid">
+          <div>
+            <div class="lbl">Statement for</div>
+            <div class="nm">Aria Chen</div>
+            <div class="ln">2104 Bouldin Ave Apt 4B<br>Austin, TX 78704<br>aria.chen@protonmail.com<br>(512) 555-0188</div>
+          </div>
+          <div>
+            <div class="lbl">Account</div>
+            <div class="nm" style="font-family:'JetBrains Mono',monospace">012-887-43</div>
+            <div class="ln" style="margin-top:6px">
+              <b>Guarantor:</b> self<br>
+              <b>Insurance primary:</b> Aetna POS II (W215 887 432)<br>
+              <b>Insurance secondary:</b> Mercy Employee Med Plus
+            </div>
+          </div>
+        </div>
+
+        <div class="balance-band">
+          <div>
+            <div class="lbl">Amount you owe</div>
+            <div class="v">$204.80</div>
+            <div class="delta">Insurance has paid · this is your responsibility</div>
+          </div>
+          <div>
+            <div class="lbl">Account total</div>
+            <div class="v s">$1,840.00</div>
+            <div class="delta">YTD out-of-pocket</div>
+          </div>
+          <div class="pay-by">
+            <div class="l">Pay by</div>
+            <div class="d">May 30</div>
+          </div>
+        </div>
+
+        <div style="font-weight:800;font-size:13px;margin-bottom:6px">Services</div>
+
+        <div class="svc-row h">
+          <span>Date</span>
+          <span>Description</span>
+          <span style="text-align:right">Charged</span>
+          <span style="text-align:right">Insurance adj.</span>
+          <span style="text-align:right">Insurance paid</span>
+          <span style="text-align:right">You owe</span>
+        </div>
+        <div class="svc-row">
+          <span class="dt">Apr 24</span>
+          <div>
+            <div class="desc">Initial hospital care · Dr. Drobo</div>
+            <div class="sub">CPT 99223 · Dx I50.9</div>
+          </div>
+          <span class="num">$520.00</span>
+          <span class="num">−$102.00</span>
+          <span class="num">$334.40</span>
+          <span class="num you">$83.60</span>
+        </div>
+        <div class="svc-row">
+          <span class="dt">Apr 24</span>
+          <div>
+            <div class="desc">Echocardiogram · Dr. Drobo</div>
+            <div class="sub">CPT 93306-26</div>
+          </div>
+          <span class="num">$485.00</span>
+          <span class="num">−$103.00</span>
+          <span class="num">$305.60</span>
+          <span class="num you">$76.40</span>
+        </div>
+        <div class="svc-row">
+          <span class="dt">Apr 24</span>
+          <div>
+            <div class="desc">Chest X-ray · 2 view</div>
+            <div class="sub">CPT 71046</div>
+          </div>
+          <span class="num">$135.00</span>
+          <span class="num">−$27.00</span>
+          <span class="num">$86.40</span>
+          <span class="num you">$21.60</span>
+        </div>
+        <div class="svc-row">
+          <span class="dt">Apr 24</span>
+          <div>
+            <div class="desc">EKG · routine 12-lead</div>
+            <div class="sub">CPT 93000</div>
+          </div>
+          <span class="num">$95.00</span>
+          <span class="num">−$19.00</span>
+          <span class="num">$60.80</span>
+          <span class="num you">$15.20</span>
+        </div>
+        <div class="svc-row">
+          <span class="dt">Apr 24</span>
+          <div>
+            <div class="desc">Comprehensive metabolic panel</div>
+            <div class="sub">CPT 80053</div>
+          </div>
+          <span class="num">$48.00</span>
+          <span class="num">−$26.00</span>
+          <span class="num">$17.60</span>
+          <span class="num you">$4.40</span>
+        </div>
+        <div class="svc-row">
+          <span class="dt">Apr 24</span>
+          <div>
+            <div class="desc">CBC w/ auto-differential</div>
+            <div class="sub">CPT 85025</div>
+          </div>
+          <span class="num">$32.00</span>
+          <span class="num">−$14.00</span>
+          <span class="num">$14.40</span>
+          <span class="num you">$3.60</span>
+        </div>
+
+        <div class="totals">
+          <span class="l">Subtotal charged</span><span class="v">$1,315.00</span>
+          <span class="l">Insurance contractual adjustments</span><span class="v">−$291.00</span>
+          <span class="l">Insurance payments</span><span class="v">−$819.20</span>
+          <span class="row-line"></span>
+          <span class="l" style="font-weight:800;color:var(--ink)">Your responsibility this statement</span>
+          <span class="v bold">$204.80</span>
+        </div>
+
+        <div class="plan-card">
+          <div>
+            <div class="l">Need more time?</div>
+            <div class="h">Set up a 0% payment plan</div>
+            <div class="d">Spread $204.80 over up to 6 months · no interest, no fees · auto-debit from card or bank</div>
+            <div class="opts">
+              <span class="opt">3 mo · $68.27</span>
+              <span class="opt sel">6 mo · $34.13</span>
+              <span class="opt">12 mo · $17.07</span>
+            </div>
+          </div>
+          <div class="qr"></div>
+        </div>
+
+        <div class="stmt-footer">
+          <div>
+            <div class="footer-tag">Pay online</div>
+            <div class="return-addr">mercy.health/pay · use account number 012-887-43<br>Phone: (800) 555-0188 · Mon–Fri 8a–6p<br>Questions about insurance: see your EOB</div>
+          </div>
+          <div>
+            <div class="footer-tag">Mail check to</div>
+            <div class="return-addr">Mercy Health System<br>Patient Accounts · PO Box 84772<br>Austin, TX 78708-4772<br>Make payable to <b>Mercy Health System</b></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <div class="card">
+        <div class="pay-cta">
+          <div class="l">Outstanding balance</div>
+          <div class="v">$204.80</div>
+          <button>Charge saved card on file →</button>
+        </div>
+
+        <div class="ch"><span class="t">Payment method</span></div>
+        <div class="pay-method sel">
+          <input type="radio" name="pm" checked>
+          <div class="ic">VISA</div>
+          <div>
+            <div class="nm">Visa ···· 4488</div>
+            <div class="sub">Exp 09/27 · default</div>
+          </div>
+        </div>
+        <div class="pay-method">
+          <input type="radio" name="pm">
+          <div class="ic ach">ACH</div>
+          <div>
+            <div class="nm">Chase checking ···· 2210</div>
+            <div class="sub">Routing 021000021</div>
+          </div>
+        </div>
+        <div class="pay-method">
+          <input type="radio" name="pm">
+          <div class="ic hsa">HSA</div>
+          <div>
+            <div class="nm">HealthEquity HSA ···· 8810</div>
+            <div class="sub">$2,840 available</div>
+          </div>
+        </div>
+        <div class="pay-method">
+          <input type="radio" name="pm">
+          <div class="ic" style="background:#0e1116">+</div>
+          <div>
+            <div class="nm">Add new payment method</div>
+            <div class="sub">Card, bank, or HSA</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Delivery history</span></div>
+        <div class="delivery-row"><div class="ic" style="background:#dff7e7;color:#1a8a48">📧</div><div><div class="nm">Email · aria.chen@protonmail.com</div><div class="sub">Today 14:02 · opened in 12m</div></div><span class="stat sent">Opened</span></div>
+        <div class="delivery-row"><div class="ic" style="background:#dff7e7;color:#1a8a48">🌐</div><div><div class="nm">Patient portal</div><div class="sub">Today 14:02 · viewed</div></div><span class="stat sent">Viewed</span></div>
+        <div class="delivery-row"><div class="ic" style="background:#e6efff;color:#1a4fb3">📨</div><div><div class="nm">SMS · (512) 555-0188</div><div class="sub">Today 14:03 · short link sent</div></div><span class="stat sent">Delivered</span></div>
+        <div class="delivery-row"><div class="ic" style="background:#fafbfc">✉</div><div><div class="nm">Paper · USPS first class</div><div class="sub">Print queue · drops May 3</div></div><span class="stat draft">Queued</span></div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Account history · 12 mo</span></div>
+        <div class="delivery-row"><span class="dt" style="font-family:'JetBrains Mono',monospace;font-size:11px">May 02</span><div><div class="nm">Statement issued</div><div class="sub">Cycle 1 · $204.80 due</div></div><span style="font-family:'JetBrains Mono',monospace;font-weight:800;font-size:11px">$204.80</span></div>
+        <div class="delivery-row"><span class="dt" style="font-family:'JetBrains Mono',monospace;font-size:11px">Apr 28</span><div><div class="nm">Insurance payment</div><div class="sub">Aetna · ERA 887441208</div></div><span style="font-family:'JetBrains Mono',monospace;font-weight:800;font-size:11px;color:#1a8a48">+$819.20</span></div>
+        <div class="delivery-row"><span class="dt" style="font-family:'JetBrains Mono',monospace;font-size:11px">Mar 14</span><div><div class="nm">Pt payment · card</div><div class="sub">Visa ···· 4488</div></div><span style="font-family:'JetBrains Mono',monospace;font-weight:800;font-size:11px;color:#1a8a48">+$45.00</span></div>
+        <div class="delivery-row"><span class="dt" style="font-family:'JetBrains Mono',monospace;font-size:11px">Mar 12</span><div><div class="nm">Statement issued</div><div class="sub">Office visit · paid</div></div><span style="font-family:'JetBrains Mono',monospace;font-weight:800;font-size:11px">$45.00</span></div>
+        <div class="delivery-row"><span class="dt" style="font-family:'JetBrains Mono',monospace;font-size:11px">Jan 22</span><div><div class="nm">Pt payment · ACH</div><div class="sub">Chase ···· 2210</div></div><span style="font-family:'JetBrains Mono',monospace;font-weight:800;font-size:11px;color:#1a8a48">+$1,500</span></div>
+      </div>
+
+    </div>
+  </div>
+
+</div></div>
+
+<script src="../scripts/nav.js"></script>
+<script src="../scripts/breadcrumbs.js"></script>
+</body>
+</html>

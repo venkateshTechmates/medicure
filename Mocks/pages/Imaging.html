@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Imaging</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;justify-content:space-between;align-items:flex-end;margin:8px 4px 18px;flex-wrap:wrap;gap:12px}
+  .head .h1{font-size:54px}
+
+  .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:18px}
+  .kpi{background:#fff;border-radius:16px;padding:14px;box-shadow:var(--shadow)}
+  .kpi .l{font-size:10px;color:var(--ink-mute);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+  .kpi .v{font-family:"Instrument Serif",serif;font-size:30px;letter-spacing:-.02em;line-height:1;margin-top:6px}
+
+  .filters{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+  .filt{padding:8px 14px;background:#fff;border-radius:999px;font:700 12px "Plus Jakarta Sans";box-shadow:var(--shadow);cursor:pointer;border:0}
+  .filt.active{background:#0e1116;color:#fff}
+
+  .layout{display:grid;grid-template-columns:380px 1fr 320px;gap:14px;align-items:start;height:calc(100vh - 280px);min-height:680px}
+
+  /* Worklist */
+  .worklist{background:#fff;border-radius:18px;padding:14px;box-shadow:var(--shadow);overflow-y:auto;height:100%}
+  .study-row{display:grid;grid-template-columns:auto 1fr;gap:10px;padding:10px;border-radius:12px;cursor:pointer;border:1px solid transparent;margin-bottom:6px;transition:.15s}
+  .study-row:hover{background:#fafbfc}
+  .study-row.active{background:#fef9d7;border-color:#ffd633}
+  .study-row .thumb{width:54px;height:54px;border-radius:10px;background:#0e1116 center/cover;display:grid;place-items:center;color:#fff;font-weight:700;font-size:11px;font-family:'Instrument Serif',serif;flex:none}
+  .study-row .nm{font-weight:700;font-size:13px;line-height:1.2}
+  .study-row .sub{font-size:11px;color:var(--ink-mute);margin-top:2px}
+  .study-row .meta{font-size:10px;color:var(--ink-mute);margin-top:4px;display:flex;gap:10px}
+  .study-row .badge{display:inline-block;padding:2px 7px;border-radius:999px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+  .b-stat{background:#fff3df;color:#a05a00}
+  .b-prelim{background:#e6efff;color:#1a4fb3}
+  .b-final{background:#dff7e7;color:#1a8a48}
+  .b-pend{background:#f4f6f9;color:var(--ink-soft)}
+  .b-crit{background:#ffe7eb;color:#b3263d;animation:flash2 1.4s infinite}
+  @keyframes flash2{0%,49%{opacity:1}50%,100%{opacity:.5}}
+
+  /* Viewer */
+  .viewer{background:#0e1116;border-radius:18px;padding:14px;display:grid;grid-template-rows:auto 1fr auto;gap:10px;height:100%;min-height:0}
+  .viewer-top{display:flex;justify-content:space-between;align-items:center;color:#fff}
+  .viewer-top .pt{font-family:"Instrument Serif",serif;font-size:24px;line-height:1}
+  .viewer-top .study{font-size:11px;color:#9aa0ad;margin-top:2px}
+  .viewer-tools{display:flex;gap:6px}
+  .vt{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.08);color:#fff;border:0;cursor:pointer;display:grid;place-items:center}
+  .vt.active{background:#ffd633;color:#0e1116}
+  .canvas{background:#000;border-radius:14px;position:relative;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;gap:2px}
+  .img-pane{position:relative;background:#0a0a0a;display:grid;place-items:center;overflow:hidden}
+  .img-pane img{width:100%;height:100%;object-fit:contain;display:block}
+  .img-pane .label{position:absolute;top:10px;left:10px;background:rgba(0,0,0,.65);color:#ffd633;font-family:'SF Mono',monospace;font-size:10px;padding:4px 8px;border-radius:6px}
+  .img-pane .scale{position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,.65);color:#fff;font-family:'SF Mono',monospace;font-size:10px;padding:4px 8px;border-radius:6px}
+  .img-pane .crosshair{position:absolute;inset:0;pointer-events:none}
+  .img-pane .crosshair::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(255,214,51,.4)}
+  .img-pane .crosshair::after{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(255,214,51,.4)}
+  .annotate{position:absolute;border:2px solid #ffd633;border-radius:50%;width:60px;height:60px;left:60%;top:35%}
+  .annotate-arrow{position:absolute;left:54%;top:48%;color:#ffd633;font-family:'Instrument Serif',serif;font-size:14px;font-weight:700;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:6px}
+
+  .viewer-bottom{display:flex;justify-content:space-between;align-items:center;color:#9aa0ad;font-size:10px;font-family:'SF Mono',monospace}
+
+  /* Right report panel */
+  .report{background:#fff;border-radius:18px;padding:18px;box-shadow:var(--shadow);overflow-y:auto;height:100%}
+  .report h3{font-family:"Instrument Serif",serif;font-size:24px;letter-spacing:-.02em;margin:0 0 4px}
+  .report .by{font-size:11px;color:var(--ink-mute);margin-bottom:14px}
+  .report h4{margin:14px 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-mute);font-weight:800}
+  .report p{font-size:12px;line-height:1.6;color:var(--ink-soft);margin:0 0 6px}
+  .report b{color:var(--ink)}
+  .report .crit-banner{background:#ffe7eb;border:1px solid #ff4d6b;color:#b3263d;padding:12px;border-radius:12px;margin-bottom:14px}
+  .report .crit-banner .t{font-weight:800;font-size:12px;margin-bottom:2px}
+
+  .img-meta{font-family:'SF Mono',monospace;font-size:10px;color:var(--ink-mute);background:#fafbfc;border-radius:10px;padding:10px;line-height:1.7;margin-top:10px}
+</style></head>
+<body data-page="patients" data-base="../">
+
+<div class="page"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div class="head">
+    <div><h1 class="h1">Imaging</h1><div style="font-size:13px;color:var(--ink-soft);margin-top:4px">PACS · DICOM · 142 studies today</div></div>
+    <div style="display:flex;gap:8px"><button class="btn">+ Order imaging</button><button class="btn">Worklist filters</button><button class="btn dark">Open in viewer</button></div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="l">Pending order</div><div class="v">14</div></div>
+    <div class="kpi"><div class="l">Acquired</div><div class="v">22</div></div>
+    <div class="kpi"><div class="l">Awaiting read</div><div class="v">31</div></div>
+    <div class="kpi"><div class="l">Critical pending ack</div><div class="v" style="color:var(--bad)">3</div></div>
+    <div class="kpi"><div class="l">Avg TAT (ED)</div><div class="v">42m</div></div>
+    <div class="kpi"><div class="l">STAT in queue</div><div class="v" style="color:var(--warn)">7</div></div>
+  </div>
+
+  <div class="filters">
+    <button class="filt active">All studies</button>
+    <button class="filt">Critical</button>
+    <button class="filt">STAT</button>
+    <button class="filt">Awaiting read</button>
+    <button class="filt">My patients</button>
+    <button class="filt">CT</button>
+    <button class="filt">XR</button>
+    <button class="filt">MR</button>
+    <button class="filt">US</button>
+    <button class="filt">Mammo</button>
+  </div>
+
+  <div class="layout">
+    <!-- Worklist -->
+    <div class="worklist">
+      <div style="font-weight:700;font-size:13px;margin-bottom:10px;display:flex;justify-content:space-between"><span>Today's worklist</span><span style="color:var(--ink-mute);font-weight:500;font-size:11px">142 studies</span></div>
+
+      <div class="study-row">
+        <div class="thumb" style="background-image:url('https://images.unsplash.com/photo-1530497610245-94d3c16cda28?w=160&h=160&fit=crop')"></div>
+        <div>
+          <div class="nm">CT Head w/o contrast</div>
+          <div class="sub">Roxanne Patel · F / 58 · MRN 7740</div>
+          <div class="meta"><span>09:32</span><span class="badge b-crit">CRITICAL</span></div>
+        </div>
+      </div>
+
+      <div class="study-row active">
+        <div class="thumb" style="background-image:url('https://images.unsplash.com/photo-1666214280391-8ff5bd3c0bf0?w=160&h=160&fit=crop')"></div>
+        <div>
+          <div class="nm">CT Abdomen / Pelvis</div>
+          <div class="sub">Marcus Holloway · M / 42 · MRN 9182</div>
+          <div class="meta"><span>10:14</span><span class="badge b-prelim">PRELIM</span><span>Dr. Khan</span></div>
+        </div>
+      </div>
+
+      <div class="study-row">
+        <div class="thumb" style="background:#0e1116;color:#fff;display:grid;place-items:center;font-family:'Instrument Serif',serif">CXR</div>
+        <div>
+          <div class="nm">XR Chest 2-view</div>
+          <div class="sub">Albert Smith · M / 9 · MRN 4421</div>
+          <div class="meta"><span>Yest</span><span class="badge b-final">FINAL</span><span>Dr. Reyes</span></div>
+        </div>
+      </div>
+
+      <div class="study-row">
+        <div class="thumb" style="background-image:url('https://images.unsplash.com/photo-1582719471384-894fbb16e074?w=160&h=160&fit=crop')"></div>
+        <div>
+          <div class="nm">MRI Brain w/wo gad</div>
+          <div class="sub">Aria Chen · F / 34 · MRN 5520</div>
+          <div class="meta"><span>11:02</span><span class="badge b-stat">STAT</span></div>
+        </div>
+      </div>
+
+      <div class="study-row">
+        <div class="thumb" style="background:#0e1116;color:#fff;display:grid;place-items:center;font-family:'Instrument Serif',serif">US</div>
+        <div>
+          <div class="nm">US RUQ · gallbladder</div>
+          <div class="sub">Selene Vargas · F / 24 · MRN 2243</div>
+          <div class="meta"><span>11:30</span><span class="badge b-pend">PEND</span></div>
+        </div>
+      </div>
+
+      <div class="study-row">
+        <div class="thumb" style="background-image:url('https://images.unsplash.com/photo-1578496479914-7ef3b0193be3?w=160&h=160&fit=crop')"></div>
+        <div>
+          <div class="nm">CT Chest PE protocol</div>
+          <div class="sub">Idris Bello · M / 67 · MRN 8814</div>
+          <div class="meta"><span>11:48</span><span class="badge b-stat">STAT</span></div>
+        </div>
+      </div>
+
+      <div class="study-row">
+        <div class="thumb" style="background:#0e1116;color:#fff;display:grid;place-items:center;font-family:'Instrument Serif',serif">XR</div>
+        <div>
+          <div class="nm">XR L Ankle 3-view</div>
+          <div class="sub">Tobias Reyes · M / 51 · MRN 6601</div>
+          <div class="meta"><span>12:05</span><span class="badge b-final">FINAL</span></div>
+        </div>
+      </div>
+
+      <div class="study-row">
+        <div class="thumb" style="background-image:url('https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=160&h=160&fit=crop')"></div>
+        <div>
+          <div class="nm">Echo TTE</div>
+          <div class="sub">Reginald Holloway · M / 64 · MRN 8821</div>
+          <div class="meta"><span>12:38</span><span class="badge b-stat">STAT</span></div>
+        </div>
+      </div>
+
+      <div class="study-row">
+        <div class="thumb" style="background-image:url('https://images.unsplash.com/photo-1636051023021-b3a3da010fc9?w=160&h=160&fit=crop')"></div>
+        <div>
+          <div class="nm">Mammogram bilateral</div>
+          <div class="sub">Patricia Lin · F / 52 · MRN 3340</div>
+          <div class="meta"><span>10:48</span><span class="badge b-final">FINAL</span><span>Dr. Reyes</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Viewer -->
+    <div class="viewer">
+      <div class="viewer-top">
+        <div>
+          <div class="pt">CT Abdomen / Pelvis</div>
+          <div class="study">Marcus Holloway · M / 42 · MRN 9182 · acq 10:14 · series 3 of 4</div>
+        </div>
+        <div class="viewer-tools">
+          <button class="vt active" title="WW/WL">⚙</button>
+          <button class="vt" title="Pan">✥</button>
+          <button class="vt" title="Zoom">🔍</button>
+          <button class="vt" title="Measure">📏</button>
+          <button class="vt" title="Annotate">✏</button>
+          <button class="vt" title="Compare">⇄</button>
+          <button class="vt" title="3D">⧉</button>
+          <button class="vt" title="Reset">↺</button>
+        </div>
+      </div>
+
+      <div class="canvas">
+        <div class="img-pane">
+          <img src="https://images.unsplash.com/photo-1666214280557-f1b5e4117c1e?w=900&h=900&fit=crop" alt=""/>
+          <div class="crosshair"></div>
+          <div class="annotate"></div>
+          <div class="annotate-arrow">↑ Suspected mass · 3.2 × 2.8 cm</div>
+          <div class="label">AX · 5.0 mm · slice 47/120</div>
+          <div class="scale">W:400 / L:40 · zoom 1.4×</div>
+        </div>
+        <div class="img-pane">
+          <img src="https://images.unsplash.com/photo-1666214277401-f3eb928f5be1?w=900&h=900&fit=crop" alt=""/>
+          <div class="label">COR · slice 22/60</div>
+          <div class="scale">W:400 / L:40 · zoom 1.0×</div>
+        </div>
+      </div>
+
+      <div class="viewer-bottom">
+        <div>STUDY 1.2.840.113619.2.176.2025.0510.92831 · DICOM 5.5 GB</div>
+        <div>Dr. M. Khan reading · prelim 11:42 UTC</div>
+      </div>
+    </div>
+
+    <!-- Report -->
+    <div class="report">
+      <h3>Radiology report</h3>
+      <div class="by">Dr. M. Khan, MD · Body imaging · prelim 11:42 · pending overread</div>
+
+      <div class="crit-banner">
+        <div class="t">⚠ Critical finding · pending acknowledgment</div>
+        Possible 3.2 cm hepatic mass — ordering provider notified, awaiting read-back acknowledgment within 60 min.
+      </div>
+
+      <h4>Indication</h4>
+      <p>42-year-old male with severe RUQ pain, jaundice, fever 39.1. Rule out hepatobiliary pathology, abscess, mass.</p>
+
+      <h4>Technique</h4>
+      <p>Helical CT abdomen and pelvis with IV contrast (100 mL Optiray 350). Reconstruction at 5.0 mm and 1.25 mm. Coronal and sagittal reformats.</p>
+
+      <h4>Findings</h4>
+      <p><b>Liver:</b> 3.2 × 2.8 cm hypodense lesion in segment IV with rim enhancement, concerning for primary or metastatic neoplasm vs. abscess. Differential includes hepatocellular carcinoma, cholangiocarcinoma, hepatic abscess.</p>
+      <p><b>Gallbladder:</b> Distended (8 cm), wall thickening 6 mm, pericholecystic stranding, multiple gallstones. Findings consistent with acute cholecystitis.</p>
+      <p><b>Biliary:</b> Mild intrahepatic biliary dilation (CBD 9 mm).</p>
+      <p><b>Pancreas, spleen, kidneys:</b> Unremarkable.</p>
+      <p><b>Bowel:</b> No SBO. No free air. No free fluid.</p>
+
+      <h4>Impression</h4>
+      <p><b>1.</b> 3.2 cm hepatic mass segment IV — recommend MRI w/ Eovist for further characterization.</p>
+      <p><b>2.</b> Acute cholecystitis with cholelithiasis.</p>
+      <p><b>3.</b> Mild biliary obstruction — suggest MRCP.</p>
+
+      <h4>Recommendations</h4>
+      <p>MRI abdomen w/ Eovist within 48 hrs · MRCP · GI/Hepatology consult · tumor markers (AFP, CEA, CA 19-9).</p>
+
+      <div class="img-meta">
+        STUDY UID 1.2.840.113619.2.176.2025.0510.92831<br>
+        ACQ 2026-05-02 10:14:22 · 10:18:04<br>
+        MODALITY CT · GE Revolution Apex · slice 5.0 mm<br>
+        SERIES (1) Topo · (2) Axial · (3) Coronal · (4) Sagittal<br>
+        RAD DOSE DLP 612 mGy·cm<br>
+        CRITICAL CALLBACK Dr. Vasquez paged 11:43 · ack pending
+      </div>
+
+      <div style="display:flex;gap:6px;margin-top:14px"><button class="btn primary" style="flex:1">Acknowledge critical</button><button class="btn">Forward</button></div>
+    </div>
+  </div>
+</div></div>
+<script src="../scripts/nav.js"></script>
+
+<script>window.MC_ROUTES = [{"sel":".worklist-row, .study-row, tbody tr","href":"Imaging.html","soft":true,"title":"Open study"},{"sel":".btn.primary, button.primary","href":"OrderDetail.html","title":"Order imaging"}];</script>
+<script src="../scripts/router.js"></script>
+</body></html>

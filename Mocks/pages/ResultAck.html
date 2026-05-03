@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Result Inbox · Dr. Drobo</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;justify-content:space-between;align-items:flex-end;margin:8px 4px 18px;flex-wrap:wrap;gap:14px}
+  .head .h1{font-size:48px}
+
+  /* Stats */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+  .stat{background:#fff;border-radius:14px;padding:16px 18px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .stat .ic{position:absolute;right:14px;top:14px;width:28px;height:28px;border-radius:8px;display:grid;place-items:center;font-weight:800;font-size:13px}
+  .stat .lab{font-size:11px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;font-weight:800}
+  .stat .v{font-family:"Instrument Serif",serif;font-size:42px;letter-spacing:-.02em;line-height:1;margin-top:6px}
+  .stat .sub{font-size:11px;color:var(--ink-soft);margin-top:4px}
+  .stat.crit{background:linear-gradient(135deg,#ff4d6b,#d63a55);color:#fff}
+  .stat.crit .lab,.stat.crit .sub{color:rgba(255,255,255,.8)}
+  .stat.crit .ic{background:rgba(255,255,255,.2);color:#fff}
+
+  .layout{display:grid;grid-template-columns:280px 1fr 380px;gap:14px;align-items:start}
+
+  /* Filter rail */
+  .rail{background:#fff;border-radius:18px;padding:14px;box-shadow:var(--shadow);position:sticky;top:14px}
+  .rail h4{margin:6px 6px 8px;font-size:11px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;font-weight:800}
+  .rail-item{padding:9px 12px;border-radius:10px;font:600 12px "Plus Jakarta Sans";color:var(--ink-soft);cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+  .rail-item:hover{background:#fafbfc;color:var(--ink)}
+  .rail-item.act{background:#0e1116;color:#fff}
+  .rail-item .ct{font-size:10px;background:#f4f6f9;color:var(--ink-mute);padding:2px 7px;border-radius:999px;font-weight:700}
+  .rail-item.act .ct{background:rgba(255,255,255,.15);color:#fff}
+  .rail-item.crit .ct{background:var(--bad);color:#fff}
+
+  /* Result list */
+  .results{background:#fff;border-radius:18px;box-shadow:var(--shadow);overflow:hidden}
+  .res-head{display:grid;grid-template-columns:30px 1fr 200px 120px 90px 100px;gap:14px;padding:14px 20px;border-bottom:1px solid var(--line);font-size:10px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;font-weight:800}
+  .res-row{display:grid;grid-template-columns:30px 1fr 200px 120px 90px 100px;gap:14px;padding:14px 20px;align-items:center;border-bottom:1px solid var(--line);cursor:pointer;transition:.1s;font-size:12px;position:relative}
+  .res-row:hover{background:#fafbfc}
+  .res-row.unread{background:#fffbf3}
+  .res-row.unread::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--warn)}
+  .res-row.crit::before{background:var(--bad)}
+  .res-row.crit{background:#fff7f9}
+  .res-row.crit:hover{background:#fff1f5}
+  .res-row.act{background:#0e1116;color:#fff}
+  .res-row.act .meta,.res-row.act .who-name,.res-row.act .test-name small{color:rgba(255,255,255,.7)}
+  .res-row.act::before{background:#fff}
+
+  .res-row .check{width:18px;height:18px;border:1.5px solid var(--line);border-radius:5px;display:grid;place-items:center}
+  .res-row.act .check{border-color:#fff}
+
+  .res-row .who-pic{width:32px;height:32px;border-radius:10px;background:#888 center/cover;flex:none;display:inline-block;vertical-align:middle;margin-right:10px}
+  .res-row .who-name{font-weight:700;font-size:13px;display:inline-flex;flex-direction:column;vertical-align:middle}
+  .res-row .who-name b{font-weight:800}
+  .res-row .who-name small{font-size:10px;color:var(--ink-mute);font-weight:600}
+
+  .test-name{font-weight:700}
+  .test-name small{display:block;font-size:10px;color:var(--ink-mute);font-weight:600;margin-top:2px}
+
+  .val{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:14px}
+  .val.high{color:var(--bad)}
+  .val.low{color:var(--info)}
+  .val small{font-family:"Plus Jakarta Sans";font-size:9px;color:var(--ink-mute);margin-left:4px;font-weight:600}
+
+  .meta{font-size:10px;color:var(--ink-mute);font-weight:600}
+
+  /* Detail panel */
+  .detail{background:#fff;border-radius:18px;box-shadow:var(--shadow);padding:22px;position:sticky;top:14px}
+  .detail .who{display:flex;gap:12px;align-items:center;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+  .detail .who .pic{width:44px;height:44px;border-radius:13px;background:#888 center/cover}
+  .detail .who .nm{font-weight:800;font-size:15px}
+  .detail .who .meta{font-size:11px;color:var(--ink-soft);margin-top:2px}
+  .detail h2{font-family:"Instrument Serif",serif;font-size:30px;letter-spacing:-.02em;margin:0 0 4px;font-weight:400;line-height:1.1}
+  .detail .ord-meta{font-size:11px;color:var(--ink-soft);margin-bottom:14px}
+
+  .lab-line{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:10px 12px;background:#fafbfc;border-radius:10px;margin-bottom:5px;font-size:12px;border:1px solid var(--line)}
+  .lab-line .nm{font-weight:700}
+  .lab-line .ref{font-size:10px;color:var(--ink-mute)}
+  .lab-line .v{font-family:"JetBrains Mono",monospace;font-weight:800;font-size:14px}
+  .lab-line .v.h{color:var(--bad)}
+  .lab-line .v.l{color:var(--info)}
+  .lab-line .flag{font-size:9px;font-weight:800;padding:2px 6px;border-radius:5px;background:var(--bad);color:#fff;text-transform:uppercase}
+  .lab-line .flag.l{background:var(--info)}
+  .lab-line .flag.n{background:var(--good)}
+
+  .ack-actions{margin-top:14px;display:flex;flex-direction:column;gap:6px}
+  .ack-actions .btn{justify-content:flex-start;text-align:left;width:100%}
+  .ack-actions .btn.primary{background:var(--good);border-color:var(--good)}
+
+  .timeline{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+  .timeline-row{display:grid;grid-template-columns:54px 1fr;gap:10px;font-size:11px;padding:5px 0}
+  .timeline-row .t{color:var(--ink-mute);font-weight:600}
+  .timeline-row .e b{font-weight:700;color:var(--ink)}
+</style></head>
+<body data-page="labs" data-base="../">
+
+<div class="page" style="max-width:1600px"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div class="head">
+    <div><span class="eyebrow">My results · acknowledgement queue</span><h1 class="h1">Result inbox</h1><div style="font-size:13px;color:var(--ink-soft);margin-top:4px">Lab + imaging results awaiting clinician review &amp; sign-off · 2 critical require call-back</div></div>
+    <div style="display:flex;gap:8px"><button class="btn">Print queue</button><button class="btn">Auto-route rules</button><button class="btn primary">Acknowledge selected (3) <span class="arrow">→</span></button></div>
+  </div>
+
+  <div class="stats">
+    <div class="stat crit">
+      <div class="ic">!</div>
+      <div class="lab">Critical · call back</div>
+      <div class="v">2</div>
+      <div class="sub">SLA exceeded by 1</div>
+    </div>
+    <div class="stat">
+      <div class="ic" style="background:#fff3df;color:#a05a00">⚠</div>
+      <div class="lab">Abnormal</div>
+      <div class="v">14</div>
+      <div class="sub">8 unread</div>
+    </div>
+    <div class="stat">
+      <div class="ic" style="background:#dff7e7;color:#1a8a48">✓</div>
+      <div class="lab">Normal — bulk ack</div>
+      <div class="v">38</div>
+      <div class="sub">Avg 22 sec</div>
+    </div>
+    <div class="stat">
+      <div class="ic" style="background:#e6efff;color:#1a4fb3">⏱</div>
+      <div class="lab">Avg time to ack</div>
+      <div class="v">14<span style="font-size:18px;color:var(--ink-mute)">m</span></div>
+      <div class="sub">Goal &lt; 30 min</div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- Filter rail -->
+    <div class="rail">
+      <h4>Status</h4>
+      <div class="rail-item act">All unread <span class="ct">54</span></div>
+      <div class="rail-item crit">Critical <span class="ct">2</span></div>
+      <div class="rail-item">Abnormal <span class="ct">14</span></div>
+      <div class="rail-item">Normal <span class="ct">38</span></div>
+      <div class="rail-item">Pending addendum <span class="ct">3</span></div>
+      <div class="rail-item">Acknowledged today <span class="ct">12</span></div>
+
+      <h4 style="margin-top:14px">Type</h4>
+      <div class="rail-item">Lab — chemistry <span class="ct">22</span></div>
+      <div class="rail-item">Lab — heme <span class="ct">12</span></div>
+      <div class="rail-item">Lab — micro <span class="ct">5</span></div>
+      <div class="rail-item">Imaging <span class="ct">9</span></div>
+      <div class="rail-item">Pathology <span class="ct">2</span></div>
+      <div class="rail-item">Cardio (ECG/echo) <span class="ct">4</span></div>
+
+      <h4 style="margin-top:14px">My patients</h4>
+      <div class="rail-item">Inpatient <span class="ct">28</span></div>
+      <div class="rail-item">Clinic <span class="ct">22</span></div>
+      <div class="rail-item">ED follow-up <span class="ct">4</span></div>
+    </div>
+
+    <!-- Result list -->
+    <div class="results">
+      <div class="res-head">
+        <div></div>
+        <div>Patient · test</div>
+        <div>Result</div>
+        <div>Resulted</div>
+        <div>Status</div>
+        <div></div>
+      </div>
+
+      <div class="res-row crit unread act">
+        <div class="check"></div>
+        <div>
+          <div class="who-pic" style="background-image:url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=faces')"></div>
+          <div class="who-name"><b>Maria Hernandez</b><small>MRN 08461 · ICU-2</small></div>
+        </div>
+        <div class="test-name">Lactate, serum<small>POC · ICU draw</small></div>
+        <div class="val high">5.4 <small>mmol/L</small></div>
+        <div class="meta">12 min ago</div>
+        <div><span class="severity-pill severe" style="background:var(--bad);color:#fff;font-size:9px;padding:3px 7px;border-radius:5px;font-weight:800;text-transform:uppercase">CRIT</span></div>
+      </div>
+
+      <div class="res-row crit unread">
+        <div class="check"></div>
+        <div>
+          <div class="who-pic" style="background-image:url('https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=faces')"></div>
+          <div class="who-name"><b>James Liu</b><small>MRN 08410 · CCU</small></div>
+        </div>
+        <div class="test-name">Troponin I, hs<small>4-hr post-PCI</small></div>
+        <div class="val high">28.4 <small>ng/L</small></div>
+        <div class="meta">28 min ago</div>
+        <div><span style="background:var(--bad);color:#fff;font-size:9px;padding:3px 7px;border-radius:5px;font-weight:800">CRIT</span></div>
+      </div>
+
+      <div class="res-row unread">
+        <div class="check"></div>
+        <div>
+          <div class="who-pic" style="background-image:url('https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=80&h=80&fit=crop&crop=faces')"></div>
+          <div class="who-name"><b>Albert Smith</b><small>MRN 4421-08 · Peds-2</small></div>
+        </div>
+        <div class="test-name">CBC w/ diff<small>AM draw · Day 3</small></div>
+        <div class="val high">WBC 11.2 <small>×10⁹/L</small></div>
+        <div class="meta">42 min ago</div>
+        <div><span style="background:var(--warn);color:#0e1116;font-size:9px;padding:3px 7px;border-radius:5px;font-weight:800">ABN</span></div>
+      </div>
+
+      <div class="res-row unread">
+        <div class="check"></div>
+        <div>
+          <div class="who-pic" style="background-image:url('https://images.unsplash.com/photo-1463453091185-61582044d556?w=80&h=80&fit=crop&crop=faces')"></div>
+          <div class="who-name"><b>Robert Kim</b><small>MRN 08305 · ICU-2</small></div>
+        </div>
+        <div class="test-name">Creatinine<small>Daily AM chem panel</small></div>
+        <div class="val high">2.1 <small>mg/dL</small></div>
+        <div class="meta">1 h ago</div>
+        <div><span style="background:var(--warn);color:#0e1116;font-size:9px;padding:3px 7px;border-radius:5px;font-weight:800">ABN</span></div>
+      </div>
+
+      <div class="res-row unread">
+        <div class="check"></div>
+        <div>
+          <div class="who-pic" style="background-image:url('https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=faces')"></div>
+          <div class="who-name"><b>Sarah Johnson</b><small>MRN 08440 · StepD</small></div>
+        </div>
+        <div class="test-name">CT abdomen / pelvis<small>R/o post-op abscess</small></div>
+        <div class="val">Read pending<small></small></div>
+        <div class="meta">1.5 h ago</div>
+        <div><span style="background:var(--info);color:#fff;font-size:9px;padding:3px 7px;border-radius:5px;font-weight:800">PEND</span></div>
+      </div>
+
+      <div class="res-row unread">
+        <div class="check"></div>
+        <div>
+          <div class="who-pic" style="background-image:url('https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=80&h=80&fit=crop&crop=faces')"></div>
+          <div class="who-name"><b>Priya Shah</b><small>MRN 08233 · Maty</small></div>
+        </div>
+        <div class="test-name">Hgb A1C<small>Annual screen</small></div>
+        <div class="val">5.4 <small>%</small></div>
+        <div class="meta">2 h ago</div>
+        <div><span style="background:var(--good);color:#fff;font-size:9px;padding:3px 7px;border-radius:5px;font-weight:800">NORM</span></div>
+      </div>
+
+      <div class="res-row unread">
+        <div class="check"></div>
+        <div>
+          <div class="who-pic" style="background-image:url('https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=80&h=80&fit=crop&crop=faces')"></div>
+          <div class="who-name"><b>Daniel Owusu</b><small>MRN 08299 · StepD</small></div>
+        </div>
+        <div class="test-name">CMP<small>Routine AM</small></div>
+        <div class="val low">Na 132 <small>mEq/L</small></div>
+        <div class="meta">2.5 h ago</div>
+        <div><span style="background:var(--warn);color:#0e1116;font-size:9px;padding:3px 7px;border-radius:5px;font-weight:800">ABN</span></div>
+      </div>
+
+      <div class="res-row">
+        <div class="check"></div>
+        <div>
+          <div class="who-pic" style="background-image:url('https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop&crop=faces')"></div>
+          <div class="who-name"><b>Adison Reyes</b><small>MRN 08423 · Peds-2</small></div>
+        </div>
+        <div class="test-name">RSV PCR<small>Confirm dx</small></div>
+        <div class="val high">Positive<small></small></div>
+        <div class="meta">3 h ago</div>
+        <div><span style="background:var(--warn);color:#0e1116;font-size:9px;padding:3px 7px;border-radius:5px;font-weight:800">ABN</span></div>
+      </div>
+
+      <div class="res-row">
+        <div class="check"></div>
+        <div>
+          <div class="who-pic" style="background-image:url('https://images.unsplash.com/photo-1614283233556-f35b0c801ef1?w=80&h=80&fit=crop&crop=faces')"></div>
+          <div class="who-name"><b>Layla Hassan</b><small>MRN 08612 · StepD</small></div>
+        </div>
+        <div class="test-name">D-dimer<small>R/o PE recurrence</small></div>
+        <div class="val high">680 <small>ng/mL</small></div>
+        <div class="meta">3.5 h ago</div>
+        <div><span style="background:var(--warn);color:#0e1116;font-size:9px;padding:3px 7px;border-radius:5px;font-weight:800">ABN</span></div>
+      </div>
+
+      <div class="res-row">
+        <div class="check"></div>
+        <div>
+          <div class="who-pic" style="background-image:url('https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=80&h=80&fit=crop&crop=faces')"></div>
+          <div class="who-name"><b>Emma Bauer</b><small>MRN 08561 · ICU-1</small></div>
+        </div>
+        <div class="test-name">INR<small>On warfarin</small></div>
+        <div class="val">2.4<small></small></div>
+        <div class="meta">4 h ago</div>
+        <div><span style="background:var(--good);color:#fff;font-size:9px;padding:3px 7px;border-radius:5px;font-weight:800">NORM</span></div>
+      </div>
+    </div>
+
+    <!-- Detail panel -->
+    <div class="detail">
+      <div class="who">
+        <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=160&h=160&fit=crop&crop=faces')"></div>
+        <div>
+          <div class="nm">Maria Hernandez</div>
+          <div class="meta">MRN 08461 · 64F · ICU-2 / 04 · Sepsis · ARDS</div>
+        </div>
+      </div>
+
+      <span class="severity-pill severe" style="background:var(--bad);color:#fff;display:inline-flex;font-size:10px;padding:3px 8px;border-radius:5px;font-weight:800">⚠ CRITICAL</span>
+      <h2 style="margin-top:6px">Lactate · serum</h2>
+      <div class="ord-meta">Ordered by Dr. Okafor · resulted 14:20 · POC machine ICU-Lab-3</div>
+
+      <div class="lab-line">
+        <div><div class="nm">Lactate</div><div class="ref">Ref: 0.5–2.2 mmol/L</div></div>
+        <div class="v h">5.4 <small style="font-size:10px;color:var(--ink-mute)">mmol/L</small></div>
+        <div class="flag">CRIT H</div>
+      </div>
+      <div class="lab-line">
+        <div><div class="nm">pH</div><div class="ref">Ref: 7.35–7.45</div></div>
+        <div class="v l">7.28</div>
+        <div class="flag l">L</div>
+      </div>
+      <div class="lab-line">
+        <div><div class="nm">HCO₃</div><div class="ref">Ref: 22–28 mEq/L</div></div>
+        <div class="v l">18</div>
+        <div class="flag l">L</div>
+      </div>
+      <div class="lab-line">
+        <div><div class="nm">Anion gap</div><div class="ref">Ref: 8–16</div></div>
+        <div class="v h">22</div>
+        <div class="flag">H</div>
+      </div>
+
+      <div style="font-size:11px;font-weight:800;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;margin:14px 0 6px">Trend · last 24h</div>
+      <svg viewBox="0 0 320 60" style="width:100%;height:60px">
+        <polyline points="0,40 40,38 80,30 120,28 160,22 200,18 240,14 280,8 320,4" stroke="#ff4d6b" stroke-width="2" fill="none"/>
+        <line x1="0" y1="48" x2="320" y2="48" stroke="#cfeed7" stroke-dasharray="2,2"/>
+        <text x="6" y="55" font-size="9" fill="#999">2.0 ref</text>
+      </svg>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--ink-mute)">
+        <span>1.8 (baseline)</span><span>5.4 (now) ↑</span>
+      </div>
+
+      <div class="timeline">
+        <div class="timeline-row"><span class="t">14:20</span><span class="e"><b>Resulted</b> · Critical flag set, page sent</span></div>
+        <div class="timeline-row"><span class="t">14:20</span><span class="e"><b>Auto-page</b> Dr. Okafor (covering)</span></div>
+        <div class="timeline-row"><span class="t">14:21</span><span class="e">Routed to <b>your inbox</b></span></div>
+        <div class="timeline-row"><span class="t">14:32</span><span class="e">SLA timer at <b style="color:var(--bad)">12 min</b> / 15 min</span></div>
+      </div>
+
+      <div class="ack-actions">
+        <button class="btn primary" style="background:var(--good);border-color:var(--good)">✓ Acknowledge — already aware, plan in place</button>
+        <button class="btn">📞 Mark as called back · log time</button>
+        <a href="OrderEntry.html" class="btn" style="text-decoration:none">→ Place follow-up order (e.g. ABG, fluids)</a>
+        <a href="NoteComposer.html" class="btn" style="text-decoration:none">→ Write addendum note</a>
+        <a href="PatientChart.html" class="btn" style="text-decoration:none">→ Open chart</a>
+        <button class="btn">Forward to colleague…</button>
+      </div>
+    </div>
+  </div>
+
+</div></div>
+
+<script src="../scripts/nav.js"></script>
+<script>
+document.querySelectorAll('.res-row').forEach(r => {
+  r.addEventListener('click', e => {
+    if(e.target.closest('.check')) return;
+    document.querySelectorAll('.res-row').forEach(x => x.classList.remove('act'));
+    r.classList.add('act');
+  });
+});
+document.querySelectorAll('.rail-item').forEach(r => {
+  r.addEventListener('click', () => {
+    document.querySelectorAll('.rail-item').forEach(x => x.classList.remove('act'));
+    r.classList.add('act');
+  });
+});
+</script>
+</body>
+</html>

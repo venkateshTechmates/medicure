@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Admit Patient</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;justify-content:space-between;align-items:flex-end;margin:8px 4px 18px;flex-wrap:wrap;gap:12px}
+  .head .h1{font-size:48px}
+  .stepper{display:flex;background:#fff;border-radius:18px;padding:6px;box-shadow:var(--shadow);margin-bottom:18px}
+  .step{flex:1;display:flex;align-items:center;gap:10px;padding:12px;border-radius:14px;font-size:11px;font-weight:700;color:var(--ink-mute);cursor:pointer}
+  .step.active{background:#fef9d7;color:var(--ink)}
+  .step.done{color:var(--ink-soft)}
+  .step .n{width:22px;height:22px;border-radius:50%;background:#f4f6f9;display:grid;place-items:center;font-weight:700;font-size:10px;color:var(--ink-soft)}
+  .step.active .n{background:#0e1116;color:#fff}.step.done .n{background:var(--good);color:#fff}
+
+  .grid{display:grid;grid-template-columns:1fr 320px;gap:18px;align-items:start}
+  .panel{padding:22px}
+  .panel h2{font-family:"Instrument Serif",serif;font-size:30px;letter-spacing:-.02em;margin:0 0 4px}
+  .panel .sub{font-size:12px;color:var(--ink-soft);margin-bottom:18px}
+
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:11px;color:var(--ink-soft);font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+  .field input,.field select,.field textarea{width:100%;padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:#fff;font:600 13px "Plus Jakarta Sans";color:var(--ink)}
+  .field-row{display:grid;gap:10px}
+  .field-row.c2{grid-template-columns:1fr 1fr}
+  .field-row.c3{grid-template-columns:1fr 1fr 1fr}
+
+  .service-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+  .svc{padding:14px 10px;background:#fafbfc;border:2px solid var(--line);border-radius:14px;cursor:pointer;text-align:center;transition:.15s}
+  .svc.active{border-color:#0e1116;background:#fff}
+  .svc .ic{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:12px;margin:0 auto 8px}
+  .svc .nm{font-weight:700;font-size:12px}
+  .svc .sub{font-size:10px;color:var(--ink-mute);margin-top:1px}
+
+  /* Bed optimizer */
+  .opt-card{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:14px;background:#fafbfc;border:1px solid var(--line);border-radius:14px;margin-bottom:6px;cursor:pointer;transition:.15s}
+  .opt-card:hover{background:#fff;border-color:#0e1116}
+  .opt-card.recommended{background:#fef9d7;border-color:#ffd633}
+  .opt-card .bed{width:50px;height:50px;border-radius:14px;background:#0e1116;color:#fff;display:grid;place-items:center;font-family:'Instrument Serif',serif;font-size:18px;letter-spacing:-.02em}
+  .opt-card .nm{font-weight:700;font-size:14px}
+  .opt-card .sub{font-size:11px;color:var(--ink-mute);margin-top:2px}
+  .opt-card .reason{font-size:11px;color:#a05a00;margin-top:4px;font-weight:600}
+  .opt-card .score{text-align:right}
+  .opt-card .score .v{font-family:'Instrument Serif',serif;font-size:24px;line-height:1}
+  .opt-card .score .l{font-size:9px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+
+  /* Order set */
+  .ord-set{padding:14px;background:#fafbfc;border:1px solid var(--line);border-radius:14px}
+  .ord-line{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:12px;border-top:1px solid var(--line)}
+  .ord-line:first-of-type{border-top:0}
+  .ord-line .nm{font-weight:600}
+  .ord-line .sub{font-size:10px;color:var(--ink-mute)}
+</style></head>
+<body data-page="patients" data-base="../">
+
+<div class="page"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div class="head">
+    <div><h1 class="h1">Admit patient</h1><div style="font-size:13px;color:var(--ink-soft);margin-top:4px">Reginald Holloway · MRN 8821-04 · From ED · STEMI · post-PCI</div></div>
+    <div style="display:flex;gap:8px"><button class="btn">Save draft</button><button class="btn">Cancel</button></div>
+  </div>
+
+  <div class="stepper">
+    <div class="step done"><span class="n">✓</span>Reason</div>
+    <div class="step done"><span class="n">✓</span>Service</div>
+    <div class="step active"><span class="n">3</span>Bed assignment</div>
+    <div class="step"><span class="n">4</span>Attending &amp; team</div>
+    <div class="step"><span class="n">5</span>Initial orders</div>
+    <div class="step"><span class="n">6</span>Review &amp; sign</div>
+  </div>
+
+  <div class="grid">
+    <div style="display:flex;flex-direction:column;gap:14px">
+
+      <div class="card panel">
+        <h2>Reason for admission</h2>
+        <div class="sub">Auto-pulled from ED encounter · ICD-10 coded</div>
+        <div class="field-row c2">
+          <div class="field"><label>Primary reason</label><input value="Acute STEMI s/p primary PCI · LAD stent"/></div>
+          <div class="field"><label>Admission type</label><select><option>Emergency</option><option>Elective</option><option>Urgent</option><option>Observation</option></select></div>
+        </div>
+        <div class="field-row c3">
+          <div class="field"><label>Source</label><select><option>ED transfer</option><option>Direct admit</option><option>Outside hospital</option><option>Clinic</option></select></div>
+          <div class="field"><label>Expected LOS</label><select><option>2–3 days</option><option>1 day</option><option>4–7 days</option><option>&gt; 7 days</option></select></div>
+          <div class="field"><label>Acuity</label><select><option>Critical</option><option>Tele monitor</option><option>Med-surg</option><option>Step-down</option></select></div>
+        </div>
+      </div>
+
+      <div class="card panel">
+        <h2>Service line</h2>
+        <div class="sub">Cardiology selected based on reason · adjust if needed</div>
+        <div class="service-grid">
+          <div class="svc active"><div class="ic" style="background:#ff4d6b">CV</div><div class="nm">Cardiology</div><div class="sub">CCU / Tele</div></div>
+          <div class="svc"><div class="ic" style="background:#3a86ff">IM</div><div class="nm">Internal Med</div><div class="sub">Med-surg</div></div>
+          <div class="svc"><div class="ic" style="background:#27c26b">Sg</div><div class="nm">Surgery</div><div class="sub">Pre/post-op</div></div>
+          <div class="svc"><div class="ic" style="background:#ffb84d">Ne</div><div class="nm">Neuro</div><div class="sub">Stroke unit</div></div>
+          <div class="svc"><div class="ic" style="background:#8b5cf6">On</div><div class="nm">Oncology</div><div class="sub">Infusion</div></div>
+          <div class="svc"><div class="ic" style="background:#0e1116">Pe</div><div class="nm">Pediatrics</div><div class="sub">Peds wards</div></div>
+          <div class="svc"><div class="ic" style="background:#a05a00">OB</div><div class="nm">OB / Gyne</div><div class="sub">L&D, Postpartum</div></div>
+          <div class="svc"><div class="ic" style="background:#5b6272">IC</div><div class="nm">Critical care</div><div class="sub">ICU</div></div>
+        </div>
+      </div>
+
+      <div class="card panel">
+        <h2>Bed assignment</h2>
+        <div class="sub">3 suggestions based on acuity, isolation, sex cohort, and proximity to caregivers · sorted by fit</div>
+
+        <div class="opt-card recommended">
+          <div class="bed" style="background:#27c26b">CCU<br>04</div>
+          <div>
+            <div class="nm">CCU-04 · Cardiac care unit</div>
+            <div class="sub">Tele · 1:2 ratio · adjacent to cath lab · negative pressure available</div>
+            <div class="reason">★ Best fit · post-PCI tele monitoring · attending in unit</div>
+          </div>
+          <div class="score"><div class="v">98</div><div class="l">fit</div></div>
+        </div>
+
+        <div class="opt-card">
+          <div class="bed">CCU<br>06</div>
+          <div>
+            <div class="nm">CCU-06 · Cardiac care unit</div>
+            <div class="sub">Tele · 1:2 ratio · semi-private (room-mate post-CABG)</div>
+            <div class="reason" style="color:var(--ink-mute)">Available now · same unit, lower priority</div>
+          </div>
+          <div class="score"><div class="v">88</div><div class="l">fit</div></div>
+        </div>
+
+        <div class="opt-card">
+          <div class="bed">SD<br>12</div>
+          <div>
+            <div class="nm">Step-down 12 · 4 South</div>
+            <div class="sub">Tele · 1:4 ratio · 12 min from cath lab</div>
+            <div class="reason" style="color:var(--ink-mute)">Fallback if CCU full · would require CCU consult q12h</div>
+          </div>
+          <div class="score"><div class="v">72</div><div class="l">fit</div></div>
+        </div>
+
+        <button class="btn" style="margin-top:8px">View bed-board · all units</button>
+      </div>
+
+      <div class="card panel">
+        <h2>Initial admission order set</h2>
+        <div class="sub">Cardiology post-PCI bundle · review and sign in step 5</div>
+        <div class="ord-set">
+          <div class="ord-line"><div><div class="nm">Diet · Cardiac (low Na, low fat)</div><div class="sub">Hold pre-procedure if planned</div></div><span class="pill"><span class="pdot"></span>Standing</span></div>
+          <div class="ord-line"><div><div class="nm">Activity · Bed rest 6h post-femoral access</div></div><span class="pill"><span class="pdot"></span>Time-bound</span></div>
+          <div class="ord-line"><div><div class="nm">Vitals · q15 min ×4, q30 ×4, q1h ×4, q4h</div></div><span class="pill"><span class="pdot"></span>Standing</span></div>
+          <div class="ord-line"><div><div class="nm">Tele · continuous monitoring</div></div><span class="pill"><span class="pdot"></span>Standing</span></div>
+          <div class="ord-line"><div><div class="nm">I&O · q4h</div></div><span class="pill"><span class="pdot"></span>Standing</span></div>
+          <div class="ord-line"><div><div class="nm">Aspirin 81 mg PO daily</div></div><span class="pill good"><span class="pdot"></span>Med</span></div>
+          <div class="ord-line"><div><div class="nm">Ticagrelor 90 mg PO BID</div></div><span class="pill good"><span class="pdot"></span>Med</span></div>
+          <div class="ord-line"><div><div class="nm">Atorvastatin 80 mg PO qHS</div></div><span class="pill good"><span class="pdot"></span>Med</span></div>
+          <div class="ord-line"><div><div class="nm">Metoprolol succinate 25 mg PO daily</div><div class="sub">Hold if SBP &lt; 100 or HR &lt; 60</div></div><span class="pill good"><span class="pdot"></span>Med</span></div>
+          <div class="ord-line"><div><div class="nm">Lisinopril 5 mg PO daily</div><div class="sub">Hold if SBP &lt; 100 or Cr &gt; 1.5</div></div><span class="pill good"><span class="pdot"></span>Med</span></div>
+          <div class="ord-line"><div><div class="nm">Heparin SC 5000 U q8h · DVT ppx</div></div><span class="pill good"><span class="pdot"></span>Med</span></div>
+          <div class="ord-line"><div><div class="nm">Lab · Trop q6h ×3, BMP, CBC, lipid AM</div></div><span class="pill info"><span class="pdot"></span>Lab</span></div>
+          <div class="ord-line"><div><div class="nm">Echo TTE in AM</div></div><span class="pill info"><span class="pdot"></span>Imaging</span></div>
+          <div class="ord-line"><div><div class="nm">Cardiac rehab consult</div></div><span class="pill warn"><span class="pdot"></span>Consult</span></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px"><button class="btn">+ Add order</button><button class="btn">Swap bundle</button></div>
+      </div>
+    </div>
+
+    <div style="position:sticky;top:18px;display:flex;flex-direction:column;gap:14px">
+      <div class="card panel">
+        <h2 style="font-size:22px">Summary</h2>
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 0;border-top:1px solid var(--line)"><span style="color:var(--ink-mute)">Patient</span><b>R. Holloway</b></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 0;border-top:1px solid var(--line)"><span style="color:var(--ink-mute)">Reason</span><b>Acute STEMI</b></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 0;border-top:1px solid var(--line)"><span style="color:var(--ink-mute)">Service</span><b>Cardiology</b></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 0;border-top:1px solid var(--line)"><span style="color:var(--ink-mute)">Bed</span><b>CCU-04</b></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 0;border-top:1px solid var(--line)"><span style="color:var(--ink-mute)">Acuity</span><b>Tele monitor</b></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 0;border-top:1px solid var(--line)"><span style="color:var(--ink-mute)">Order set</span><b>14 orders</b></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 0;border-top:1px solid var(--line)"><span style="color:var(--ink-mute)">Insurance</span><b style="color:var(--good)">✓ Verified</b></div>
+
+        <button class="btn primary" style="width:100%;margin-top:12px;justify-content:center">Continue → Attending <span class="arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></span></button>
+      </div>
+
+      <div class="card panel" style="background:#0e1116;color:#fff">
+        <div style="font-weight:700;font-size:13px;margin-bottom:8px">Downstream events on sign</div>
+        <div style="font-size:11px;color:#9aa0ad;line-height:1.7">
+          • Bed-board: CCU-04 reserved<br>
+          • EVS: cleaning ticket on transfer<br>
+          • Pharmacy: 6 new med orders<br>
+          • Lab: standing trop draws scheduled<br>
+          • Imaging: echo on AM list<br>
+          • Cardiac rehab: consult queued<br>
+          • Audit: admission.signed event
+        </div>
+      </div>
+    </div>
+  </div>
+</div></div>
+<script src="../scripts/nav.js"></script>
+
+<script>window.MC_ROUTES = [{"sel":".btn.primary, button.primary","href":"PatientChart.html","title":"Complete admission"}];</script>
+<script src="../scripts/router.js"></script>
+</body></html>

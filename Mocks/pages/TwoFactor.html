@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Verify identity</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  body{background:#dde2ea;min-height:100vh;display:grid;place-items:center;padding:24px}
+  .card{background:#fff;border-radius:24px;padding:42px 44px;box-shadow:0 30px 80px rgba(0,0,0,.10);width:100%;max-width:480px}
+  .logo{display:flex;align-items:center;gap:10px;font-family:"Instrument Serif",serif;font-size:22px;letter-spacing:-.02em;margin-bottom:18px;color:#0e1116}
+  .logo .mark{width:30px;height:30px;border-radius:9px;background:#0e1116;color:#fff;display:grid;place-items:center;font-family:"Plus Jakarta Sans";font-weight:800;font-size:13px}
+
+  .ctx-pill{display:inline-flex;gap:8px;align-items:center;background:#fafbfc;border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:11px;color:var(--ink-soft);font-weight:700;margin-bottom:18px}
+  .ctx-pill .pic{width:18px;height:18px;border-radius:50%;background:url('https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=80&h=80&fit=crop&crop=faces') center/cover}
+
+  h2{font-family:"Instrument Serif",serif;font-size:38px;letter-spacing:-.02em;margin:0;font-weight:400;line-height:1.05}
+  .sub{font-size:13px;color:var(--ink-soft);margin-top:8px;line-height:1.6}
+  .sub b{color:var(--ink);font-family:"JetBrains Mono",monospace;font-size:13px}
+
+  .otp-wrap{display:flex;gap:8px;justify-content:center;margin:30px 0 18px}
+  .otp{width:54px;height:60px;border:1.5px solid var(--line);border-radius:12px;font-family:"JetBrains Mono",monospace;font-size:28px;font-weight:700;text-align:center;outline:none;background:#fafbfc;transition:.15s;color:var(--ink)}
+  .otp:focus{border-color:#0e1116;background:#fff;box-shadow:0 0 0 4px rgba(14,17,22,.06)}
+  .otp.filled{background:#dff7e7;border-color:#27c26b;color:#1a8a48}
+
+  .countdown{text-align:center;font-size:12px;color:var(--ink-soft);font-weight:600;margin-bottom:18px}
+  .countdown b{color:var(--ink);font-family:"JetBrains Mono",monospace}
+
+  .btn-primary{width:100%;background:#0e1116;color:#fff;border:0;border-radius:12px;padding:14px;font:800 14px "Plus Jakarta Sans";cursor:pointer;margin-top:8px}
+  .btn-primary:hover{background:#000}
+
+  .channel-row{display:flex;flex-direction:column;gap:6px;margin-top:24px}
+  .ch-row{display:grid;grid-template-columns:32px 1fr auto;gap:12px;align-items:center;padding:11px 14px;border:1px solid var(--line);border-radius:12px;font-size:12.5px;background:#fff;cursor:pointer;text-decoration:none;color:var(--ink);transition:.15s}
+  .ch-row:hover{border-color:#0e1116;background:#fafbfc}
+  .ch-row .ic{width:32px;height:32px;border-radius:9px;background:#fafbfc;color:var(--ink);display:grid;place-items:center;font-size:14px}
+  .ch-row .nm{font-weight:700}
+  .ch-row .ds{font-size:11px;color:var(--ink-mute);margin-top:1px}
+
+  .footer-row{display:flex;justify-content:space-between;align-items:center;margin-top:22px;font-size:12px;color:var(--ink-soft)}
+  .footer-row a{color:var(--ink);text-decoration:none;font-weight:700;border-bottom:1px solid var(--line)}
+</style></head>
+<body>
+
+<div class="card">
+  <div class="logo"><span class="mark">M</span> Medcure</div>
+
+  <div class="ctx-pill"><div class="pic"></div> Signing in as <b style="color:var(--ink);margin-left:2px">Albert Drobo</b></div>
+
+  <h2>Verify it's you.</h2>
+  <div class="sub">We sent a 6-digit code to your authenticator app. It refreshes every 30 seconds.</div>
+
+  <div class="otp-wrap" id="otp">
+    <input class="otp" maxlength="1" inputmode="numeric" autofocus />
+    <input class="otp" maxlength="1" inputmode="numeric" />
+    <input class="otp" maxlength="1" inputmode="numeric" />
+    <input class="otp" maxlength="1" inputmode="numeric" />
+    <input class="otp" maxlength="1" inputmode="numeric" />
+    <input class="otp" maxlength="1" inputmode="numeric" />
+  </div>
+
+  <div class="countdown">Code expires in <b id="cd">00:24</b> · <a href="#" style="color:var(--ink);font-weight:700;text-decoration:none;border-bottom:1px solid var(--line)">Resend</a></div>
+
+  <button class="btn-primary" onclick="window.location.href='TenantSelector.html'">Verify &amp; continue →</button>
+
+  <div style="font-size:11px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;font-weight:800;margin-top:24px;margin-bottom:8px">Other methods</div>
+  <div class="channel-row">
+    <a href="#" class="ch-row" onclick="event.preventDefault()">
+      <div class="ic">⌧</div>
+      <div><div class="nm">Send via SMS</div><div class="ds">to +1 (555) ••• •7100</div></div>
+      <span style="color:var(--ink-mute)">→</span>
+    </a>
+    <a href="#" class="ch-row" onclick="event.preventDefault()">
+      <div class="ic">⚷</div>
+      <div><div class="nm">Use security key</div><div class="ds">YubiKey or biometric</div></div>
+      <span style="color:var(--ink-mute)">→</span>
+    </a>
+    <a href="#" class="ch-row" onclick="event.preventDefault()">
+      <div class="ic">★</div>
+      <div><div class="nm">Use backup code</div><div class="ds">8 codes remaining</div></div>
+      <span style="color:var(--ink-mute)">→</span>
+    </a>
+  </div>
+
+  <div class="footer-row">
+    <a href="SignIn.html">← Cancel sign-in</a>
+    <a href="ForgotPassword.html">Lost device?</a>
+  </div>
+</div>
+
+<script>
+const inputs = document.querySelectorAll('#otp .otp');
+inputs.forEach((inp, i) => {
+  inp.addEventListener('input', e => {
+    if(e.target.value){ inp.classList.add('filled'); if(i < inputs.length-1) inputs[i+1].focus(); }
+    else inp.classList.remove('filled');
+  });
+  inp.addEventListener('keydown', e => {
+    if(e.key === 'Backspace' && !inp.value && i > 0) inputs[i-1].focus();
+  });
+});
+// Auto-fill demo
+setTimeout(() => {
+  ['4','8','2','7','1','9'].forEach((d,i) => {
+    setTimeout(() => { inputs[i].value = d; inputs[i].classList.add('filled'); }, i*120);
+  });
+}, 600);
+
+// Countdown
+let secs = 24;
+setInterval(() => {
+  secs--; if(secs < 0) secs = 30;
+  document.getElementById('cd').textContent = '00:' + String(secs).padStart(2,'0');
+}, 1000);
+</script>
+</body>
+</html>

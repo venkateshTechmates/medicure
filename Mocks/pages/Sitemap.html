@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Sitemap</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;justify-content:space-between;align-items:flex-end;margin:8px 4px 22px;flex-wrap:wrap;gap:14px}
+  .head .h1{font-size:56px}
+  .head .sub{font-size:14px;color:var(--ink-soft);margin-top:6px;max-width:680px;line-height:1.55}
+
+  .legend{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+  .legend .lg{display:inline-flex;align-items:center;gap:6px;background:#fff;border-radius:999px;padding:6px 12px;font:700 11px "Plus Jakarta Sans";color:var(--ink-soft);box-shadow:var(--shadow)}
+  .legend .lg i{width:10px;height:10px;border-radius:50%}
+  .legend .lg.idx i{background:#0e1116}
+  .legend .lg.det i{background:#3a86ff}
+  .legend .lg.flow i{background:#27c26b}
+  .legend .lg.alert i{background:#ff4d6b}
+
+  .group{margin-bottom:32px}
+  .group h2{font-family:"Instrument Serif",serif;font-size:34px;letter-spacing:-.015em;margin:0 0 4px;font-weight:400}
+  .group .gsub{font-size:12px;color:var(--ink-mute);margin-bottom:14px}
+
+  .grid{display:grid;grid-template-columns:repeat(4, 1fr);gap:14px}
+  @media (max-width:1100px){.grid{grid-template-columns:repeat(3,1fr)}}
+  @media (max-width:780px){.grid{grid-template-columns:repeat(2,1fr)}}
+
+  .card-link{display:flex;flex-direction:column;background:#fff;border-radius:18px;padding:18px;box-shadow:var(--shadow);text-decoration:none;color:var(--ink);transition:transform .15s ease, box-shadow .15s ease;min-height:148px;position:relative;overflow:hidden;border:1px solid transparent}
+  .card-link:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(16,18,23,.12);border-color:var(--line)}
+  .card-link .ico{width:36px;height:36px;border-radius:10px;background:#f4f6f9;display:grid;place-items:center;color:var(--ink);margin-bottom:10px}
+  .card-link.idx .ico{background:#0e1116;color:#fff}
+  .card-link.det .ico{background:#e6efff;color:#1a4fb3}
+  .card-link.flow .ico{background:#dff7e7;color:#1a8a48}
+  .card-link.alert .ico{background:#ffe7eb;color:#b3263d}
+  .card-link .ttl{font-weight:800;font-size:14px;line-height:1.25;margin-bottom:3px}
+  .card-link .desc{font-size:11.5px;color:var(--ink-soft);line-height:1.45;flex:1}
+  .card-link .meta{font-size:10px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-top:10px;display:flex;justify-content:space-between;align-items:center}
+  .card-link .arrow{width:22px;height:22px;border-radius:50%;background:#0e1116;color:#fff;display:grid;place-items:center;opacity:0;transition:.15s}
+  .card-link:hover .arrow{opacity:1}
+  .card-link .tag{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:3px 7px;border-radius:5px;background:#f4f6f9;color:var(--ink-soft);position:absolute;top:14px;right:14px}
+  .card-link.idx .tag{background:#0e1116;color:#fff}
+  .card-link.det .tag{background:#e6efff;color:#1a4fb3}
+  .card-link.flow .tag{background:#dff7e7;color:#1a8a48}
+  .card-link.alert .tag{background:#ffe7eb;color:#b3263d}
+
+  .toc{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:22px;padding:8px;background:#fff;border-radius:16px;box-shadow:var(--shadow)}
+  .toc a{padding:8px 14px;border-radius:999px;font:700 12px "Plus Jakarta Sans";color:var(--ink-soft);text-decoration:none;transition:.15s}
+  .toc a:hover{background:#f4f6f9;color:var(--ink)}
+  .toc a.act{background:#0e1116;color:#fff}
+
+  .stat-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+  .stat-strip .stat{background:#fff;border-radius:16px;padding:14px 16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:2px}
+  .stat-strip .stat .num{font-family:"Instrument Serif",serif;font-size:36px;line-height:1;letter-spacing:-.02em}
+  .stat-strip .stat .lab{font-size:11px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+  .stat-strip .stat .delta{font-size:11px;color:var(--ink-soft);margin-top:4px}
+</style></head>
+<body data-page="overview" data-base="../">
+
+<div class="page"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div class="head">
+    <div>
+      <span class="eyebrow">Master index</span>
+      <h1 class="h1">Sitemap</h1>
+      <div class="sub">Every screen in Medcure — from the top-level dashboard down to single-order workflows. Cards are grouped by category, color-coded by type. Click any card to open its page.</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn">Print</button>
+      <button class="btn primary">Print as PDF <span class="arrow">→</span></button>
+    </div>
+  </div>
+
+  <div class="stat-strip">
+    <div class="stat"><span class="lab">Total screens</span><div class="num">48</div><div class="delta">13 index · 17 detail · 12 flow · 6 auth/access</div></div>
+    <div class="stat"><span class="lab">User roles</span><div class="num">7</div><div class="delta">MD · RN · RPh · Tech · Reg · Bill · Admin</div></div>
+    <div class="stat"><span class="lab">Care domains</span><div class="num">9</div><div class="delta">Inpatient · ED · OR · Imaging · Lab · Pharmacy · Outpatient · Admin · Billing</div></div>
+    <div class="stat"><span class="lab">Avg. clicks to action</span><div class="num">2.4</div><div class="delta">From any landing page</div></div>
+  </div>
+
+  <div class="legend">
+    <span class="lg idx"><i></i>Index / dashboard</span>
+    <span class="lg det"><i></i>Detail / record view</span>
+    <span class="lg flow"><i></i>Workflow / wizard</span>
+    <span class="lg alert"><i></i>Alert / live event</span>
+  </div>
+
+  <div class="toc">
+    <a href="#core" class="act">Core navigation</a>
+    <a href="#patient">Patient record</a>
+    <a href="#orders">Orders &amp; results</a>
+    <a href="#inpatient">Inpatient &amp; OR</a>
+    <a href="#ed">Emergency</a>
+    <a href="#workflow">Workflows</a>
+    <a href="#clinical">Clinical workflows</a>
+    <a href="#admin">Admin &amp; ops</a>
+    <a href="#auth">Auth &amp; access</a>
+  </div>
+
+  <!-- ============================ CORE ============================ -->
+  <section class="group" id="core">
+    <h2>Core navigation</h2>
+    <div class="gsub">The 12 top-level surfaces — every page in the global tab bar.</div>
+    <div class="grid" id="grid-core"></div>
+  </section>
+
+  <!-- ============================ PATIENT ============================ -->
+  <section class="group" id="patient">
+    <h2>Patient record</h2>
+    <div class="gsub">Everything that lives under a single MRN — chart, profile, longitudinal data.</div>
+    <div class="grid" id="grid-patient"></div>
+  </section>
+
+  <!-- ============================ ORDERS ============================ -->
+  <section class="group" id="orders">
+    <h2>Orders &amp; results</h2>
+    <div class="gsub">CPOE, pharmacy verification, lab results, eMAR — the medication and order lifecycle.</div>
+    <div class="grid" id="grid-orders"></div>
+  </section>
+
+  <!-- ============================ INPATIENT ============================ -->
+  <section class="group" id="inpatient">
+    <h2>Inpatient &amp; OR</h2>
+    <div class="gsub">Bed board, surgery scheduling, imaging, hospital-wide ops views.</div>
+    <div class="grid" id="grid-inpatient"></div>
+  </section>
+
+  <!-- ============================ ED ============================ -->
+  <section class="group" id="ed">
+    <h2>Emergency department</h2>
+    <div class="gsub">Triage intake, live track board, code activations.</div>
+    <div class="grid" id="grid-ed"></div>
+  </section>
+
+  <!-- ============================ WORKFLOWS ============================ -->
+  <section class="group" id="workflow">
+    <h2>Multi-step workflows</h2>
+    <div class="gsub">Wizard-style flows: admission, discharge, scheduling.</div>
+    <div class="grid" id="grid-workflow"></div>
+  </section>
+
+  <!-- ============================ CLINICAL WORKFLOWS ============================ -->
+  <section class="group" id="clinical">
+    <h2>Clinical workflows</h2>
+    <div class="gsub">Bedside &amp; care-coordination flows — vitals charting, telemetry, sign-out, transfers, consults.</div>
+    <div class="grid" id="grid-clinical"></div>
+  </section>
+
+  <!-- ============================ AUTH ============================ -->
+  <section class="group" id="auth">
+    <h2>Authentication &amp; access</h2>
+    <div class="gsub">Identity, multi-tenancy, and session lifecycle — sign in, register, switch organization, sign out.</div>
+    <div class="grid" id="grid-auth"></div>
+  </section>
+
+  <!-- ============================ ADMIN ============================ -->
+  <section class="group" id="admin">
+    <h2>Admin &amp; operations</h2>
+    <div class="gsub">Staff, settings, documents, billing, inventory.</div>
+    <div class="grid" id="grid-admin"></div>
+  </section>
+
+</div></div>
+
+<script src="../scripts/nav.js"></script>
+<script>
+const I = (svg) => `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${svg}</svg>`;
+
+const arrow = `<span class="arrow"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></span>`;
+
+const screens = {
+  core: [
+    {ttl:'Dashboard',          href:'../Medcure Dashboard.html', kind:'idx',   tag:'Home',   desc:'Daily overview — vitals, today\'s appointments, body diagram, cardiovascular trends.', ico:I('<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>')},
+    {ttl:'Patients',           href:'Patients.html',           kind:'idx', tag:'Index', desc:'Searchable roster — 1,847 active patients with vitals, ward, MRN.', ico:I('<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>')},
+    {ttl:'Appointments',       href:'Appointments.html',       kind:'idx', tag:'Index', desc:'Day & week views, provider schedules, slot density.', ico:I('<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>')},
+    {ttl:'Labs',               href:'Labs.html',               kind:'idx', tag:'Index', desc:'All ordered labs — pending, resulted, critical flags.', ico:I('<path d="M9 2v6l-5 9a3 3 0 0 0 3 5h10a3 3 0 0 0 3-5L15 8V2"/><path d="M9 2h6"/>')},
+    {ttl:'Pharmacy',           href:'Pharmacy.html',           kind:'idx', tag:'Index', desc:'Verification queue, formulary, dispensing log.', ico:I('<path d="M10.5 20.5 21 10a4.95 4.95 0 1 0-7-7L3.5 13.5"/><path d="m8 8 7 7"/>')},
+    {ttl:'Billing',            href:'Billing.html',            kind:'idx', tag:'Index', desc:'Claims, denials, AR aging, payer mix.', ico:I('<path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>')},
+    {ttl:'Inventory / Stock',  href:'Inventory.html',          kind:'idx', tag:'Index', desc:'Drug & supply inventory, par levels, expiring lots.', ico:I('<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/>')},
+    {ttl:'Staff / Doctors',    href:'Staff.html',              kind:'idx', tag:'Index', desc:'Provider directory — credentials, on-call, schedules.', ico:I('<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m22 11-3-3M19 8l3-3"/>')},
+    {ttl:'Emergency Dept',     href:'ED.html',                 kind:'idx', tag:'Index', desc:'ED dashboard — door-to-doc, ESI mix, boarders.', ico:I('<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/>')},
+    {ttl:'Documents',          href:'Documents.html',          kind:'idx', tag:'Index', desc:'Notes, scans, consent forms, attachments.', ico:I('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>')},
+    {ttl:'Messages',           href:'Messages.html',           kind:'idx', tag:'Index', desc:'Secure messaging — care team threads, patient portal.', ico:I('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>')},
+    {ttl:'Settings',           href:'Settings.html',           kind:'idx', tag:'Index', desc:'Profile, notifications, integrations, security.', ico:I('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>')},
+  ],
+  patient: [
+    {ttl:'Patient Chart',      href:'PatientChart.html',       kind:'det', tag:'Detail', desc:'13-tab chart — summary, vitals, meds, labs, notes, problems, allergies, team.', ico:I('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/>')},
+    {ttl:'Patient Profile',    href:'PatientProfile.html',     kind:'det', tag:'Detail', desc:'Demographics, insurance, contacts, history snapshot.', ico:I('<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>')},
+  ],
+  orders: [
+    {ttl:'CPOE — Order Entry', href:'CPOE.html',               kind:'idx', tag:'Index',  desc:'All orders awaiting sign — meds, labs, imaging, consults.', ico:I('<path d="M11 17h2v-6h-2zm0-8h2V7h-2z"/><circle cx="12" cy="12" r="10"/>')},
+    {ttl:'Order Detail',       href:'OrderDetail.html',        kind:'det', tag:'Detail', desc:'Single med order — dose, route, monitoring, CDS alerts, audit.', ico:I('<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 12h6M12 9v6"/>')},
+    {ttl:'Lab Result Detail',  href:'LabDetail.html',          kind:'det', tag:'Detail', desc:'Single panel — analytes, range bars, trends, follow-up.', ico:I('<path d="M9 11V2L4 13a2 2 0 0 0 1 3h14a2 2 0 0 0 1-3L15 2v9"/>')},
+    {ttl:'Pharmacy Verify',    href:'PharmacyVerify.html',     kind:'flow',tag:'Flow',   desc:'Pharmacist queue + 7-rights verification checklist.', ico:I('<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/>')},
+    {ttl:'eMAR',               href:'eMAR.html',               kind:'det', tag:'Detail', desc:'Medication admin record — 24-hour grid, scan-and-give, due alerts.', ico:I('<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M9 14h.01M13 14h.01M17 14h.01M9 18h.01M13 18h.01M17 18h.01"/>')},
+  ],
+  inpatient: [
+    {ttl:'Bed Board',          href:'BedBoard.html',           kind:'det', tag:'Detail', desc:'Live floor plan — 184 beds across 4 wards, status & demand.', ico:I('<rect x="3" y="6" width="18" height="12" rx="1"/><path d="M3 12h18M8 6V4M16 6V4"/>')},
+    {ttl:'Imaging / PACS',     href:'Imaging.html',            kind:'det', tag:'Detail', desc:'DICOM viewer + worklist + radiology report.', ico:I('<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>')},
+    {ttl:'Surgery Board',      href:'SurgeryBoard.html',       kind:'det', tag:'Detail', desc:'8-OR Gantt — 12-hour day, in-progress, turnover, on-time KPIs.', ico:I('<path d="m12 2 4 8h-8z"/><path d="M12 22v-9M5 18h14"/>')},
+  ],
+  ed: [
+    {ttl:'ED Live Track',      href:'EDLive.html',             kind:'det', tag:'Detail', desc:'Live ED bedboard — door clock, ESI, dispo countdown.', ico:I('<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>')},
+    {ttl:'Triage Intake',      href:'Triage.html',             kind:'flow',tag:'Flow',   desc:'Vitals capture, pain mapping, ESI assignment.', ico:I('<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/>')},
+    {ttl:'Code STEMI',         href:'CodeSTEMI.html',          kind:'alert',tag:'Alert', desc:'Live STEMI activation — door-to-balloon timer, team roster.', ico:I('<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>')},
+  ],
+  workflow: [
+    {ttl:'Admit Patient',      href:'Admit.html',              kind:'flow',tag:'Flow',   desc:'Multi-step admission — demographics, insurance, bed assignment, consent.', ico:I('<path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16l7-3z"/>')},
+    {ttl:'Discharge Wizard',   href:'Discharge.html',          kind:'flow',tag:'Flow',   desc:'Disposition → med rec → instructions → follow-up → sign.', ico:I('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>')},
+    {ttl:'Schedule Appointment',href:'ScheduleAppointment.html',kind:'flow',tag:'Flow',  desc:'5-step booking — visit type → provider → date → time → confirm.', ico:I('<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01"/>')},
+    {ttl:'Note Composer',      href:'NoteComposer.html',       kind:'flow',tag:'Flow',   desc:'SOAP / H&amp;P notes with templates, voice dictation, smart phrases.', ico:I('<path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"/>')},
+    {ttl:'Consult Request',    href:'ConsultRequest.html',     kind:'flow',tag:'Flow',   desc:'Specialty picker · urgency · framed question · on-call routing.', ico:I('<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>')},
+    {ttl:'Transfer / Bed Req', href:'TransferRequest.html',    kind:'flow',tag:'Flow',   desc:'Inter-ward transfer · bed picker · acuity · transport · hand-off checklist.', ico:I('<path d="M5 12h14M12 5l7 7-7 7"/>')},
+    {ttl:'Sign-out · I-PASS',  href:'Signout.html',            kind:'flow',tag:'Flow',   desc:'End-of-shift hand-off using I-PASS framework with read-back.', ico:I('<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m17 11 2 2 4-4"/>')},
+  ],
+  clinical: [
+    {ttl:'Telemetry Wall',     href:'Telemetry.html',          kind:'det', tag:'Detail', desc:'Live multi-patient ECG, SpO2, HR · alarm triage · trends.', ico:I('<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>')},
+    {ttl:'Vitals Entry',       href:'VitalsEntry.html',        kind:'flow',tag:'Flow',   desc:'Nurse charting — vitals, body diagram, I/O, pain mapping.', ico:I('<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>')},
+    {ttl:'Care Plan / Problems',href:'CarePlan.html',          kind:'det', tag:'Detail', desc:'Active problem list with goals, interventions, evaluation.', ico:I('<path d="M9 11H7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-2M9 11V7a3 3 0 0 1 6 0v4M9 11h6"/>')},
+    {ttl:'Allergies',          href:'Allergies.html',          kind:'det', tag:'Detail', desc:'Allergy &amp; intolerance management with severity, reactions.', ico:I('<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"/>')},
+    {ttl:'Result Acknowledge', href:'ResultAck.html',          kind:'det', tag:'Detail', desc:'Inbox of unread results — critical, abnormal, normal triage.', ico:I('<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>')},
+    {ttl:'Specimen Tracking',  href:'SpecimenTracking.html',   kind:'det', tag:'Detail', desc:'Phlebotomy &amp; lab logistics — pipeline · chain of custody · TAT.', ico:I('<path d="M9 2v6l-5 9a3 3 0 0 0 3 5h10a3 3 0 0 0 3-5L15 8V2"/><path d="M9 2h6"/>')},
+  ],
+  auth: [
+    {ttl:'Sign in',             href:'SignIn.html',             kind:'idx', tag:'Auth',   desc:'Email + password, organization auto-detect, SSO providers, switch-org panel.', ico:I('<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>')},
+    {ttl:'Register · 4-step',   href:'Register.html',           kind:'flow',tag:'Flow',   desc:'Create account — profile → organization → role → confirm. NPI &amp; license verification.', ico:I('<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>')},
+    {ttl:'Forgot password',     href:'ForgotPassword.html',     kind:'flow',tag:'Flow',   desc:'Reset via email · SMS · authenticator · backup code. 30-min expiring links.', ico:I('<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>')},
+    {ttl:'Two-factor verify',   href:'TwoFactor.html',          kind:'flow',tag:'Flow',   desc:'6-digit OTP · 30-second refresh · alternate channels (SMS, security key, backup code).', ico:I('<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><path d="M12 16v2"/>')},
+    {ttl:'Tenant selector',     href:'TenantSelector.html',     kind:'idx', tag:'Auth',   desc:'Organization picker — 4 active orgs + 1 pending invite, per-org stats &amp; roles.', ico:I('<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>')},
+    {ttl:'Sign out · session end',href:'Logout.html',           kind:'flow',tag:'Flow',   desc:'Session summary, audit confirmation, cache wipe, 30s auto-redirect to lock.', ico:I('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>')},
+  ],
+  admin: [
+    {ttl:'Documents',          href:'Documents.html',          kind:'idx', tag:'Index',  desc:'Scanned forms, notes, consents, attachments.', ico:I('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>')},
+    {ttl:'Messages',           href:'Messages.html',           kind:'idx', tag:'Index',  desc:'Care team threads, patient portal.', ico:I('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>')},
+    {ttl:'Inventory',          href:'Inventory.html',          kind:'idx', tag:'Index',  desc:'Stock levels, expiring lots, POs.', ico:I('<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>')},
+    {ttl:'Staff / Doctors',    href:'Staff.html',              kind:'idx', tag:'Index',  desc:'Provider directory.', ico:I('<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>')},
+    {ttl:'Settings',           href:'Settings.html',           kind:'idx', tag:'Index',  desc:'Profile, integrations, security.', ico:I('<circle cx="12" cy="12" r="3"/>')},
+  ],
+};
+
+Object.keys(screens).forEach(grp => {
+  const wrap = document.getElementById('grid-'+grp);
+  if(!wrap) return;
+  wrap.innerHTML = screens[grp].map(s => `
+    <a class="card-link ${s.kind}" href="${s.href}">
+      <span class="tag">${s.tag}</span>
+      <span class="ico">${s.ico}</span>
+      <div class="ttl">${s.ttl}</div>
+      <div class="desc">${s.desc}</div>
+      <div class="meta">
+        <span>${s.href.replace('../','/').replace('.html','')}</span>
+        <span class="arrow"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></span>
+      </div>
+    </a>
+  `).join('');
+});
+
+// TOC active state on scroll
+const tocLinks = document.querySelectorAll('.toc a');
+const sections = [...document.querySelectorAll('.group')];
+window.addEventListener('scroll', () => {
+  let cur = sections[0]?.id;
+  for(const s of sections){
+    if(s.getBoundingClientRect().top <= 140) cur = s.id;
+  }
+  tocLinks.forEach(l => l.classList.toggle('act', l.getAttribute('href') === '#'+cur));
+}, {passive:true});
+tocLinks.forEach(l => l.addEventListener('click', e => {
+  tocLinks.forEach(x=>x.classList.remove('act'));
+  l.classList.add('act');
+}));
+</script>
+</body>
+</html>

@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Care Plan · Albert Smith</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;justify-content:space-between;align-items:flex-end;margin:8px 4px 18px;flex-wrap:wrap;gap:14px}
+  .head .h1{font-size:48px}
+  .ctx{display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;background:#fff;border-radius:18px;padding:14px 18px;box-shadow:var(--shadow);margin-bottom:14px}
+  .ctx .pic{width:48px;height:48px;border-radius:14px;background:#888 center/cover}
+  .ctx .nm{font-weight:700}
+  .ctx .meta{font-size:11px;color:var(--ink-soft);display:flex;gap:14px;flex-wrap:wrap;margin-top:3px}
+
+  .layout{display:grid;grid-template-columns:1fr 320px;gap:14px;align-items:start}
+  .panel{padding:22px}
+  .panel h2{font-family:"Instrument Serif",serif;font-size:28px;letter-spacing:-.02em;margin:0 0 4px;font-weight:400}
+  .panel .sub{font-size:12px;color:var(--ink-soft);margin-bottom:14px}
+
+  /* Problem cards */
+  .prob{background:#fafbfc;border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:10px}
+  .prob.active{background:#fff;border-color:#0e1116;box-shadow:0 6px 22px rgba(0,0,0,.08)}
+  .prob-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px}
+  .prob-head .ttl{font-weight:800;font-size:15px;display:flex;align-items:center;gap:8px}
+  .prob-head .code{font-family:'SF Mono',monospace;font-size:11px;color:var(--ink-mute);background:#fff;padding:3px 8px;border-radius:6px;border:1px solid var(--line)}
+  .prob-head .right{display:flex;gap:6px;align-items:center}
+
+  .prob-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;font-size:11px;color:var(--ink-soft);padding:8px 12px;background:#fff;border-radius:10px;border:1px solid var(--line);margin-bottom:10px}
+  .prob-meta .m b{display:block;color:var(--ink);font-weight:700;font-size:12px;margin-top:1px}
+
+  .goal-row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:10px 12px;background:#fff;border-radius:10px;margin-bottom:5px;border:1px solid var(--line);font-size:12px}
+  .check{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--line);display:grid;place-items:center;cursor:pointer;flex:none}
+  .check.done{background:#27c26b;border-color:#27c26b;color:#fff}
+  .goal-row.done .nm{text-decoration:line-through;color:var(--ink-mute)}
+  .goal-row .nm{font-weight:700}
+  .goal-row .sub{font-size:10px;color:var(--ink-mute);margin-top:1px}
+  .goal-row .due{font-size:10px;font-weight:700;color:var(--ink-soft);text-align:right}
+
+  /* Progress bar */
+  .progress{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:8px}
+  .progress > div{height:100%;background:#27c26b;border-radius:3px}
+
+  .interv-list{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+  .interv-list .iv{padding:8px 10px;background:#fff;border:1px solid var(--line);border-radius:8px;font-size:11.5px}
+  .interv-list .iv b{display:block;font-size:10px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+
+  /* Right rail */
+  .side-card{background:#fff;border-radius:14px;padding:14px;box-shadow:var(--shadow)}
+  .side-card h4{margin:0 0 8px;font-size:11px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;font-weight:800}
+</style></head>
+<body data-page="patients" data-base="../">
+
+<div class="page"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div data-bc='[{"label":"Patients","href":"Patients.html"},{"label":"Albert Smith","href":"PatientChart.html"},{"label":"Care plan"}]'></div>
+
+  <div class="head">
+    <div><h1 class="h1">Care plan</h1><div style="font-size:13px;color:var(--ink-soft);margin-top:4px">Active problems with measurable goals, interventions, and discharge criteria.</div></div>
+    <div style="display:flex;gap:8px"><button class="btn">Print plan</button><button class="btn">+ Add problem</button><button class="btn primary">Update plan <span class="arrow">→</span></button></div>
+  </div>
+
+  <div class="ctx">
+    <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=160&h=160&fit=crop&crop=faces')"></div>
+    <div>
+      <div class="nm">Albert Smith · MRN 4421-08 · 9 yo M</div>
+      <div class="meta"><span><b>Plan opened</b> Day 1 · Jan 18</span><span><b>Lead</b> Dr. M. Achebe</span><span><b>Last update</b> Today 08:14</span><span><b>Goals met</b> 6 of 9</span></div>
+    </div>
+    <div style="display:flex;gap:6px"><span class="pill good"><span class="pdot"></span>On track</span></div>
+  </div>
+
+  <div class="layout">
+    <div style="display:flex;flex-direction:column;gap:14px">
+
+      <div class="card panel">
+        <h2>Active problems</h2>
+        <div class="sub">3 active · drag to re-rank by priority</div>
+
+        <!-- Problem 1 -->
+        <div class="prob active">
+          <div class="prob-head">
+            <div>
+              <div class="ttl">⛓ Acute asthma exacerbation, moderate <span class="code">J45.901</span></div>
+              <div style="font-size:11px;color:var(--ink-soft);margin-top:3px">Primary problem · Day 3 of admission</div>
+            </div>
+            <div class="right">
+              <span class="pill good"><span class="pdot"></span>Improving</span>
+              <button class="btn" style="font-size:11px">Resolve</button>
+            </div>
+          </div>
+
+          <div class="prob-meta">
+            <div class="m">Onset<b>2024-01-18</b></div>
+            <div class="m">Severity<b>Moderate</b></div>
+            <div class="m">Status<b style="color:var(--good)">Improving</b></div>
+            <div class="m">Owner<b>Dr. Achebe</b></div>
+          </div>
+
+          <div style="font-size:11px;font-weight:800;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;margin:8px 0 6px">Goals · 4 of 5 met</div>
+
+          <div class="goal-row done"><div class="check done">✓</div><div><div class="nm">SpO₂ ≥ 94% on room air</div><div class="sub">Met Day 2 14:00 · sustained</div></div><div class="due">Day 2</div></div>
+          <div class="goal-row done"><div class="check done">✓</div><div><div class="nm">RR &lt; 24 at rest</div><div class="sub">Met Day 2 22:00 · current 18</div></div><div class="due">Day 3</div></div>
+          <div class="goal-row done"><div class="check done">✓</div><div><div class="nm">No accessory muscle use</div><div class="sub">Met Day 2 · ongoing</div></div><div class="due">Day 2</div></div>
+          <div class="goal-row done"><div class="check done">✓</div><div><div class="nm">Tolerating PO meds &amp; fluids</div><div class="sub">Met Day 2 AM</div></div><div class="due">Day 2</div></div>
+          <div class="goal-row"><div class="check"></div><div><div class="nm">Peak flow ≥ 80% predicted × 12h</div><div class="sub">Currently 82% AM · need PM confirmation</div></div><div class="due">Day 3</div></div>
+
+          <div class="progress"><div style="width:80%"></div></div>
+
+          <div style="font-size:11px;font-weight:800;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;margin:14px 0 6px">Interventions</div>
+          <div class="interv-list">
+            <div class="iv"><b>Bronchodilator</b>Albuterol HFA q4h PRN, weaning</div>
+            <div class="iv"><b>Steroid</b>IV methylpred → PO prednisolone today</div>
+            <div class="iv"><b>Monitoring</b>Continuous pulse ox + peak flow BID</div>
+            <div class="iv"><b>Education</b>Asthma action plan reviewed Day 2</div>
+          </div>
+
+          <div style="font-size:11px;font-weight:800;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;margin:14px 0 6px">Discharge criteria</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            <span class="pill good"><span class="pdot"></span>SpO₂ ≥ 94% RA × 24h</span>
+            <span class="pill good"><span class="pdot"></span>No nocturnal symptoms</span>
+            <span class="pill warn"><span class="pdot"></span>Peak flow ≥ 80% × 12h</span>
+            <span class="pill warn"><span class="pdot"></span>PO med transition complete</span>
+            <span class="pill"><span class="pdot"></span>Action plan + Rx reviewed</span>
+          </div>
+        </div>
+
+        <!-- Problem 2 -->
+        <div class="prob">
+          <div class="prob-head">
+            <div>
+              <div class="ttl">⛓ Allergic rhinitis, chronic <span class="code">J30.9</span></div>
+              <div style="font-size:11px;color:var(--ink-soft);margin-top:3px">Comorbidity · seasonal trigger likely</div>
+            </div>
+            <div class="right">
+              <span class="pill"><span class="pdot"></span>Stable</span>
+              <button class="btn" style="font-size:11px">Resolve</button>
+            </div>
+          </div>
+          <div class="prob-meta">
+            <div class="m">Onset<b>Chronic</b></div>
+            <div class="m">Severity<b>Mild</b></div>
+            <div class="m">Status<b>Stable</b></div>
+            <div class="m">Owner<b>Outpt Allergy</b></div>
+          </div>
+          <div class="goal-row done"><div class="check done">✓</div><div><div class="nm">Daily ICS adherence plan</div></div><div class="due">Day 2</div></div>
+          <div class="goal-row"><div class="check"></div><div><div class="nm">Allergy referral placed</div><div class="sub">Outpt skin testing 4–6 wk</div></div><div class="due">Pre-d/c</div></div>
+        </div>
+
+        <!-- Problem 3 -->
+        <div class="prob">
+          <div class="prob-head">
+            <div>
+              <div class="ttl">⛓ Asthma medication non-adherence <span class="code">Z91.14</span></div>
+              <div style="font-size:11px;color:var(--ink-soft);margin-top:3px">Risk factor · contributor to exacerbation</div>
+            </div>
+            <div class="right">
+              <span class="pill warn"><span class="pdot"></span>Active</span>
+              <button class="btn" style="font-size:11px">Resolve</button>
+            </div>
+          </div>
+          <div class="prob-meta">
+            <div class="m">Onset<b>Pre-admit</b></div>
+            <div class="m">Severity<b>Moderate</b></div>
+            <div class="m">Status<b style="color:var(--warn)">Active</b></div>
+            <div class="m">Owner<b>RN + SW</b></div>
+          </div>
+          <div class="goal-row"><div class="check"></div><div><div class="nm">Caregiver teach-back: ICS technique</div><div class="sub">RT to reinforce before d/c</div></div><div class="due">Pre-d/c</div></div>
+          <div class="goal-row"><div class="check"></div><div><div class="nm">Trigger reduction plan documented</div><div class="sub">Home assessment ref to SW</div></div><div class="due">Pre-d/c</div></div>
+          <div class="goal-row"><div class="check"></div><div><div class="nm">Spacer device fitted &amp; tested</div></div><div class="due">Today</div></div>
+        </div>
+
+        <!-- Resolved -->
+        <details style="margin-top:14px">
+          <summary style="cursor:pointer;font-size:12px;color:var(--ink-soft);font-weight:700">▸ Resolved problems (2)</summary>
+          <div style="margin-top:10px">
+            <div class="prob" style="opacity:.7">
+              <div class="prob-head"><div><div class="ttl" style="text-decoration:line-through">URI · viral <span class="code">J06.9</span></div></div><span class="pill good"><span class="pdot"></span>Resolved Day 2</span></div>
+            </div>
+            <div class="prob" style="opacity:.7">
+              <div class="prob-head"><div><div class="ttl" style="text-decoration:line-through">Mild dehydration <span class="code">E86.0</span></div></div><span class="pill good"><span class="pdot"></span>Resolved Day 1</span></div>
+            </div>
+          </div>
+        </details>
+      </div>
+
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px;position:sticky;top:14px">
+      <div class="side-card">
+        <h4>Plan progress</h4>
+        <div style="font-family:'Instrument Serif',serif;font-size:36px;letter-spacing:-.02em">67%</div>
+        <div style="font-size:11px;color:var(--ink-soft)">6 of 9 goals met across 3 problems</div>
+        <div class="progress" style="margin-top:8px"><div style="width:67%"></div></div>
+      </div>
+
+      <div class="side-card">
+        <h4>Care team</h4>
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:12px">
+          <div style="display:flex;gap:10px;align-items:center"><div style="width:28px;height:28px;border-radius:50%;background:url('https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=80&h=80&fit=crop&crop=faces') center/cover"></div><div><div style="font-weight:700">Dr. M. Achebe</div><div style="font-size:10px;color:var(--ink-mute)">Hospitalist · Lead</div></div></div>
+          <div style="display:flex;gap:10px;align-items:center"><div style="width:28px;height:28px;border-radius:50%;background:url('https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=80&h=80&fit=crop&crop=faces') center/cover"></div><div><div style="font-weight:700">RN J. Brooks</div><div style="font-size:10px;color:var(--ink-mute)">Primary nurse</div></div></div>
+          <div style="display:flex;gap:10px;align-items:center"><div style="width:28px;height:28px;border-radius:50%;background:url('https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=80&h=80&fit=crop&crop=faces') center/cover"></div><div><div style="font-weight:700">RT P. Singh</div><div style="font-size:10px;color:var(--ink-mute)">Respiratory therapy</div></div></div>
+          <div style="display:flex;gap:10px;align-items:center"><div style="width:28px;height:28px;border-radius:50%;background:url('https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=80&h=80&fit=crop&crop=faces') center/cover"></div><div><div style="font-weight:700">L. Park, MSW</div><div style="font-size:10px;color:var(--ink-mute)">Social work</div></div></div>
+        </div>
+      </div>
+
+      <div class="side-card">
+        <h4>Anticipated discharge</h4>
+        <div style="font-family:'Instrument Serif',serif;font-size:32px;line-height:1">Tomorrow</div>
+        <div style="font-size:11px;color:var(--ink-soft);margin-top:4px">Wed Jan 22 · ~14:00</div>
+        <div style="font-size:11px;color:var(--ink-soft);margin-top:8px">3 criteria still pending. Mother briefed on follow-up.</div>
+        <a href="DischargeSummary.html" class="btn primary" style="margin-top:10px;width:100%;justify-content:center;text-decoration:none">Start discharge summary</a>
+      </div>
+
+      <div class="side-card">
+        <h4>Quick actions</h4>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <a href="NoteComposer.html" class="btn" style="justify-content:flex-start;text-decoration:none">→ Write progress note</a>
+          <a href="OrderEntry.html" class="btn" style="justify-content:flex-start;text-decoration:none">→ Place orders</a>
+          <a href="ConsultRequest.html" class="btn" style="justify-content:flex-start;text-decoration:none">→ Request consult</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div></div>
+
+<script src="../scripts/nav.js"></script>
+<script src="../scripts/breadcrumbs.js"></script>
+<script>
+document.querySelectorAll('.check').forEach(c => {
+  c.addEventListener('click', () => {
+    c.classList.toggle('done');
+    if(c.classList.contains('done')) c.textContent = '✓'; else c.textContent = '';
+    c.closest('.goal-row').classList.toggle('done');
+  });
+});
+</script>
+</body>
+</html>

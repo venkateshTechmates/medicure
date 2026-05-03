@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Bed Board</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;justify-content:space-between;align-items:flex-end;margin:8px 4px 18px;flex-wrap:wrap;gap:12px}
+  .head .h1{font-size:54px}
+
+  .kpis{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-bottom:18px}
+  .kpi{background:#fff;border-radius:16px;padding:14px;box-shadow:var(--shadow)}
+  .kpi .l{font-size:10px;color:var(--ink-mute);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+  .kpi .v{font-family:"Instrument Serif",serif;font-size:30px;letter-spacing:-.02em;line-height:1;margin-top:6px}
+  .kpi .delta{font-size:10px;color:var(--ink-mute);margin-top:4px}
+
+  .filters{display:flex;gap:8px;align-items:center;margin-bottom:18px;flex-wrap:wrap}
+  .filt{padding:8px 14px;background:#fff;border-radius:999px;font:700 12px "Plus Jakarta Sans";box-shadow:var(--shadow);cursor:pointer;display:flex;align-items:center;gap:6px;border:0}
+  .filt.active{background:#0e1116;color:#fff}
+
+  .legend{display:flex;gap:14px;font-size:11px;align-items:center;flex-wrap:wrap;color:var(--ink-soft)}
+  .legend span{display:flex;align-items:center;gap:5px}
+  .legend i{width:14px;height:14px;border-radius:4px;display:inline-block}
+
+  .floor{background:#fff;border-radius:18px;padding:18px;box-shadow:var(--shadow);margin-bottom:14px}
+  .floor h3{font-family:"Plus Jakarta Sans",sans-serif;font-size:14px;margin:0 0 4px;display:flex;justify-content:space-between;align-items:center}
+  .floor h3 .ct{font-size:11px;color:var(--ink-mute);font-weight:600}
+  .floor .sub{font-size:11px;color:var(--ink-mute);margin-bottom:14px}
+
+  .bed-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+  .bed{background:#f4f6f9;border-radius:10px;padding:10px;font-size:11px;min-height:90px;display:flex;flex-direction:column;justify-content:space-between;border:2px solid transparent;cursor:pointer;transition:.15s;position:relative}
+  .bed:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+  .bed .lbl{font-weight:800;font-size:10px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;display:flex;justify-content:space-between}
+  .bed .pt{font-weight:700;font-size:11px;margin-top:6px;line-height:1.2}
+  .bed .stat{font-size:10px;color:var(--ink-mute);margin-top:2px}
+  .bed .los{font-size:10px;color:var(--ink-mute);margin-top:6px;font-family:'SF Mono',monospace}
+  .bed.empty{background:#fff;border:2px dashed #d4d8df}
+  .bed.empty .pt{color:var(--ink-mute);font-weight:500}
+  .bed.occ{background:#0e1116;color:#fff;border-color:#0e1116}
+  .bed.occ .lbl{color:#9aa0ad}.bed.occ .stat{color:#9aa0ad}.bed.occ .los{color:#9aa0ad}
+  .bed.crit{background:#ffe7eb;border-color:#ff4d6b}
+  .bed.iso{background:#fef9d7;border-color:#ffd633}
+  .bed.disp{background:#dff7e7;border-color:#27c26b}
+  .bed.cleaning{background:#e6efff;border-color:#3a86ff}.bed.cleaning .pt{color:#1a4fb3}
+  .bed.held{background:#f0e7ff;border-color:#8b5cf6}
+  .bed.board{background:#a05a00;color:#fff;border-color:#7a4400}.bed.board .lbl,.bed.board .stat,.bed.board .los{color:#ffd6a5}
+  .bed .iso-flag{position:absolute;top:6px;right:6px;font-size:10px;background:#ff4d6b;color:#fff;padding:1px 5px;border-radius:5px;font-weight:800}
+
+  .demand{background:#0e1116;color:#fff;border-radius:18px;padding:18px;margin-bottom:14px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .demand .blk{display:flex;flex-direction:column;gap:4px}
+  .demand .l{font-size:10px;color:#9aa0ad;text-transform:uppercase;font-weight:700;letter-spacing:.05em}
+  .demand .v{font-family:"Instrument Serif",serif;font-size:32px;letter-spacing:-.02em;line-height:1}
+  .demand .sub{font-size:11px;color:#9aa0ad}
+</style></head>
+<body data-page="patients" data-base="../">
+
+<div class="page"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div class="head">
+    <div><h1 class="h1">Bed Board</h1><div style="font-size:13px;color:var(--ink-soft);margin-top:4px">Live · 184 beds · 8 wards · drag to reassign</div></div>
+    <div style="display:flex;gap:8px"><button class="btn">Run optimizer</button><button class="btn">Forecast (6h)</button><button class="btn dark">+ Reserve bed</button></div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="l">Total beds</div><div class="v">184</div></div>
+    <div class="kpi"><div class="l">Occupied</div><div class="v">156</div><div class="delta">85% capacity</div></div>
+    <div class="kpi"><div class="l">Available</div><div class="v">14</div><div class="delta" style="color:var(--good)">↑ 3 since 1h</div></div>
+    <div class="kpi"><div class="l">Cleaning</div><div class="v">8</div><div class="delta">avg 38 min</div></div>
+    <div class="kpi"><div class="l">Held</div><div class="v">6</div><div class="delta">surgery, ED</div></div>
+    <div class="kpi"><div class="l">ED boarding</div><div class="v" style="color:var(--bad)">4</div><div class="delta" style="color:var(--bad)">longest 6h</div></div>
+    <div class="kpi"><div class="l">Discharges today</div><div class="v">22</div><div class="delta">12 by noon</div></div>
+  </div>
+
+  <div class="demand">
+    <div class="blk"><div class="l">Inbound (next 6h)</div><div class="v">11</div><div class="sub">3 ED admits · 5 OR · 3 direct</div></div>
+    <div class="blk"><div class="l">Discharges (next 6h)</div><div class="v">8</div><div class="sub">5 attending-cleared · 3 pending</div></div>
+    <div class="blk"><div class="l">Net delta</div><div class="v" style="color:#ff8b9a">+3</div><div class="sub">capacity tightening · prep huddle</div></div>
+    <div class="blk"><div class="l">Crisis threshold</div><div class="v" style="color:#27c26b">14 beds</div><div class="sub">currently above · safe</div></div>
+  </div>
+
+  <div class="filters">
+    <button class="filt active">All wards</button>
+    <button class="filt">ICU</button>
+    <button class="filt">CCU</button>
+    <button class="filt">Med-surg</button>
+    <button class="filt">Peds</button>
+    <button class="filt">L&D</button>
+    <button class="filt">Step-down</button>
+    <button class="filt">Surgical</button>
+    <div style="flex:1"></div>
+    <div class="legend">
+      <span><i style="background:#0e1116"></i>Occupied</span>
+      <span><i style="background:#fff;border:2px dashed #d4d8df"></i>Available</span>
+      <span><i style="background:#fef9d7"></i>Iso</span>
+      <span><i style="background:#dff7e7"></i>Discharge today</span>
+      <span><i style="background:#e6efff"></i>Cleaning</span>
+      <span><i style="background:#f0e7ff"></i>Held</span>
+      <span><i style="background:#a05a00"></i>ED boarding</span>
+    </div>
+  </div>
+
+  <!-- ICU -->
+  <div class="floor">
+    <h3>ICU · 4 East <span class="ct">12 beds · 11 occ · 1 avail · 1 iso · ratio 1:2</span></h3>
+    <div class="sub">Charge: RN K. Lin · Attending: Dr. Mendez · Avg LOS 4.2d</div>
+    <div class="bed-grid">
+      <div class="bed crit"><div class="lbl">ICU-01<span style="color:#ff4d6b">●</span></div><div class="pt">Sepsis · F/79</div><div class="stat">Dr. Mendez</div><div class="los">LOS 2d 4h</div></div>
+      <div class="bed occ"><div class="lbl">ICU-02</div><div class="pt">CHF · M/68</div><div class="stat">Dr. Mendez</div><div class="los">LOS 5d</div></div>
+      <div class="bed occ"><div class="lbl">ICU-03</div><div class="pt">Post-op AAA · M/74</div><div class="stat">Dr. Vega</div><div class="los">LOS 1d</div></div>
+      <div class="bed iso"><div class="iso-flag">ISO</div><div class="lbl">ICU-04</div><div class="pt">ARDS · MRSA · M/52</div><div class="stat">Dr. Mendez</div><div class="los">LOS 8d</div></div>
+      <div class="bed occ"><div class="lbl">ICU-05</div><div class="pt">DKA · F/41</div><div class="stat">Dr. Park</div><div class="los">LOS 1d 12h</div></div>
+      <div class="bed occ"><div class="lbl">ICU-06</div><div class="pt">CVA · F/65</div><div class="stat">Neuro consult</div><div class="los">LOS 3d</div></div>
+      <div class="bed occ"><div class="lbl">ICU-07</div><div class="pt">Resp failure · M/71</div><div class="stat">Vent · Dr. Mendez</div><div class="los">LOS 6d</div></div>
+      <div class="bed occ"><div class="lbl">ICU-08</div><div class="pt">Pancreatitis · M/49</div><div class="stat">Dr. Park</div><div class="los">LOS 2d</div></div>
+      <div class="bed occ"><div class="lbl">ICU-09</div><div class="pt">Liver fail · F/62</div><div class="stat">GI consult</div><div class="los">LOS 4d</div></div>
+      <div class="bed occ"><div class="lbl">ICU-10</div><div class="pt">Trauma · M/24</div><div class="stat">Trauma svc</div><div class="los">LOS 18h</div></div>
+      <div class="bed disp"><div class="lbl">ICU-11</div><div class="pt">→ Step-down</div><div class="stat">Transfer 14:00</div><div class="los">LOS 3d</div></div>
+      <div class="bed empty"><div class="lbl">ICU-12</div><div class="pt">Available</div><div class="stat">Last clean 11:42</div><div class="los">Ready</div></div>
+    </div>
+  </div>
+
+  <!-- CCU -->
+  <div class="floor">
+    <h3>CCU · 4 West <span class="ct">8 beds · 7 occ · 1 reserved · ratio 1:2</span></h3>
+    <div class="sub">Charge: RN J. Park · Attending: Dr. Vasquez · Tele continuous</div>
+    <div class="bed-grid">
+      <div class="bed crit"><div class="lbl">CCU-01<span style="color:#ff4d6b">●</span></div><div class="pt">Post-PCI · M/64</div><div class="stat">Dr. Park · STEMI</div><div class="los">LOS 4h</div></div>
+      <div class="bed occ"><div class="lbl">CCU-02</div><div class="pt">CHF exac · M/71</div><div class="stat">Dr. Vasquez</div><div class="los">LOS 2d</div></div>
+      <div class="bed occ"><div class="lbl">CCU-03</div><div class="pt">A-fib · F/58</div><div class="stat">Cardioversion AM</div><div class="los">LOS 1d</div></div>
+      <div class="bed held"><div class="lbl">CCU-04</div><div class="pt">Reserved</div><div class="stat">ED · STEMI inbound</div><div class="los">Hold 14:00</div></div>
+      <div class="bed occ"><div class="lbl">CCU-05</div><div class="pt">SVT · M/45</div><div class="stat">Dr. Vasquez</div><div class="los">LOS 18h</div></div>
+      <div class="bed occ"><div class="lbl">CCU-06</div><div class="pt">CABG day 1 · M/67</div><div class="stat">CT surg</div><div class="los">LOS 1d</div></div>
+      <div class="bed occ"><div class="lbl">CCU-07</div><div class="pt">Endocarditis · F/38</div><div class="stat">ID consult</div><div class="los">LOS 6d</div></div>
+      <div class="bed disp"><div class="lbl">CCU-08</div><div class="pt">→ Tele step-dn</div><div class="stat">Discharge 16:00</div><div class="los">LOS 4d</div></div>
+    </div>
+  </div>
+
+  <!-- Med-surg -->
+  <div class="floor">
+    <h3>Med-Surg · 3 South <span class="ct">32 beds · 28 occ · 2 avail · 1 cleaning · 1 board · ratio 1:5</span></h3>
+    <div class="sub">Charge: RN T. Singh · Attending pool: 4 hospitalists</div>
+    <div class="bed-grid">
+      <div class="bed occ"><div class="lbl">M-01</div><div class="pt">Pneumonia · M/72</div><div class="stat">Day 4</div><div class="los">3d 14h</div></div>
+      <div class="bed occ"><div class="lbl">M-02</div><div class="pt">UTI · F/84</div><div class="stat">Day 2</div><div class="los">1d 8h</div></div>
+      <div class="bed iso"><div class="iso-flag">CDIFF</div><div class="lbl">M-03</div><div class="pt">C.diff · M/68</div><div class="stat">Contact iso</div><div class="los">5d</div></div>
+      <div class="bed occ"><div class="lbl">M-04</div><div class="pt">CHF · F/77</div><div class="stat">Day 3</div><div class="los">2d 22h</div></div>
+      <div class="bed disp"><div class="lbl">M-05</div><div class="pt">→ Discharge</div><div class="stat">Awaiting transport</div><div class="los">3d</div></div>
+      <div class="bed occ"><div class="lbl">M-06</div><div class="pt">DM ulcer · F/61</div><div class="stat">Wound care</div><div class="los">4d</div></div>
+      <div class="bed cleaning"><div class="lbl">M-07</div><div class="pt">Cleaning</div><div class="stat">EVS · 12 min</div><div class="los">Ready 14:30</div></div>
+      <div class="bed occ"><div class="lbl">M-08</div><div class="pt">Cholecyst · F/52</div><div class="stat">Pre-op</div><div class="los">22h</div></div>
+      <div class="bed occ"><div class="lbl">M-09</div><div class="pt">Hyponat · M/79</div><div class="stat">Endo consult</div><div class="los">2d</div></div>
+      <div class="bed occ"><div class="lbl">M-10</div><div class="pt">Pneumo · M/65</div><div class="stat">Day 3</div><div class="los">2d 6h</div></div>
+      <div class="bed occ"><div class="lbl">M-11</div><div class="pt">PE · F/44</div><div class="stat">Day 2</div><div class="los">1d 14h</div></div>
+      <div class="bed empty"><div class="lbl">M-12</div><div class="pt">Available</div><div class="stat">Ready</div><div class="los"></div></div>
+      <div class="bed occ"><div class="lbl">M-13</div><div class="pt">Cellulitis · M/55</div><div class="stat">IV abx</div><div class="los">2d</div></div>
+      <div class="bed occ"><div class="lbl">M-14</div><div class="pt">GI bleed · M/70</div><div class="stat">GI consult</div><div class="los">1d</div></div>
+      <div class="bed iso"><div class="iso-flag">FLU</div><div class="lbl">M-15</div><div class="pt">Influenza · M/45</div><div class="stat">Droplet iso</div><div class="los">1d 12h</div></div>
+      <div class="bed occ"><div class="lbl">M-16</div><div class="pt">Migraine · F/33</div><div class="stat">Obs</div><div class="los">10h</div></div>
+      <div class="bed disp"><div class="lbl">M-17</div><div class="pt">→ SNF</div><div class="stat">Transfer 13:00</div><div class="los">7d</div></div>
+      <div class="bed occ"><div class="lbl">M-18</div><div class="pt">Sepsis · F/69</div><div class="stat">Day 5</div><div class="los">4d</div></div>
+      <div class="bed occ"><div class="lbl">M-19</div><div class="pt">Anemia · F/82</div><div class="stat">Tx complete</div><div class="los">1d</div></div>
+      <div class="bed occ"><div class="lbl">M-20</div><div class="pt">CKD AKI · M/74</div><div class="stat">Nephro</div><div class="los">3d</div></div>
+      <div class="bed occ"><div class="lbl">M-21</div><div class="pt">Bac. arthritis · F/50</div><div class="stat">Ortho consult</div><div class="los">2d</div></div>
+      <div class="bed occ"><div class="lbl">M-22</div><div class="pt">Vertigo · F/68</div><div class="stat">Day 1</div><div class="los">14h</div></div>
+      <div class="bed empty"><div class="lbl">M-23</div><div class="pt">Available</div><div class="stat">Ready</div><div class="los"></div></div>
+      <div class="bed occ"><div class="lbl">M-24</div><div class="pt">Asthma · M/58</div><div class="stat">Day 1</div><div class="los">10h</div></div>
+      <div class="bed board"><div class="lbl">M-25 · BOARD</div><div class="pt">From ED</div><div class="stat">Awaiting M-surg bed</div><div class="los">3h 18m</div></div>
+      <div class="bed occ"><div class="lbl">M-26</div><div class="pt">Pancreatitis · M/52</div><div class="stat">Day 2</div><div class="los">1d 10h</div></div>
+      <div class="bed occ"><div class="lbl">M-27</div><div class="pt">SBO · F/76</div><div class="stat">NG tube</div><div class="los">3d</div></div>
+      <div class="bed occ"><div class="lbl">M-28</div><div class="pt">PNA · M/82</div><div class="stat">Day 4</div><div class="los">3d 8h</div></div>
+      <div class="bed occ"><div class="lbl">M-29</div><div class="pt">DM exac · M/61</div><div class="stat">Day 1</div><div class="los">12h</div></div>
+      <div class="bed occ"><div class="lbl">M-30</div><div class="pt">UTI/AKI · F/89</div><div class="stat">PT consult</div><div class="los">4d</div></div>
+      <div class="bed occ"><div class="lbl">M-31</div><div class="pt">Lac · M/41</div><div class="stat">Obs post-fall</div><div class="los">8h</div></div>
+      <div class="bed occ"><div class="lbl">M-32</div><div class="pt">CKD · F/75</div><div class="stat">HD scheduled</div><div class="los">2d</div></div>
+    </div>
+  </div>
+
+  <!-- Peds -->
+  <div class="floor">
+    <h3>Pediatrics · 5 North <span class="ct">16 beds · 12 occ · 4 avail · ratio 1:4</span></h3>
+    <div class="sub">Charge: RN A. Brooks · 2 isolation rooms available</div>
+    <div class="bed-grid">
+      <div class="bed occ"><div class="lbl">P-01</div><div class="pt">Asthma · F/6</div><div class="stat">Day 2</div><div class="los">1d 18h</div></div>
+      <div class="bed occ"><div class="lbl">P-02</div><div class="pt">RSV · M/2</div><div class="stat">Day 4</div><div class="los">3d 6h</div></div>
+      <div class="bed iso"><div class="iso-flag">RSV</div><div class="lbl">P-03</div><div class="pt">RSV · F/8mo</div><div class="stat">Droplet iso</div><div class="los">2d</div></div>
+      <div class="bed occ" style="background:#fef9d7;color:#0e1116;border-color:#ffd633"><div class="lbl">P-14 · YOU</div><div class="pt">Albert Smith · 9</div><div class="stat">Asthma · day 3</div><div class="los">2d 18h</div></div>
+      <div class="bed disp"><div class="lbl">P-05</div><div class="pt">→ Discharge</div><div class="stat">15:00 · seizure</div><div class="los">4d</div></div>
+      <div class="bed occ"><div class="lbl">P-06</div><div class="pt">Gastro · F/4</div><div class="stat">IV fluids</div><div class="los">1d</div></div>
+      <div class="bed empty"><div class="lbl">P-07</div><div class="pt">Available</div><div class="stat">Ready</div><div class="los"></div></div>
+      <div class="bed occ"><div class="lbl">P-08</div><div class="pt">Sickle crisis · M/12</div><div class="stat">Pain ctrl</div><div class="los">3d</div></div>
+      <div class="bed occ"><div class="lbl">P-09</div><div class="pt">PNA · F/7</div><div class="stat">Day 2</div><div class="los">1d 14h</div></div>
+      <div class="bed empty"><div class="lbl">P-10</div><div class="pt">Available</div><div class="stat">Ready</div><div class="los"></div></div>
+      <div class="bed occ"><div class="lbl">P-11</div><div class="pt">DKA · M/14</div><div class="stat">PICU stepdn</div><div class="los">1d 22h</div></div>
+      <div class="bed occ"><div class="lbl">P-12</div><div class="pt">Bronchiolitis · M/1</div><div class="stat">Day 2</div><div class="los">1d 6h</div></div>
+      <div class="bed occ"><div class="lbl">P-13</div><div class="pt">UTI · F/3</div><div class="stat">IV abx</div><div class="los">14h</div></div>
+      <div class="bed cleaning"><div class="lbl">P-04</div><div class="pt">Cleaning</div><div class="stat">EVS · 8m</div><div class="los">Ready 14:20</div></div>
+      <div class="bed empty"><div class="lbl">P-15</div><div class="pt">Available</div><div class="stat">Held for ED</div><div class="los"></div></div>
+      <div class="bed empty"><div class="lbl">P-16</div><div class="pt">Available</div><div class="stat">Ready</div><div class="los"></div></div>
+    </div>
+  </div>
+</div></div>
+<script src="../scripts/nav.js"></script>
+
+<script>window.MC_ROUTES = [{"sel":".bed.occupied, .bed[data-status=\"occupied\"]","href":"PatientChart.html","title":"Open patient"},{"sel":".bed.available, .bed[data-status=\"available\"]","href":"Admit.html","title":"Assign patient"},{"sel":".ward-card, .ward","href":"BedBoard.html","soft":true}];</script>
+<script src="../scripts/router.js"></script>
+</body></html>

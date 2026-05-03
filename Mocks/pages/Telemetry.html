@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Telemetry · Live Monitoring</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  body{background:#0a0d12}
+  .frame{background:linear-gradient(180deg,#0e1116 0%,#0a0d12 100%);box-shadow:none}
+  .nav{margin-bottom:18px}
+  .nav .tabs{background:rgba(255,255,255,.06);box-shadow:none}
+  .nav .tab{color:rgba(255,255,255,.6)}
+  .nav .tab.active{background:#fff;color:#0e1116}
+  .nav .tab:hover{color:#fff}
+  .nav .icon-btn{background:rgba(255,255,255,.06);color:#fff;box-shadow:none}
+  .nav .profile{background:rgba(255,255,255,.06);box-shadow:none;color:#fff}
+  .nav .profile .name{color:#fff}
+  .nav .profile .handle{color:rgba(255,255,255,.5)}
+  .nav .profile .chev{color:rgba(255,255,255,.4)}
+  .nav .logo{color:#fff}
+  .nav .logo-mark{background:#27c26b;color:#0a0d12}
+
+  .head{display:flex;justify-content:space-between;align-items:flex-end;margin:6px 4px 18px;flex-wrap:wrap;gap:14px;color:#fff}
+  .head h1{font-family:"Instrument Serif",serif;font-size:48px;line-height:1;letter-spacing:-.02em;margin:0;color:#fff;font-weight:400}
+  .head .sub{font-size:13px;color:rgba(255,255,255,.55);margin-top:6px}
+  .clock{font-family:"JetBrains Mono",monospace;font-size:38px;color:#27c26b;letter-spacing:-.02em;font-weight:700;line-height:1;text-shadow:0 0 22px rgba(39,194,107,.5)}
+  .clock .d{font-size:12px;color:rgba(255,255,255,.45);font-family:"Plus Jakarta Sans";font-weight:600;display:block;margin-top:4px;text-transform:uppercase;letter-spacing:.06em}
+
+  .filters{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+  .seg{display:flex;background:rgba(255,255,255,.06);border-radius:999px;padding:4px}
+  .seg button{padding:8px 16px;border:0;background:transparent;color:rgba(255,255,255,.55);font:700 12px "Plus Jakarta Sans";cursor:pointer;border-radius:999px;transition:.15s}
+  .seg button.active{background:#27c26b;color:#0a0d12}
+  .seg button:hover:not(.active){color:#fff}
+  .alert-stat{margin-left:auto;display:flex;gap:10px;font-size:11px;color:rgba(255,255,255,.6)}
+  .alert-stat .a{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);padding:6px 12px;border-radius:999px;font-weight:700}
+  .alert-stat .a i{width:8px;height:8px;border-radius:50%}
+  .alert-stat .a.crit i{background:#ff4d6b;animation:pulse 1.2s infinite}
+  .alert-stat .a.warn i{background:#ffb84d}
+  .alert-stat .a.ok i{background:#27c26b}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media (max-width:1280px){.grid{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:840px){.grid{grid-template-columns:1fr}}
+
+  .tile{background:#13171f;border-radius:18px;padding:14px;border:1px solid rgba(255,255,255,.06);position:relative;cursor:pointer;transition:.15s}
+  .tile:hover{border-color:rgba(255,255,255,.15)}
+  .tile.crit{border-color:rgba(255,77,107,.5);box-shadow:0 0 0 1px rgba(255,77,107,.3),0 0 32px rgba(255,77,107,.18)}
+  .tile.warn{border-color:rgba(255,184,77,.4)}
+
+  .tile .head-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+  .tile .who{display:flex;gap:10px;align-items:center}
+  .tile .pic{width:36px;height:36px;border-radius:10px;background:#888 center/cover;flex:none}
+  .tile .nm{font-weight:700;font-size:14px;color:#fff;line-height:1.1}
+  .tile .meta{font-size:10px;color:rgba(255,255,255,.45);margin-top:2px}
+  .tile .meta b{color:rgba(255,255,255,.7)}
+
+  .alarm-pill{padding:3px 8px;border-radius:6px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;display:inline-flex;align-items:center;gap:4px}
+  .alarm-pill.crit{background:#ff4d6b;color:#fff;animation:pulse 1.2s infinite}
+  .alarm-pill.warn{background:#ffb84d;color:#0a0d12}
+  .alarm-pill.ok{background:rgba(39,194,107,.18);color:#27c26b}
+
+  /* Waveforms */
+  .waves{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+  .wave-row{display:grid;grid-template-columns:46px 1fr 70px;gap:8px;align-items:center;height:42px}
+  .wave-row .lab{font-size:9px;font-weight:800;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.05em}
+  .wave-row .lab b{display:block;color:#fff;font-size:11px;margin-top:1px}
+  .wave-canvas{width:100%;height:100%;background:#0a0d12;border-radius:6px;overflow:hidden}
+  .wave-row .val{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:24px;text-align:right;line-height:1}
+  .wave-row .val small{font-family:"Plus Jakarta Sans";font-size:9px;color:rgba(255,255,255,.45);font-weight:700;display:block;margin-top:2px;text-transform:uppercase;letter-spacing:.05em}
+
+  .ecg-color{color:#27c26b}
+  .pleth-color{color:#3a86ff}
+  .resp-color{color:#ffb84d}
+
+  /* Bottom mini stats */
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:10px;border-top:1px solid rgba(255,255,255,.05);padding-top:10px}
+  .stat-mini{text-align:center}
+  .stat-mini .v{font-family:"JetBrains Mono",monospace;font-size:16px;color:#fff;font-weight:700;line-height:1}
+  .stat-mini .l{color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin-top:3px;font-size:8px}
+  .stat-mini.crit .v{color:#ff4d6b}
+  .stat-mini.warn .v{color:#ffb84d}
+
+  /* Detail strip on bottom */
+  .detail-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(13,17,23,.92);backdrop-filter:blur(12px);border-top:1px solid rgba(255,255,255,.08);padding:12px 24px;display:none;align-items:center;gap:18px;z-index:50}
+  .detail-bar.open{display:flex}
+  .detail-bar .pic{width:40px;height:40px;border-radius:10px;background:#888 center/cover;flex:none}
+  .detail-bar .nm{color:#fff;font-weight:700;font-size:14px}
+  .detail-bar .sub{color:rgba(255,255,255,.5);font-size:11px}
+  .detail-bar .actions{margin-left:auto;display:flex;gap:8px}
+  .detail-bar .btn{background:rgba(255,255,255,.08);color:#fff;padding:8px 14px;border-radius:10px;border:0;cursor:pointer;font:700 12px "Plus Jakarta Sans"}
+  .detail-bar .btn.primary{background:#27c26b;color:#0a0d12}
+  .detail-bar .btn:hover{background:rgba(255,255,255,.16)}
+  .detail-bar .close{color:rgba(255,255,255,.5);background:transparent;border:0;font-size:20px;cursor:pointer}
+</style></head>
+<body data-page="telemetry" data-base="../">
+
+<div class="page" style="max-width:1600px"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div class="head">
+    <div>
+      <span class="eyebrow" style="color:rgba(255,255,255,.5)">Cardiac monitoring · ICU + step-down</span>
+      <h1>Telemetry</h1>
+      <div class="sub">12 patients on continuous cardiac monitoring · 2 active critical alarms · last sync 2s ago</div>
+    </div>
+    <div class="clock"><span id="clock">14:32:08</span><span class="d">Tue · Jan 21</span></div>
+  </div>
+
+  <div class="filters">
+    <div class="seg">
+      <button class="active">All units</button>
+      <button>ICU</button>
+      <button>CCU</button>
+      <button>Step-down</button>
+    </div>
+    <div class="seg">
+      <button class="active">All patients</button>
+      <button>Alarming</button>
+      <button>My patients</button>
+    </div>
+    <div class="alert-stat">
+      <span class="a crit"><i></i>2 Critical</span>
+      <span class="a warn"><i></i>3 Warning</span>
+      <span class="a ok"><i></i>7 Stable</span>
+    </div>
+  </div>
+
+  <div class="grid" id="tiles"></div>
+</div></div>
+
+<div class="detail-bar" id="dbar">
+  <div class="pic" id="dpic"></div>
+  <div>
+    <div class="nm" id="dnm">—</div>
+    <div class="sub" id="dsub">—</div>
+  </div>
+  <div class="actions">
+    <button class="btn">Acknowledge</button>
+    <button class="btn">Silence 60s</button>
+    <button class="btn">View ECG strip</button>
+    <button class="btn primary" onclick="window.location.href='PatientChart.html'">Open chart →</button>
+    <button class="close" onclick="document.getElementById('dbar').classList.remove('open')">×</button>
+  </div>
+</div>
+
+<script src="../scripts/nav.js"></script>
+<script>
+const patients = [
+  {id:1, n:'Albert Smith',     mrn:'4421-08', age:9,  bed:'Peds-2 / 14',  pic:'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=120&h=120&fit=crop&crop=faces', state:'ok',   hr:96,  bp:'112/72', spo2:97, rr:18, temp:36.9, dx:'Asthma exac'},
+  {id:2, n:'Maria Hernandez',  mrn:'08461',   age:64, bed:'ICU-2 / 04',   pic:'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&h=120&fit=crop&crop=faces', state:'crit', hr:128, bp:'88/54',  spo2:91, rr:28, temp:38.4, dx:'Sepsis · ARDS', alarm:'V-tach 6 beats'},
+  {id:3, n:'Robert Kim',       mrn:'08305',   age:71, bed:'ICU-2 / 07',   pic:'https://images.unsplash.com/photo-1463453091185-61582044d556?w=120&h=120&fit=crop&crop=faces', state:'warn', hr:62,  bp:'102/64', spo2:93, rr:20, temp:36.2, dx:'Post-op CABG', alarm:'Brady 58'},
+  {id:4, n:'James Liu',        mrn:'08410',   age:67, bed:'CCU / 12',     pic:'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&h=120&fit=crop&crop=faces', state:'crit', hr:142, bp:'160/98', spo2:94, rr:24, temp:37.6, dx:'STEMI · post-PCI', alarm:'A-fib RVR'},
+  {id:5, n:'Sarah Johnson',    mrn:'08440',   age:29, bed:'StepD / 21',   pic:'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=120&h=120&fit=crop&crop=faces', state:'ok',   hr:88,  bp:'120/78', spo2:98, rr:16, temp:36.7, dx:'Post-appy'},
+  {id:6, n:'Daniel Owusu',     mrn:'08299',   age:45, bed:'StepD / 22',   pic:'https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=120&h=120&fit=crop&crop=faces', state:'ok',   hr:76,  bp:'124/80', spo2:97, rr:14, temp:36.8, dx:'Migraine obs'},
+  {id:7, n:'Adison Reyes',     mrn:'08423',   age:6,  bed:'Peds-2 / 15',  pic:'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&h=120&fit=crop&crop=faces', state:'warn', hr:138, bp:'94/60',  spo2:95, rr:30, temp:38.9, dx:'RSV · bronchiolitis', alarm:'Tachy + fever'},
+  {id:8, n:'Priya Shah',       mrn:'08233',   age:32, bed:'Maty / 03',    pic:'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=120&h=120&fit=crop&crop=faces', state:'ok',   hr:84,  bp:'118/74', spo2:98, rr:16, temp:36.8, dx:'Post-partum'},
+  {id:9, n:'Marcus Wei',       mrn:'08188',   age:58, bed:'CCU / 13',     pic:'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop&crop=faces', state:'warn', hr:58,  bp:'94/58',  spo2:96, rr:14, temp:36.5, dx:'CHF exac', alarm:'Brady'},
+  {id:10,n:'Emma Bauer',       mrn:'08561',   age:43, bed:'ICU-1 / 02',   pic:'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=120&h=120&fit=crop&crop=faces', state:'ok',   hr:82,  bp:'128/82', spo2:97, rr:16, temp:37.0, dx:'Post-op vasc'},
+  {id:11,n:'Chen Wei',         mrn:'08501',   age:51, bed:'StepD / 24',   pic:'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=120&h=120&fit=crop&crop=faces', state:'ok',   hr:74,  bp:'122/76', spo2:98, rr:14, temp:36.9, dx:'COPD obs'},
+  {id:12,n:'Layla Hassan',     mrn:'08612',   age:39, bed:'StepD / 25',   pic:'https://images.unsplash.com/photo-1614283233556-f35b0c801ef1?w=120&h=120&fit=crop&crop=faces', state:'ok',   hr:90,  bp:'118/76', spo2:96, rr:18, temp:37.1, dx:'PE · therapeutic'},
+];
+
+// === Render tiles ===
+function tile(p){
+  const stateClass = p.state==='crit' ? 'crit' : p.state==='warn' ? 'warn' : '';
+  const alarmHtml = p.alarm
+    ? `<span class="alarm-pill ${p.state==='crit'?'crit':'warn'}">⚠ ${p.alarm}</span>`
+    : `<span class="alarm-pill ok">● Stable</span>`;
+
+  return `
+  <div class="tile ${stateClass}" data-id="${p.id}">
+    <div class="head-row">
+      <div class="who">
+        <div class="pic" style="background-image:url('${p.pic}')"></div>
+        <div>
+          <div class="nm">${p.n}</div>
+          <div class="meta"><b>${p.bed}</b> · ${p.age}y · ${p.dx}</div>
+        </div>
+      </div>
+      ${alarmHtml}
+    </div>
+
+    <div class="waves">
+      <div class="wave-row">
+        <div class="lab"><b class="ecg-color">ECG</b>II</div>
+        <div class="wave-canvas"><canvas id="ecg-${p.id}" width="600" height="60"></canvas></div>
+        <div class="val ecg-color">${p.hr}<small>BPM</small></div>
+      </div>
+      <div class="wave-row">
+        <div class="lab"><b class="pleth-color">PLETH</b>SpO₂</div>
+        <div class="wave-canvas"><canvas id="pleth-${p.id}" width="600" height="60"></canvas></div>
+        <div class="val pleth-color">${p.spo2}<small>%</small></div>
+      </div>
+      <div class="wave-row">
+        <div class="lab"><b class="resp-color">RESP</b>imp</div>
+        <div class="wave-canvas"><canvas id="resp-${p.id}" width="600" height="60"></canvas></div>
+        <div class="val resp-color">${p.rr}<small>/min</small></div>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-mini ${stateClass}"><div class="v">${p.bp}</div><div class="l">NIBP</div></div>
+      <div class="stat-mini"><div class="v">${p.temp.toFixed(1)}°</div><div class="l">Temp</div></div>
+      <div class="stat-mini"><div class="v">${(p.hr * 0.85).toFixed(0)}</div><div class="l">PR</div></div>
+      <div class="stat-mini"><div class="v">${(p.bp.split('/').reduce((a,b)=>(+a+ +b)/3,0)/2).toFixed(0)}</div><div class="l">MAP</div></div>
+    </div>
+  </div>`;
+}
+
+document.getElementById('tiles').innerHTML = patients.map(tile).join('');
+
+// === Animate waveforms ===
+const canvases = patients.map(p => ({
+  p,
+  ecg:   document.getElementById('ecg-'+p.id).getContext('2d'),
+  pleth: document.getElementById('pleth-'+p.id).getContext('2d'),
+  resp:  document.getElementById('resp-'+p.id).getContext('2d'),
+  // History buffers for scrolling effect
+  ecgBuf: new Array(600).fill(30),
+  plethBuf: new Array(600).fill(30),
+  respBuf: new Array(600).fill(30),
+  t: Math.random()*100,
+}));
+
+// Synthetic ECG: P-Q-R-S-T pattern
+function ecgY(phase, hr, irreg){
+  // hr defines beat period in samples (lower hr = wider gaps)
+  const period = Math.max(20, 60 - (hr-60)*0.4); // ~30 samples per beat
+  const x = phase % period;
+  let y = 30; // baseline
+  if(x < 1) y = 30 + (Math.random()-0.5)*0.5;
+  else if(x < 3) { y = 30 - 3 * Math.sin((x-1)*Math.PI/2); } // P
+  else if(x < 5) y = 30;
+  else if(x === 5) y = 32; // Q
+  else if(x === 6) y = 14; // R spike up
+  else if(x === 7) y = 38; // S
+  else if(x === 8) y = 30;
+  else if(x < 14) y = 30 - 5*Math.sin((x-8)*Math.PI/6); // T
+  else y = 30 + (Math.random()-0.5)*0.4;
+  // Irregular (V-tach / A-fib)
+  if(irreg && Math.random()<0.04) y += (Math.random()-0.5)*16;
+  return y;
+}
+
+function plethY(phase, hr){
+  const period = Math.max(20, 60 - (hr-60)*0.4);
+  const x = phase % period;
+  // smooth pulse envelope
+  const envelope = Math.exp(-Math.pow((x-period*0.25)/(period*0.18),2));
+  return 30 - envelope*22;
+}
+
+function respY(phase, rr){
+  // very slow sine
+  return 30 - Math.sin(phase * (rr/60) * 0.05) * 14;
+}
+
+let frame = 0;
+function tick(){
+  canvases.forEach(c => {
+    c.t += 1;
+    const irreg = c.p.state==='crit';
+    // shift left, add new
+    c.ecgBuf.shift();   c.ecgBuf.push(ecgY(c.t, c.p.hr, irreg));
+    c.plethBuf.shift(); c.plethBuf.push(plethY(c.t, c.p.hr));
+    c.respBuf.shift();  c.respBuf.push(respY(c.t, c.p.rr));
+
+    drawWave(c.ecg, c.ecgBuf, '#27c26b');
+    drawWave(c.pleth, c.plethBuf, '#3a86ff');
+    drawWave(c.resp, c.respBuf, '#ffb84d');
+  });
+  frame++;
+  requestAnimationFrame(tick);
+}
+
+function drawWave(ctx, buf, color){
+  const w = ctx.canvas.width, h = ctx.canvas.height;
+  ctx.clearRect(0,0,w,h);
+  // grid
+  ctx.strokeStyle = 'rgba(255,255,255,.04)';
+  ctx.lineWidth = 1;
+  for(let y=0;y<h;y+=15){ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke(); }
+  // waveform
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.6;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 6;
+  ctx.beginPath();
+  for(let i=0;i<buf.length;i++){
+    const x = (i/buf.length)*w;
+    const y = (buf[i]/60)*h;
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+  // Sweep indicator
+  ctx.fillStyle = 'rgba(13,17,23,1)';
+  ctx.fillRect(w-2, 0, 6, h);
+  ctx.fillStyle = color;
+  ctx.fillRect(w-3, 0, 1, h);
+}
+
+requestAnimationFrame(tick);
+
+// Live clock
+function updateClock(){
+  const d = new Date();
+  document.getElementById('clock').textContent =
+    String(d.getHours()).padStart(2,'0')+':'+
+    String(d.getMinutes()).padStart(2,'0')+':'+
+    String(d.getSeconds()).padStart(2,'0');
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// Tile click → bottom detail bar
+document.getElementById('tiles').addEventListener('click', e => {
+  const tileEl = e.target.closest('.tile');
+  if(!tileEl) return;
+  const id = +tileEl.dataset.id;
+  const p = patients.find(x => x.id===id);
+  if(!p) return;
+  document.getElementById('dpic').style.backgroundImage = `url('${p.pic}')`;
+  document.getElementById('dnm').textContent = p.n;
+  document.getElementById('dsub').textContent = `MRN ${p.mrn} · ${p.bed} · ${p.dx} · ${p.alarm || 'No active alarms'}`;
+  document.getElementById('dbar').classList.add('open');
+});
+
+// === Subtle vital drift over time ===
+setInterval(() => {
+  patients.forEach(p => {
+    if(p.state==='crit'){
+      p.hr += Math.round((Math.random()-0.4)*4);
+      p.spo2 += Math.round((Math.random()-0.5)*1);
+    } else {
+      p.hr += Math.round((Math.random()-0.5)*2);
+    }
+    // Update displayed values
+    const tile = document.querySelector(`.tile[data-id="${p.id}"]`);
+    if(tile){
+      tile.querySelector('.ecg-color.val').firstChild.textContent = p.hr;
+      tile.querySelector('.pleth-color.val').firstChild.textContent = p.spo2;
+    }
+  });
+}, 2200);
+</script>
+<script>
+window.MC_ROUTES = [{sel:'.detail-bar .btn.primary', href:'PatientChart.html'}];
+</script>
+<script src="../scripts/router.js"></script>
+</body>
+</html>

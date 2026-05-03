@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Radiology read</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  body{background:#0a0d12}
+  .page{background:#0a0d12;max-width:1500px;margin:0 auto;padding:18px}
+  .frame{background:#0a0d12;border-radius:0;box-shadow:none;padding:0}
+  /* keep nav light */
+  #medcure-nav{background:#fff;border-radius:14px;margin-bottom:14px}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;background:#11161e;border-radius:12px;padding:10px 14px;margin-bottom:12px;color:#e5e9f0;gap:14px;flex-wrap:wrap}
+  .topbar .pt{display:flex;gap:18px;align-items:baseline}
+  .topbar .pt .nm{font-family:"Instrument Serif",serif;font-size:24px;letter-spacing:-.01em}
+  .topbar .pt .meta{color:rgba(255,255,255,.55);font-size:11px;font-family:"JetBrains Mono",monospace;font-weight:700;display:flex;gap:14px}
+  .topbar .pt .meta b{color:#fff}
+  .topbar .study{display:flex;gap:14px;align-items:baseline;color:rgba(255,255,255,.6);font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:700}
+  .topbar .study b{color:#fff;font-size:13px}
+  .topbar .actions{display:flex;gap:8px}
+  .btn-d{background:#1d2533;color:#e5e9f0;border:1px solid #2c3645;padding:7px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:"Plus Jakarta Sans",sans-serif}
+  .btn-d:hover{background:#2c3645}
+  .btn-d.primary{background:#3a86ff;color:#fff;border-color:#3a86ff}
+  .btn-d.crit{background:#7a1f1f;color:#fff;border-color:#a02828}
+
+  /* Workstation grid */
+  .ws{display:grid;grid-template-columns:84px 1fr 360px;gap:12px;height:760px}
+  .panel{background:#11161e;border-radius:12px;display:flex;flex-direction:column;overflow:hidden;color:#e5e9f0}
+
+  /* Tools rail */
+  .tools{padding:10px 6px;display:flex;flex-direction:column;gap:5px;align-items:stretch}
+  .tool{background:transparent;border:0;color:rgba(255,255,255,.6);padding:10px 6px;border-radius:8px;font-size:9.5px;font-weight:700;font-family:"JetBrains Mono",monospace;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;text-transform:uppercase;letter-spacing:.04em}
+  .tool:hover{background:#1d2533;color:#fff}
+  .tool.active{background:#3a86ff;color:#fff}
+  .tool svg{width:18px;height:18px;display:block}
+  .tool-sep{height:1px;background:#1d2533;margin:6px 8px}
+
+  /* Viewer */
+  .viewer{position:relative;background:#000;border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+  .v-tabs{display:flex;background:#11161e;padding:6px 10px;gap:6px;font-family:"JetBrains Mono",monospace;font-size:10.5px;font-weight:700;border-bottom:1px solid #1d2533}
+  .v-tabs .tab{padding:6px 10px;border-radius:6px;color:rgba(255,255,255,.6);cursor:pointer}
+  .v-tabs .tab.active{background:#3a86ff;color:#fff}
+  .v-stage{flex:1;position:relative;display:grid;grid-template-columns:1fr 1fr;background:#000;gap:1px}
+  .v-pane{position:relative;background:#000;overflow:hidden}
+  .v-pane .meta-tl{position:absolute;left:10px;top:8px;font-size:10px;color:#65d0a0;font-family:"JetBrains Mono",monospace;line-height:1.5;text-shadow:0 0 4px #000}
+  .v-pane .meta-tr{position:absolute;right:10px;top:8px;font-size:10px;color:#65d0a0;font-family:"JetBrains Mono",monospace;line-height:1.5;text-align:right;text-shadow:0 0 4px #000}
+  .v-pane .meta-bl{position:absolute;left:10px;bottom:8px;font-size:10px;color:#65d0a0;font-family:"JetBrains Mono",monospace;line-height:1.5;text-shadow:0 0 4px #000}
+  .v-pane .meta-br{position:absolute;right:10px;bottom:8px;font-size:10px;color:#65d0a0;font-family:"JetBrains Mono",monospace;line-height:1.5;text-align:right;text-shadow:0 0 4px #000}
+
+  /* CSS-painted CT slices */
+  .ct{position:absolute;inset:30px;border-radius:50%;overflow:hidden}
+  .ct-axial{background:
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,.05) 0 80px, transparent 81px),
+    radial-gradient(circle at 70% 30%, rgba(255,255,255,.05) 0 80px, transparent 81px),
+    radial-gradient(ellipse at 50% 70%, rgba(255,255,255,.07) 0 60px, transparent 61px),
+    radial-gradient(circle at 50% 50%, rgba(255,255,255,.18) 0 40%, rgba(255,255,255,.06) 60%, transparent 70%),
+    #1a1a1a}
+  .ct-axial::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 10px,rgba(255,255,255,.025) 10px 11px)}
+  /* lung markings */
+  .ct-axial::after{content:"";position:absolute;left:18%;top:25%;width:30%;height:50%;border-radius:50%;background:radial-gradient(circle at 70% 60%, rgba(40,40,40,.85) 0 14%, rgba(255,255,255,.05) 30%, transparent 60%);box-shadow:430px 0 0 -2px rgba(40,40,40,.85)}
+
+  .ct-cor{background:
+    radial-gradient(ellipse at 50% 50%, rgba(255,255,255,.18) 0 35%, rgba(255,255,255,.06) 55%, transparent 70%),
+    #1a1a1a}
+  .ct-cor::before{content:"";position:absolute;left:20%;top:20%;width:20%;height:60%;background:radial-gradient(ellipse at 50% 30%, rgba(50,50,50,.9) 0 70%, transparent 80%);border-radius:30%}
+  .ct-cor::after{content:"";position:absolute;right:20%;top:20%;width:20%;height:60%;background:radial-gradient(ellipse at 50% 30%, rgba(50,50,50,.9) 0 70%, transparent 80%);border-radius:30%}
+
+  /* Annotations */
+  .anno{position:absolute;border:2px solid #ffcc00;border-radius:50%;pointer-events:none;box-shadow:0 0 0 1px #000 inset}
+  .anno-label{position:absolute;color:#ffcc00;font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:800;text-shadow:0 0 4px #000;line-height:1.2}
+  .anno-line{position:absolute;background:#ffcc00;height:1px;transform-origin:0 50%}
+
+  /* Right report panel */
+  .rpt{display:flex;flex-direction:column;background:#11161e;color:#e5e9f0;overflow:hidden}
+  .rpt-tabs{display:flex;border-bottom:1px solid #1d2533}
+  .rpt-tabs .t{flex:1;padding:11px;text-align:center;font-size:11px;font-weight:800;color:rgba(255,255,255,.5);cursor:pointer;text-transform:uppercase;letter-spacing:.06em}
+  .rpt-tabs .t.active{color:#fff;border-bottom:2px solid #3a86ff}
+  .rpt-body{padding:12px 14px;overflow:auto;flex:1;font-size:12.5px;line-height:1.55}
+  .rpt-body h4{font-size:10.5px;font-weight:800;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 6px}
+  .rpt-body h4:first-child{margin-top:0}
+  .rpt-body p{margin:0 0 8px;color:#d2d8e3}
+  .rpt-body p b{color:#fff}
+  .rpt-body .key{background:#3a86ff22;color:#a4c8ff;padding:1px 4px;border-radius:3px;font-weight:700;cursor:pointer}
+  .rpt-body .crit{background:#7a1f1f55;color:#ffb0b0;padding:1px 4px;border-radius:3px;font-weight:700}
+  .rpt-foot{padding:10px 14px;border-top:1px solid #1d2533;display:flex;gap:6px;flex-wrap:wrap;background:#0e1218}
+
+  /* Worklist row mini */
+  .wl{display:flex;flex-direction:column;background:#11161e;border-radius:12px;padding:10px;margin-top:12px}
+  .wl-row{display:grid;grid-template-columns:90px 1fr 90px 100px 90px 110px 80px;gap:10px;padding:9px 6px;font-size:11.5px;color:#d2d8e3;align-items:center;border-radius:8px;cursor:pointer}
+  .wl-row.h{font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;color:rgba(255,255,255,.45);font-weight:800;cursor:default}
+  .wl-row:hover:not(.h){background:#1d2533}
+  .wl-row.curr{background:#3a86ff22;color:#fff}
+  .wl-row .acc{font-family:"JetBrains Mono",monospace;font-weight:800;color:#7fa8ff}
+  .wl-row .nm{font-weight:700;color:#fff}
+  .wl-row .stat{font-size:9.5px;font-weight:800;padding:3px 7px;border-radius:5px;text-align:center;text-transform:uppercase}
+  .stat.read{background:#1a6d3c;color:#dff7e7}
+  .stat.draft{background:#5c4108;color:#ffe7b3}
+  .stat.un{background:#7a1f1f;color:#ffd0d0}
+  .stat.next{background:#1a4fb3;color:#cfe0ff}
+  .priority.stat{}
+  .stat.p1{background:#7a1f1f;color:#ffd0d0}
+  .stat.p2{background:#5c4108;color:#ffe7b3}
+  .stat.p3{background:#1d2533;color:#9aa3b3}
+
+  /* Hanging protocol thumbnails */
+  .hp{display:flex;gap:6px;padding:8px;background:#0e1218;border-bottom:1px solid #1d2533;overflow-x:auto}
+  .hp .thumb{width:60px;height:60px;flex-shrink:0;border-radius:6px;background:#1a1a1a;border:1.5px solid transparent;cursor:pointer;position:relative;overflow:hidden}
+  .hp .thumb.active{border-color:#3a86ff}
+  .hp .thumb .lb{position:absolute;left:3px;bottom:3px;font-size:8px;font-family:"JetBrains Mono",monospace;font-weight:700;color:#65d0a0;text-shadow:0 0 3px #000}
+  .hp .thumb.prior{opacity:.65}
+  .thumb.t1{background:radial-gradient(circle at 50% 50%, rgba(255,255,255,.18) 0 30%, rgba(255,255,255,.05) 60%, transparent 80%),#1a1a1a}
+  .thumb.t2{background:radial-gradient(circle at 50% 50%, rgba(255,255,255,.18) 0 35%, rgba(255,255,255,.05) 65%, transparent 80%),#1a1a1a}
+  .thumb.t3{background:radial-gradient(circle at 30% 50%, rgba(255,255,255,.14) 0 25%, transparent 55%),radial-gradient(circle at 70% 50%, rgba(255,255,255,.14) 0 25%, transparent 55%),#1a1a1a}
+
+  /* Bottom strip */
+  .strip{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-top:12px}
+</style></head>
+<body data-page="overview" data-base="../">
+
+<div class="page"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div data-bc='[{"label":"Imaging"},{"label":"PACS reading"},{"label":"CT chest — Voss, M."}]' style="background:#11161e;border-radius:10px;padding:8px 14px;color:#a8b2c0"></div>
+
+  <div class="topbar">
+    <div class="pt">
+      <div>
+        <div class="nm">Margaret Voss <span style="color:rgba(255,255,255,.5);font-size:14px">· 71 F</span></div>
+        <div class="meta"><span>MRN <b>7741281</b></span><span>DOB 1954-03-08</span><span>Wt 68 kg</span></div>
+      </div>
+      <div class="study">
+        <div><span style="color:rgba(255,255,255,.5)">STUDY ·</span> <b>CT chest w/ contrast</b></div>
+        <div><span style="color:rgba(255,255,255,.5)">ACC ·</span> <b>RAD-2026-44871</b></div>
+        <div><span style="color:rgba(255,255,255,.5)">PERFORMED ·</span> <b>04-22 13:18</b></div>
+        <div><span style="color:rgba(255,255,255,.5)">512 slices · 1.25mm</span></div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-d">⊞ Layout</button>
+      <button class="btn-d">⤴ Compare prior</button>
+      <button class="btn-d crit">⚠ Critical finding</button>
+      <button class="btn-d primary">Sign-off →</button>
+    </div>
+  </div>
+
+  <div class="ws">
+
+    <div class="panel tools">
+      <button class="tool active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.5-4.5"/></svg>Zoom</button>
+      <button class="tool"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 9l7 7 7-7"/></svg>Pan</button>
+      <button class="tool"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg>W/L</button>
+      <div class="tool-sep"></div>
+      <button class="tool"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19l5-5 4 4 7-7"/></svg>Measure</button>
+      <button class="tool"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/></svg>ROI</button>
+      <button class="tool"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20" stroke-linecap="round"/></svg>Crosshair</button>
+      <div class="tool-sep"></div>
+      <button class="tool"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 4v16M15 4v16"/></svg>MPR</button>
+      <button class="tool"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12c4-8 14-8 18 0M3 12c4 8 14 8 18 0"/></svg>MIP</button>
+      <button class="tool"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="11"/></svg>3D</button>
+      <div class="tool-sep"></div>
+      <button class="tool"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h12M3 18h18"/></svg>Annot</button>
+      <button class="tool"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Bookmark</button>
+      <button class="tool"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l4 4 8-8M14 16l4-4"/></svg>AI flag</button>
+    </div>
+
+    <div class="viewer">
+      <div class="hp">
+        <div class="thumb t1 active"><div class="lb">AX 1.25</div></div>
+        <div class="thumb t2"><div class="lb">AX 5</div></div>
+        <div class="thumb t3 active"><div class="lb">COR</div></div>
+        <div class="thumb t1"><div class="lb">SAG</div></div>
+        <div class="thumb t2"><div class="lb">MIP</div></div>
+        <div class="thumb t1 prior"><div class="lb">PRIOR ax</div></div>
+        <div class="thumb t3 prior"><div class="lb">PRIOR cor</div></div>
+        <div class="thumb t1"><div class="lb">+ scout</div></div>
+      </div>
+
+      <div class="v-tabs">
+        <span class="tab active">Current · CT chest 04-22</span>
+        <span class="tab">Prior · CT 09-15</span>
+        <span class="tab">CXR · 04-21</span>
+        <span class="tab">PET · 03-10</span>
+      </div>
+
+      <div class="v-stage">
+        <!-- axial -->
+        <div class="v-pane">
+          <div class="ct ct-axial"></div>
+          <div class="meta-tl">
+            CT chest w/ IV contrast<br/>
+            VOSS, MARGARET<br/>
+            71F · MRN 7741281
+          </div>
+          <div class="meta-tr">
+            04-22-2026 · 13:18<br/>
+            AX · 1.25mm · soft<br/>
+            S 218 / 412 · I 4.2cm
+          </div>
+          <div class="meta-bl">
+            kV 120 · mAs 240<br/>
+            CTDIvol 12.4 mGy<br/>
+            DLP 488 mGy·cm
+          </div>
+          <div class="meta-br">
+            W 350 / L 40<br/>
+            Z 1.4× · pan 0,0<br/>
+            R · A
+          </div>
+          <!-- annotation: nodule -->
+          <div class="anno" style="left:31%;top:38%;width:26px;height:26px"></div>
+          <div class="anno-label" style="left:39%;top:32%">[1] RUL nodule<br/>14 × 12 mm<br/>−24 HU · solid</div>
+          <div class="anno" style="left:62%;top:54%;width:14px;height:14px"></div>
+          <div class="anno-label" style="left:70%;top:48%">[2] LLL · 7mm<br/>↑ from 4mm</div>
+        </div>
+        <!-- coronal -->
+        <div class="v-pane">
+          <div class="ct ct-cor"></div>
+          <div class="meta-tl">
+            CT chest w/ IV contrast<br/>
+            COR · MPR<br/>
+            5mm reformat
+          </div>
+          <div class="meta-tr">
+            04-22-2026<br/>
+            COR · S 162 / 280<br/>
+            range Z+24 → Z−18
+          </div>
+          <div class="meta-bl">
+            W 1500 / L −600<br/>
+            (lung window)
+          </div>
+          <div class="meta-br">
+            R ← → L<br/>
+            Z 1.0×
+          </div>
+          <div class="anno" style="left:25%;top:32%;width:20px;height:20px"></div>
+          <div class="anno-label" style="left:8%;top:24%">[1]</div>
+          <!-- mediastinal -->
+          <div class="anno" style="left:48%;top:50%;width:30px;height:14px;border-radius:6px"></div>
+          <div class="anno-label" style="left:57%;top:44%">[3] subcarinal LN<br/>11 mm short ax</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel rpt">
+      <div class="rpt-tabs">
+        <span class="t active">Report</span>
+        <span class="t">Synoptic</span>
+        <span class="t">Prior</span>
+        <span class="t">Order</span>
+      </div>
+      <div class="rpt-body">
+        <h4>Indication</h4>
+        <p>71F with newly-dx breast carcinoma (S26-12882, IDC, pT2 pN1mi). Staging chest CT prior to oncology consult.</p>
+
+        <h4>Technique</h4>
+        <p>Multidetector CT chest performed 1.25 mm slices, soft-tissue and lung kernel reconstructions, axial / coronal / sagittal MPR. <b>100 mL Omnipaque 350</b> IV at 3 mL/s. CTDI 12.4 mGy · DLP 488. No reaction.</p>
+
+        <h4>Comparison</h4>
+        <p>Prior CT chest <b>2025-09-15</b>; CXR 2026-04-21.</p>
+
+        <h4>Findings</h4>
+        <p><b>Lungs</b> — <span class="key">[1]</span> a new <b>14 × 12 mm solid nodule</b> in the right upper lobe, posterior segment, mean attenuation −24 HU, with mild spiculated margins; not present on prior 2025-09-15. <span class="key">[2]</span> Pre-existing left lower lobe nodule increased <b>4 → 7 mm</b>, smooth-margined. No other new nodules. No pleural effusion. No pneumothorax.</p>
+        <p><b>Mediastinum / hila</b> — <span class="key">[3]</span> Borderline-enlarged <b>subcarinal lymph node, 11 mm short-axis</b> (prior 8 mm). No bulky adenopathy. Trachea midline. Heart size normal. No pericardial effusion.</p>
+        <p><b>Vasculature</b> — Aortic root 32 mm. Main PA 24 mm. No filling defects to suggest PE within imaged segments. Coronary calcification mild.</p>
+        <p><b>Chest wall / breast</b> — Post-surgical changes right breast 2-o'clock with surgical clips, no fluid collection. Bilateral axilla without bulky LN.</p>
+        <p><b>Upper abdomen</b> — Liver, adrenals, kidneys: no lesion. Visualized bones: no aggressive lesion.</p>
+
+        <h4>Impression</h4>
+        <p><span class="crit">1. New 14-mm spiculated solid pulmonary nodule, RUL — concerning for metastasis given context;</span> recommend tissue sampling vs short-interval f/u CT in 3 mo per Fleischner.</p>
+        <p><b>2.</b> Interval growth of LLL nodule (4→7 mm) — also suspicious; include in any biopsy plan.</p>
+        <p><b>3.</b> Borderline subcarinal lymphadenopathy (11 mm) — equivocal for nodal involvement; consider PET-CT for staging.</p>
+        <p><b>4.</b> No PE. No pleural effusion.</p>
+        <p style="color:#ffb0b0">⚠ <b>Critical results communicated</b> to Dr. K. Hatcher 16:42 via PACS critical-result tool · ack received 16:51.</p>
+      </div>
+      <div class="rpt-foot">
+        <button class="btn-d" style="flex:1">+ Macro</button>
+        <button class="btn-d" style="flex:1">+ Recommend</button>
+        <button class="btn-d primary" style="flex:1">Save draft</button>
+        <button class="btn-d" style="flex:1">Sign-out</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="strip">
+    <div class="panel">
+      <div style="padding:11px 14px;border-bottom:1px solid #1d2533;display:flex;justify-content:space-between"><b style="font-size:13px">Worklist · CT body · Dr. R. Eshcol</b><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#7fa8ff">14 unread · 3 stat · 6 routine</span></div>
+      <div class="wl" style="margin:0;background:transparent;padding:0">
+        <div class="wl-row h">
+          <span>Acc</span><span>Patient</span><span>Mod</span><span>Body part</span><span>Priority</span><span>Status</span><span>Wait</span>
+        </div>
+        <div class="wl-row curr">
+          <span class="acc">RAD-44871</span><span class="nm">Voss, M. — 71F</span><span>CT</span><span>Chest +c</span><span class="stat priority p2">URGENT</span><span class="stat next">▶ NOW · reading</span><span style="font-family:'JetBrains Mono',monospace">3:14:08</span>
+        </div>
+        <div class="wl-row">
+          <span class="acc">RAD-44864</span><span class="nm">Park, B. — 58M</span><span>CT</span><span>Abd/pelvis +c</span><span class="stat priority p1">STAT</span><span class="stat un">UNREAD</span><span style="font-family:'JetBrains Mono',monospace;color:#ffb0b0">0:47:12</span>
+        </div>
+        <div class="wl-row">
+          <span class="acc">RAD-44858</span><span class="nm">Lee, J. — 34F</span><span>CTPA</span><span>Chest · PE r/o</span><span class="stat priority p1">STAT</span><span class="stat draft">DRAFT</span><span style="font-family:'JetBrains Mono',monospace">1:08:55</span>
+        </div>
+        <div class="wl-row">
+          <span class="acc">RAD-44851</span><span class="nm">Romero, A. — 67M</span><span>MR</span><span>Abd · liver mets</span><span class="stat priority p2">URGENT</span><span class="stat un">UNREAD</span><span style="font-family:'JetBrains Mono',monospace">2:32:18</span>
+        </div>
+        <div class="wl-row">
+          <span class="acc">RAD-44833</span><span class="nm">Klein, R. — 49F</span><span>CT</span><span>Chest · low-dose</span><span class="stat priority p3">routine</span><span class="stat un">UNREAD</span><span style="font-family:'JetBrains Mono',monospace">4:08:00</span>
+        </div>
+        <div class="wl-row">
+          <span class="acc">RAD-44812</span><span class="nm">Tan, M. — 81M</span><span>CT</span><span>Abd/pelvis</span><span class="stat priority p3">routine</span><span class="stat read">READ ✓</span><span style="font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,.4)">5:41:00</span>
+        </div>
+        <div class="wl-row">
+          <span class="acc">RAD-44801</span><span class="nm">Sharma, P. — 39F</span><span>MR</span><span>Brain · h/a</span><span class="stat priority p3">routine</span><span class="stat read">READ ✓</span><span style="font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,.4)">6:14:00</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div style="padding:11px 14px;border-bottom:1px solid #1d2533;display:flex;justify-content:space-between"><b style="font-size:13px">AI flags · current study</b><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#65d0a0">3 findings · v3.2</span></div>
+      <div style="padding:8px 14px 14px;display:flex;flex-direction:column;gap:6px">
+        <div style="background:#7a1f1f33;border:1px solid #7a1f1f;border-radius:8px;padding:9px 11px">
+          <div style="font-size:11px;color:#ffb0b0;font-family:'JetBrains Mono',monospace;font-weight:800;text-transform:uppercase;letter-spacing:.05em">AI · pulmonary nodule · high-suspicion</div>
+          <div style="margin-top:5px;font-size:12px"><b style="color:#fff">RUL · 14 × 12 mm · spiculated</b><br/><span style="color:rgba(255,255,255,.6);font-size:11px">conf 0.92 · matched anno [1] ✓</span></div>
+        </div>
+        <div style="background:#5c410833;border:1px solid #a06e0d;border-radius:8px;padding:9px 11px">
+          <div style="font-size:11px;color:#ffe7b3;font-family:'JetBrains Mono',monospace;font-weight:800;text-transform:uppercase;letter-spacing:.05em">AI · interval growth detected</div>
+          <div style="margin-top:5px;font-size:12px"><b style="color:#fff">LLL nodule · 4 → 7 mm</b><br/><span style="color:rgba(255,255,255,.6);font-size:11px">conf 0.86 · matched anno [2] ✓</span></div>
+        </div>
+        <div style="background:#1a4fb333;border:1px solid #3a86ff;border-radius:8px;padding:9px 11px">
+          <div style="font-size:11px;color:#a4c8ff;font-family:'JetBrains Mono',monospace;font-weight:800;text-transform:uppercase;letter-spacing:.05em">AI · LN border-line</div>
+          <div style="margin-top:5px;font-size:12px"><b style="color:#fff">subcarinal · 11 mm short-ax</b><br/><span style="color:rgba(255,255,255,.6);font-size:11px">conf 0.71 · matched anno [3] ✓</span></div>
+        </div>
+        <div style="background:#1a6d3c33;border:1px solid #1a6d3c;border-radius:8px;padding:9px 11px">
+          <div style="font-size:11px;color:#9be3b8;font-family:'JetBrains Mono',monospace;font-weight:800;text-transform:uppercase;letter-spacing:.05em">AI · PE screen · negative</div>
+          <div style="margin-top:5px;font-size:12px"><span style="color:rgba(255,255,255,.7);font-size:11px">conf 0.97 · no filling defect</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div></div>
+
+<script src="../scripts/nav.js"></script>
+<script src="../scripts/breadcrumbs.js"></script>
+</body></html>

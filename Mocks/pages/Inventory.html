@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Stock</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin:8px 4px 22px;gap:20px;flex-wrap:wrap}
+  .head .h1{font-size:56px}.head .meta{color:var(--ink-soft);font-size:13px;margin-top:6px}
+  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+  .stat-card{background:#fff;border-radius:20px;padding:18px;box-shadow:var(--shadow)}
+  .stat-card .lbl{display:flex;align-items:center;gap:8px;color:var(--ink-soft);font-size:12px;font-weight:600}
+  .stat-card .num{font-family:"Instrument Serif",serif;font-size:38px;letter-spacing:-.02em;line-height:1;margin-top:8px}
+  .stat-card .delta{font-size:11px;color:var(--ink-mute);margin-top:4px}
+  .si{width:24px;height:24px;border-radius:8px;display:grid;place-items:center;font-weight:700;font-size:11px}
+  .si.r{background:#fde7eb;color:#e15670}.si.b{background:#e6efff;color:#3a86ff}.si.g{background:#e6f8ec;color:#27c26b}.si.y{background:#fff3df;color:#c98a00}
+  .grid{display:grid;grid-template-columns:240px 1fr 320px;gap:18px;align-items:start}
+  .cats{padding:18px}
+  .cat{display:flex;justify-content:space-between;padding:10px 12px;border-radius:12px;cursor:pointer;font-size:13px;font-weight:600;color:var(--ink-soft)}
+  .cat.active{background:#0e1116;color:#fff}.cat:hover:not(.active){background:#f4f6f9;color:var(--ink)}
+  .cat .c{font-size:11px;color:var(--ink-mute);font-weight:600}
+  .cat.active .c{color:#9aa0ad}
+  .stock{padding:0;overflow:hidden}
+  .sh{padding:16px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line)}
+  .s-tabs{display:flex;gap:4px;background:#f4f6f9;border-radius:999px;padding:4px}
+  .s-tabs .t{padding:6px 12px;border-radius:999px;font:600 11px "Plus Jakarta Sans";color:var(--ink-soft);cursor:pointer}
+  .s-tabs .t.active{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+  .it-row{display:grid;grid-template-columns:36px 1.5fr 0.9fr 0.9fr 0.8fr 1fr 90px;gap:12px;padding:14px 20px;border-top:1px solid var(--line);align-items:center;font-size:13px}
+  .it-row .ic{width:36px;height:36px;border-radius:10px;background:#f4f6f9;display:grid;place-items:center;font-weight:700;font-size:12px;color:var(--ink-soft)}
+  .it-row .nm{font-weight:700}.it-row .sub{font-size:11px;color:var(--ink-mute)}
+  .it-row .qty{font-family:"Instrument Serif",serif;font-size:20px;letter-spacing:-.01em}
+  .it-row .par{font-size:11px;color:var(--ink-mute)}
+  .it-row button{padding:8px 12px;border-radius:999px;border:0;background:#0e1116;color:#fff;font:600 11px "Plus Jakarta Sans";cursor:pointer;width:100%}
+  .it-row button.warn{background:var(--accent);color:var(--ink)}
+  .lvl{display:flex;align-items:center;gap:8px}
+  .lvl .bar{flex:1;height:6px;background:#f4f6f9;border-radius:3px;overflow:hidden}
+  .lvl .bar .f{height:100%;border-radius:3px}
+  .po-card{padding:18px}
+  .po-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line)}
+  .po-row:first-of-type{border-top:0}
+  .po-row .nm{font-weight:700;font-size:13px}.po-row .sub{font-size:11px;color:var(--ink-mute)}
+  .ex-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+  .ex-row:first-of-type{border-top:0}
+  .ex-row .day{width:42px;height:42px;border-radius:12px;background:#fff3df;color:#a05a00;display:grid;place-items:center;font-weight:700;font-size:11px;flex:none}
+  .ex-row .day.r{background:#ffe7eb;color:#b3263d}
+</style></head>
+<body data-page="inventory" data-base="../">
+
+<div class="page"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+  <div class="head">
+    <div><h1 class="h1">Stock Management</h1><div class="meta">2,184 SKUs · 11 below par · 6 expiring within 30 days · 3 POs in transit</div></div>
+    <div style="display:flex;gap:10px">
+      <div class="searchbox"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input placeholder="Search item, NDC, SKU..."/></div>
+      <button class="btn primary">+ New PO <span class="arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></span></button>
+    </div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-card"><div class="lbl"><span class="si b">📦</span>Total SKUs</div><div class="num">2,184</div><div class="delta">+18 added this week</div></div>
+    <div class="stat-card"><div class="lbl"><span class="si r">⚠</span>Below par</div><div class="num">11</div><div class="delta">3 critical stock-outs</div></div>
+    <div class="stat-card"><div class="lbl"><span class="si y">⏰</span>Expiring 30d</div><div class="num">6</div><div class="delta">$8.4K at risk</div></div>
+    <div class="stat-card"><div class="lbl"><span class="si g">$</span>Inventory value</div><div class="num">$1.86M</div><div class="delta">turnover 4.2× / yr</div></div>
+  </div>
+
+  <div class="grid">
+    <div class="card cats">
+      <div style="font-weight:700;margin-bottom:8px;font-size:13px">Categories</div>
+      <div class="cat active"><span>All items</span><span class="c">2,184</span></div>
+      <div class="cat"><span>Pharmaceuticals</span><span class="c">842</span></div>
+      <div class="cat"><span>IV / Fluids</span><span class="c">218</span></div>
+      <div class="cat"><span>Surgical supplies</span><span class="c">496</span></div>
+      <div class="cat"><span>PPE</span><span class="c">312</span></div>
+      <div class="cat"><span>Lab reagents</span><span class="c">144</span></div>
+      <div class="cat"><span>Imaging consum.</span><span class="c">62</span></div>
+      <div class="cat"><span>Linens</span><span class="c">38</span></div>
+      <div class="cat"><span>Office / Admin</span><span class="c">72</span></div>
+
+      <div style="font-weight:700;margin:18px 0 8px;font-size:13px">Locations</div>
+      <div class="cat"><span>Main pharmacy</span><span class="c">1,442</span></div>
+      <div class="cat"><span>ED Pyxis</span><span class="c">218</span></div>
+      <div class="cat"><span>OR-1 / OR-2</span><span class="c">312</span></div>
+      <div class="cat"><span>ICU</span><span class="c">142</span></div>
+      <div class="cat"><span>Central supply</span><span class="c">70</span></div>
+    </div>
+
+    <div>
+      <div class="card stock">
+        <div class="sh"><div style="font-weight:700">All Items</div>
+          <div class="s-tabs"><div class="t active">All</div><div class="t">Below par (11)</div><div class="t">Expiring (6)</div><div class="t">In transit (3)</div></div></div>
+        <div style="padding:10px 20px 6px;display:grid;grid-template-columns:36px 1.5fr 0.9fr 0.9fr 0.8fr 1fr 90px;gap:12px;font-size:10px;color:var(--ink-mute);font-weight:600;text-transform:uppercase;letter-spacing:.05em">
+          <div></div><div>Item</div><div>On hand</div><div>Par level</div><div>Location</div><div>Stock</div><div></div></div>
+        <div class="it-row"><div class="ic">Ep</div><div><div class="nm">Epinephrine 1mg/mL</div><div class="sub">NDC 0517-1071-25 · Lot E4421</div></div><div><div class="qty">4</div><div class="par">vials</div></div><div><div class="par">Par 50</div><div class="par" style="color:var(--bad)">8% of par</div></div><div class="par">ED Pyxis</div><div class="lvl"><div class="bar"><div class="f" style="width:8%;background:#ff4d6b"></div></div></div><button class="warn">PO</button></div>
+        <div class="it-row"><div class="ic">Hp</div><div><div class="nm">Heparin 5,000U/mL</div><div class="sub">NDC 0641-2440 · Lot H8821</div></div><div><div class="qty">12</div><div class="par">vials</div></div><div><div class="par">Par 65</div><div class="par" style="color:var(--bad)">18%</div></div><div class="par">Main pharm</div><div class="lvl"><div class="bar"><div class="f" style="width:18%;background:#ff4d6b"></div></div></div><button class="warn">PO</button></div>
+        <div class="it-row"><div class="ic">In</div><div><div class="nm">Insulin glargine 100U</div><div class="sub">NDC 0088-2220 · Lot I3092</div></div><div><div class="qty">22</div><div class="par">pens</div></div><div><div class="par">Par 65</div><div class="par" style="color:#a05a00">34%</div></div><div class="par">Main pharm</div><div class="lvl"><div class="bar"><div class="f" style="width:34%;background:#ffb84d"></div></div></div><button>Order</button></div>
+        <div class="it-row"><div class="ic">Ab</div><div><div class="nm">Albuterol HFA 90mcg</div><div class="sub">NDC 0173-0682 · Lot A0418</div></div><div><div class="qty">31</div><div class="par">inhalers</div></div><div><div class="par">Par 75</div><div class="par" style="color:#a05a00">42%</div></div><div class="par">ED Pyxis</div><div class="lvl"><div class="bar"><div class="f" style="width:42%;background:#ffb84d"></div></div></div><button>Order</button></div>
+        <div class="it-row"><div class="ic">N9</div><div><div class="nm">N95 respirator (3M-1860)</div><div class="sub">SKU 1860-S · Box of 20</div></div><div><div class="qty">88</div><div class="par">boxes</div></div><div><div class="par">Par 200</div><div class="par" style="color:#a05a00">44%</div></div><div class="par">Central</div><div class="lvl"><div class="bar"><div class="f" style="width:44%;background:#ffb84d"></div></div></div><button>Order</button></div>
+        <div class="it-row"><div class="ic">Cf</div><div><div class="nm">Cefazolin 1g IV</div><div class="sub">NDC 0143-9924 · Lot C7712</div></div><div><div class="qty">88</div><div class="par">vials</div></div><div><div class="par">Par 150</div><div class="par" style="color:var(--good)">58%</div></div><div class="par">OR-1, OR-2</div><div class="lvl"><div class="bar"><div class="f" style="width:58%;background:#27c26b"></div></div></div><button>Order</button></div>
+        <div class="it-row"><div class="ic">NS</div><div><div class="nm">Normal saline 1L bag</div><div class="sub">SKU 0264-7800 · Pallet</div></div><div><div class="qty">412</div><div class="par">bags</div></div><div><div class="par">Par 600</div><div class="par" style="color:var(--good)">68%</div></div><div class="par">Central</div><div class="lvl"><div class="bar"><div class="f" style="width:68%;background:#27c26b"></div></div></div><button>Order</button></div>
+        <div class="it-row"><div class="ic">Sg</div><div><div class="nm">Surgical glove 7.5</div><div class="sub">SKU 88410-S · Box 50pr</div></div><div><div class="qty">186</div><div class="par">boxes</div></div><div><div class="par">Par 240</div><div class="par" style="color:var(--good)">78%</div></div><div class="par">OR-1, OR-2</div><div class="lvl"><div class="bar"><div class="f" style="width:78%;background:#27c26b"></div></div></div><button>Order</button></div>
+        <div class="it-row"><div class="ic">Ac</div><div><div class="nm">Acetaminophen 500mg</div><div class="sub">NDC 0904-6014 · Bottle 500</div></div><div><div class="qty">612</div><div class="par">tablets</div></div><div><div class="par">Par 800</div><div class="par" style="color:var(--good)">76%</div></div><div class="par">Main pharm</div><div class="lvl"><div class="bar"><div class="f" style="width:76%;background:#27c26b"></div></div></div><button>Order</button></div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card po-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:700">Open POs</div><span class="pill info"><span class="pdot"></span>3 in transit</span></div>
+        <div class="po-row"><div><div class="nm">PO-44218 · McKesson</div><div class="sub">Heparin, Epi, Cefazolin</div></div><div style="text-align:right"><div style="font-weight:700;font-size:13px">$8,442</div><div class="sub" style="color:var(--good)">ETA tomorrow</div></div></div>
+        <div class="po-row"><div><div class="nm">PO-44217 · Cardinal</div><div class="sub">PPE, gloves, gowns</div></div><div style="text-align:right"><div style="font-weight:700;font-size:13px">$3,180</div><div class="sub">ETA Mon</div></div></div>
+        <div class="po-row"><div><div class="nm">PO-44215 · BD</div><div class="sub">Insulin syringes, lancets</div></div><div style="text-align:right"><div style="font-weight:700;font-size:13px">$1,924</div><div class="sub">ETA Wed</div></div></div>
+        <div class="po-row"><div><div class="nm">PO-44210 · Henry Schein</div><div class="sub">Lab reagents</div></div><div style="text-align:right"><div style="font-weight:700;font-size:13px">$642</div><div class="sub" style="color:var(--good)">Delivered</div></div></div>
+      </div>
+
+      <div class="card po-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:700">Expiring soon</div><span class="pill warn"><span class="pdot"></span>$8.4K at risk</span></div>
+        <div class="ex-row"><div class="day r">3d</div><div style="flex:1"><div style="font-weight:700;font-size:13px">Vancomycin 1g · Lot V0440</div><div style="font-size:11px;color:var(--ink-mute)">22 vials · $1,420</div></div></div>
+        <div class="ex-row"><div class="day r">8d</div><div style="flex:1"><div style="font-weight:700;font-size:13px">Propofol 200mg · Lot P9911</div><div style="font-size:11px;color:var(--ink-mute)">14 vials · $682</div></div></div>
+        <div class="ex-row"><div class="day">14d</div><div style="flex:1"><div style="font-weight:700;font-size:13px">Heparin · Lot H8744</div><div style="font-size:11px;color:var(--ink-mute)">38 vials · $1,892</div></div></div>
+        <div class="ex-row"><div class="day">21d</div><div style="flex:1"><div style="font-weight:700;font-size:13px">Tetanus toxoid · Lot T2104</div><div style="font-size:11px;color:var(--ink-mute)">52 doses · $2,184</div></div></div>
+        <div class="ex-row"><div class="day">28d</div><div style="flex:1"><div style="font-weight:700;font-size:13px">Influenza vax · Lot F5520</div><div style="font-size:11px;color:var(--ink-mute)">68 doses · $2,210</div></div></div>
+      </div>
+
+      <div class="card" style="padding:18px;background:#0e1116;color:#fff">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-weight:700">Auto-replenish</div><span class="pill" style="background:rgba(255,255,255,.12);color:#fff"><span class="pdot" style="background:#27c26b"></span>On</span></div>
+        <div style="font-family:'Instrument Serif',serif;font-size:34px;letter-spacing:-.02em;line-height:1">142<span style="font-size:14px;font-family:'Plus Jakarta Sans';color:#9aa0ad;font-weight:600"> SKUs</span></div>
+        <div style="font-size:12px;color:#9aa0ad;margin-top:6px">Last reorder run · 6:00 AM today</div>
+        <div style="margin-top:14px;display:flex;gap:8px"><button class="btn" style="background:#fff;color:#0e1116;flex:1">Configure</button><button class="btn" style="background:rgba(255,255,255,.12);color:#fff;flex:1">Run now</button></div>
+      </div>
+    </div>
+  </div>
+</div></div>
+<script src="../scripts/nav.js"></script>
+
+<script>window.MC_ROUTES = [{"sel":"tbody tr, .stock-row, .item-row","href":"Inventory.html","title":"Item detail"},{"sel":".btn.primary, button.primary","href":"Inventory.html","title":"New PO"}];</script>
+<script src="../scripts/router.js"></script>
+</body></html>

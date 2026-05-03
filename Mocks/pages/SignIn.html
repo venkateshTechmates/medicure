@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Sign in</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  body{background:#dde2ea}
+  .auth-shell{min-height:100vh;display:grid;grid-template-columns:1fr 540px;gap:0;padding:20px}
+  @media (max-width:980px){.auth-shell{grid-template-columns:1fr;padding:16px}}
+
+  /* LEFT — brand panel */
+  .brand-panel{background:linear-gradient(135deg,#0e1116 0%,#1a2030 60%,#243049 100%);border-radius:24px;padding:36px 40px;color:#fff;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;min-height:680px}
+  .brand-panel::before{content:'';position:absolute;inset:0;background:
+    radial-gradient(circle at 80% 20%, rgba(39,194,107,.18), transparent 50%),
+    radial-gradient(circle at 20% 80%, rgba(58,134,255,.12), transparent 55%);
+    pointer-events:none}
+  .brand-top{display:flex;justify-content:space-between;align-items:center;position:relative;z-index:2}
+  .logo{display:flex;align-items:center;gap:10px;font-family:"Instrument Serif",serif;font-size:22px;letter-spacing:-.02em}
+  .logo .mark{width:30px;height:30px;border-radius:9px;background:#fff;display:grid;place-items:center;color:#0e1116;font-family:"Plus Jakarta Sans";font-weight:800;font-size:13px}
+
+  .brand-quote{position:relative;z-index:2;max-width:520px}
+  .brand-quote .eyebrow{font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.1em;font-weight:800;margin-bottom:14px}
+  .brand-quote h1{font-family:"Instrument Serif",serif;font-size:62px;letter-spacing:-.025em;line-height:1.02;margin:0 0 18px;font-weight:400}
+  .brand-quote h1 em{font-style:italic;color:#27c26b}
+  .brand-quote p{font-size:14px;color:rgba(255,255,255,.7);line-height:1.7;max-width:440px;margin:0}
+
+  .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:28px;position:relative;z-index:2}
+  .stat-row .s .v{font-family:"Instrument Serif",serif;font-size:34px;letter-spacing:-.02em;line-height:1}
+  .stat-row .s .l{font-size:11px;color:rgba(255,255,255,.5);margin-top:4px;text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+
+  .brand-bottom{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:rgba(255,255,255,.5);position:relative;z-index:2}
+  .brand-bottom a{color:rgba(255,255,255,.7);text-decoration:none;margin-left:18px}
+  .brand-bottom a:hover{color:#fff}
+
+  /* Decorative orgs strip */
+  .org-strip{display:flex;gap:18px;align-items:center;margin-top:14px;flex-wrap:wrap;position:relative;z-index:2;color:rgba(255,255,255,.4);font-size:11px}
+  .org-strip b{color:rgba(255,255,255,.85);font-weight:700;letter-spacing:.04em;font-family:"Instrument Serif",serif;font-size:14px;font-weight:400}
+
+  /* RIGHT — form */
+  .form-panel{background:#fff;border-radius:24px;padding:42px 44px;box-shadow:var(--shadow);display:flex;flex-direction:column;justify-content:center;min-height:680px;position:relative}
+  .form-head{margin-bottom:24px}
+  .form-head h2{font-family:"Instrument Serif",serif;font-size:42px;letter-spacing:-.02em;margin:0;font-weight:400;line-height:1.05}
+  .form-head .sub{font-size:13px;color:var(--ink-soft);margin-top:6px}
+  .form-head .sub a{color:var(--ink);font-weight:700;text-decoration:none;border-bottom:1px solid var(--ink)}
+
+  .org-detect{display:flex;gap:12px;align-items:center;background:#fafbfc;border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:18px;position:relative}
+  .org-detect .o-pic{width:36px;height:36px;border-radius:9px;background:#0e1116;color:#fff;display:grid;place-items:center;font-family:"Instrument Serif",serif;font-size:16px;flex:none}
+  .org-detect .o-nm{font-weight:800;font-size:13px}
+  .org-detect .o-meta{font-size:11px;color:var(--ink-mute);margin-top:1px}
+  .org-detect .switch{margin-left:auto;font-size:11px;color:var(--ink-soft);text-decoration:none;font-weight:700;padding:6px 10px;border-radius:8px;background:#fff;border:1px solid var(--line)}
+  .org-detect .switch:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:11px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;font-weight:800;margin-bottom:6px}
+  .field .input-wrap{position:relative}
+  .field input{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:13px 14px 13px 42px;font:600 14px "Plus Jakarta Sans";background:#fff;transition:.15s;outline:none}
+  .field input:focus{border-color:#0e1116;background:#fff;box-shadow:0 0 0 4px rgba(14,17,22,.06)}
+  .field .ic{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--ink-mute);pointer-events:none}
+  .field .toggle-pw{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:0;color:var(--ink-mute);cursor:pointer;font-size:11px;font-weight:700;padding:4px 8px;border-radius:6px}
+  .field .toggle-pw:hover{background:#fafbfc;color:var(--ink)}
+  .field .hint{font-size:11px;color:var(--ink-mute);margin-top:5px}
+  .field .hint .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--good);margin-right:5px;vertical-align:middle}
+
+  .row{display:flex;justify-content:space-between;align-items:center;margin:6px 0 18px}
+  .row .check{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-soft);font-weight:600;cursor:pointer;user-select:none}
+  .row .check input{width:16px;height:16px;accent-color:#0e1116;cursor:pointer}
+  .row a{font-size:12px;color:var(--ink);text-decoration:none;font-weight:700;border-bottom:1px solid transparent}
+  .row a:hover{border-bottom-color:var(--ink)}
+
+  .btn-primary{width:100%;background:#0e1116;color:#fff;border:0;border-radius:12px;padding:14px;font:800 14px "Plus Jakarta Sans";cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:.15s}
+  .btn-primary:hover{background:#000;transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,0,0,.18)}
+
+  .divider{display:flex;align-items:center;gap:12px;margin:22px 0;font-size:11px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+  .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--line)}
+
+  .sso-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .sso-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;border:1.5px solid var(--line);border-radius:11px;background:#fff;font:700 12px "Plus Jakarta Sans";color:var(--ink);text-decoration:none;cursor:pointer;transition:.15s}
+  .sso-btn:hover{border-color:var(--ink);background:#fafbfc}
+  .sso-btn .lg{width:18px;height:18px;flex:none;display:grid;place-items:center;border-radius:4px;font-weight:800;font-size:10px;color:#fff}
+
+  .footer-note{font-size:11px;color:var(--ink-mute);text-align:center;margin-top:28px;line-height:1.6}
+  .footer-note a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid var(--line)}
+
+  /* Compliance / trust strip */
+  .trust{display:flex;gap:10px;justify-content:center;align-items:center;margin-top:14px;flex-wrap:wrap}
+  .trust .t{font-size:9px;font-weight:800;color:var(--ink-mute);background:#fafbfc;border:1px solid var(--line);padding:4px 9px;border-radius:5px;text-transform:uppercase;letter-spacing:.06em}
+
+  /* Tenant chooser modal */
+  .modal-bg{position:fixed;inset:0;background:rgba(14,17,22,.5);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
+  .modal-bg.show{display:flex}
+  .modal{background:#fff;border-radius:20px;width:100%;max-width:520px;padding:32px;box-shadow:0 30px 80px rgba(0,0,0,.3);max-height:90vh;overflow:auto}
+  .modal h3{font-family:"Instrument Serif",serif;font-size:30px;letter-spacing:-.02em;margin:0 0 4px;font-weight:400}
+  .modal .sub{font-size:13px;color:var(--ink-soft);margin-bottom:18px}
+  .org-list{display:flex;flex-direction:column;gap:6px}
+  .org-row{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;cursor:pointer;background:#fff;transition:.15s}
+  .org-row:hover{border-color:var(--ink);background:#fafbfc}
+  .org-row.act{border-color:var(--ink);background:var(--ink);color:#fff}
+  .org-row .pic{width:38px;height:38px;border-radius:10px;background:#0e1116;color:#fff;display:grid;place-items:center;font-family:"Instrument Serif",serif;font-size:16px;flex:none}
+  .org-row.act .pic{background:#fff;color:var(--ink)}
+  .org-row .nm{font-weight:800;font-size:13px}
+  .org-row .meta{font-size:11px;color:var(--ink-mute);margin-top:1px}
+  .org-row.act .meta{color:rgba(255,255,255,.6)}
+  .org-row .role{font-size:9px;font-weight:800;background:#dff7e7;color:#1a8a48;padding:3px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:.05em}
+  .org-row.act .role{background:rgba(255,255,255,.15);color:#fff}
+</style></head>
+<body>
+
+<div class="auth-shell">
+
+  <!-- Brand / story panel -->
+  <div class="brand-panel">
+    <div class="brand-top">
+      <div class="logo"><span class="mark">M</span> Medcure</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.6)">New here? <a href="Register.html" style="color:#fff;text-decoration:none;font-weight:700;border-bottom:1px solid rgba(255,255,255,.4);margin-left:4px">Create account →</a></div>
+    </div>
+
+    <div class="brand-quote">
+      <div class="eyebrow">Hospital information system</div>
+      <h1>Care, <em>orchestrated.</em><br>Across every shift.</h1>
+      <p>One sign-in connects you to every patient, order, lab, and conversation across your hospital network — from ED triage to discharge follow-up.</p>
+
+      <div class="stat-row">
+        <div class="s"><div class="v">1.2M</div><div class="l">patients managed</div></div>
+        <div class="s"><div class="v">340</div><div class="l">connected hospitals</div></div>
+        <div class="s"><div class="v">99.99%</div><div class="l">uptime · 12 mo</div></div>
+      </div>
+
+      <div class="org-strip" style="margin-top:32px">
+        <span>Trusted by:</span>
+        <b>Mercy Health</b>
+        <b>St. Olive's</b>
+        <b>Northcare</b>
+        <b>Aurora Med</b>
+        <b>Riverside</b>
+      </div>
+    </div>
+
+    <div class="brand-bottom">
+      <span>© 2026 Medcure Health · v4.18.2</span>
+      <div>
+        <a href="#">Status</a>
+        <a href="#">Privacy</a>
+        <a href="#">Help</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <div class="form-panel">
+    <div class="form-head">
+      <h2>Welcome back.</h2>
+      <div class="sub">Sign in to continue. Don't have an account? <a href="Register.html">Create one</a></div>
+    </div>
+
+    <!-- detected org -->
+    <div class="org-detect">
+      <div class="o-pic">M</div>
+      <div>
+        <div class="o-nm">Mercy Health · Main campus</div>
+        <div class="o-meta">mercy.medcure.health · You signed in from this device before</div>
+      </div>
+      <a href="#" class="switch" id="switchOrg">Switch ↘</a>
+    </div>
+
+    <form id="signInForm" onsubmit="event.preventDefault(); window.location.href='../Medcure Dashboard.html';">
+      <div class="field">
+        <label for="email">Work email</label>
+        <div class="input-wrap">
+          <span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg></span>
+          <input id="email" type="email" autocomplete="email" value="a.drobo@mercy.health" required>
+        </div>
+        <div class="hint"><span class="dot"></span> Verified · @mercy.health domain</div>
+      </div>
+
+      <div class="field">
+        <label for="pw">Password</label>
+        <div class="input-wrap">
+          <span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+          <input id="pw" type="password" autocomplete="current-password" placeholder="••••••••••" required>
+          <button type="button" class="toggle-pw" onclick="const p=document.getElementById('pw');p.type=p.type==='password'?'text':'password';this.textContent=p.type==='password'?'Show':'Hide';">Show</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <label class="check"><input type="checkbox" checked> Keep me signed in for 8 hrs</label>
+        <a href="ForgotPassword.html">Forgot password?</a>
+      </div>
+
+      <button type="submit" class="btn-primary">
+        Sign in to Medcure
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </button>
+    </form>
+
+    <div class="divider">or continue with single sign-on</div>
+
+    <div class="sso-grid">
+      <a href="TwoFactor.html" class="sso-btn"><span class="lg" style="background:#4285f4">G</span> Google Workspace</a>
+      <a href="TwoFactor.html" class="sso-btn"><span class="lg" style="background:#0078d4">⊞</span> Microsoft 365</a>
+      <a href="TwoFactor.html" class="sso-btn"><span class="lg" style="background:#000">◐</span> Okta SSO</a>
+      <a href="TwoFactor.html" class="sso-btn"><span class="lg" style="background:#ff4d6b">⚷</span> SAML SSO</a>
+    </div>
+
+    <div class="trust">
+      <span class="t">HIPAA</span>
+      <span class="t">SOC 2 Type II</span>
+      <span class="t">ISO 27001</span>
+      <span class="t">HITRUST CSF</span>
+    </div>
+
+    <div class="footer-note">
+      By signing in, you agree to Medcure's <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.<br>
+      This system contains PHI. Unauthorized access is prohibited and audited.
+    </div>
+  </div>
+</div>
+
+<!-- Switch org modal -->
+<div class="modal-bg" id="orgModal">
+  <div class="modal">
+    <h3>Choose organization</h3>
+    <div class="sub">Your account belongs to 3 organizations. You can switch any time.</div>
+
+    <div class="org-list">
+      <div class="org-row act">
+        <div class="pic">M</div>
+        <div>
+          <div class="nm">Mercy Health · Main campus</div>
+          <div class="meta">14,200 staff · Cincinnati, OH · Last active now</div>
+        </div>
+        <span class="role">Attending</span>
+      </div>
+      <div class="org-row">
+        <div class="pic" style="background:#27c26b">N</div>
+        <div>
+          <div class="nm">Northcare Pediatrics</div>
+          <div class="meta">820 staff · Children's specialty network</div>
+        </div>
+        <span class="role">Consultant</span>
+      </div>
+      <div class="org-row">
+        <div class="pic" style="background:#3a86ff">A</div>
+        <div>
+          <div class="nm">Aurora Outpatient</div>
+          <div class="meta">340 staff · Telehealth + primary care</div>
+        </div>
+        <span class="role">Telehealth MD</span>
+      </div>
+    </div>
+
+    <button class="btn-primary" style="margin-top:18px" onclick="document.getElementById('orgModal').classList.remove('show'); window.location.href='TenantSelector.html';">Continue → manage all organizations</button>
+  </div>
+</div>
+
+<script>
+document.getElementById('switchOrg').addEventListener('click', e => {
+  e.preventDefault();
+  document.getElementById('orgModal').classList.add('show');
+});
+document.getElementById('orgModal').addEventListener('click', e => {
+  if(e.target === e.currentTarget) e.currentTarget.classList.remove('show');
+});
+document.querySelectorAll('.org-row').forEach(r => r.addEventListener('click', () => {
+  document.querySelectorAll('.org-row').forEach(x => x.classList.remove('act'));
+  r.classList.add('act');
+}));
+</script>
+</body>
+</html>

@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Vitals · Albert Smith</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;justify-content:space-between;align-items:flex-end;margin:8px 4px 18px;flex-wrap:wrap;gap:14px}
+  .head .h1{font-size:48px}
+  .ctx{display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;background:#fff;border-radius:18px;padding:14px 18px;box-shadow:var(--shadow);margin-bottom:18px}
+  .ctx .pic{width:48px;height:48px;border-radius:14px;background:#888 center/cover}
+  .ctx .nm{font-weight:700}
+  .ctx .meta{font-size:11px;color:var(--ink-soft);display:flex;gap:14px;flex-wrap:wrap;margin-top:3px}
+  .ctx .meta b{color:var(--ink)}
+
+  .grid{display:grid;grid-template-columns:1fr 360px;gap:18px;align-items:start}
+  .panel{padding:22px}
+  .panel h2{font-family:"Instrument Serif",serif;font-size:28px;letter-spacing:-.02em;margin:0 0 4px;font-weight:400}
+  .panel .sub{font-size:12px;color:var(--ink-soft);margin-bottom:14px}
+
+  /* Vitals tile grid */
+  .v-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .v-tile{background:#fafbfc;border:1.5px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:6px;cursor:pointer;transition:.15s;position:relative}
+  .v-tile:hover{border-color:#0e1116}
+  .v-tile.focus{border-color:#0e1116;background:#fff;box-shadow:0 6px 18px rgba(0,0,0,.08)}
+  .v-tile.flag{border-color:var(--bad);background:#fff7f9}
+  .v-tile.flag-w{border-color:var(--warn);background:#fffbf3}
+  .v-tile .lab{font-size:9px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;font-weight:800;display:flex;align-items:center;gap:6px}
+  .v-tile .lab svg{width:12px;height:12px}
+  .v-tile input{font-family:"Instrument Serif",serif;font-size:32px;font-weight:400;letter-spacing:-.02em;border:0;background:transparent;width:100%;padding:0;outline:none;color:var(--ink);line-height:1}
+  .v-tile.flag input{color:var(--bad)}
+  .v-tile.flag-w input{color:#a05a00}
+  .v-tile .unit{font-size:10px;color:var(--ink-mute);font-weight:700}
+  .v-tile .range{font-size:9px;color:var(--ink-mute);margin-top:2px}
+  .v-tile .badge{position:absolute;top:8px;right:8px;font-size:9px;font-weight:800;padding:2px 6px;border-radius:5px;text-transform:uppercase;letter-spacing:.04em;background:var(--bad);color:#fff;display:none}
+  .v-tile.flag .badge{display:block}
+  .v-tile.flag-w .badge{display:block;background:var(--warn);color:#0e1116}
+  .v-tile .delta{font-size:10px;color:var(--ink-mute);margin-top:2px;display:flex;gap:4px;align-items:center}
+  .v-tile .delta.up{color:var(--bad)}
+  .v-tile .delta.dn{color:var(--info)}
+
+  /* Body figure */
+  .body-fig{position:relative;width:100%;height:280px;background:#fafbfc;border-radius:14px;border:1px solid var(--line);overflow:hidden;display:flex;align-items:center;justify-content:center;margin-bottom:8px}
+  .body-fig svg{height:100%;width:auto}
+  .body-fig .region{cursor:pointer;transition:.15s;fill:#e3e6ec}
+  .body-fig .region:hover{fill:#ffb84d}
+  .body-fig .region.active{fill:#ff4d6b}
+
+  /* Pain scale */
+  .pain-scale{display:flex;gap:4px;margin-top:8px}
+  .pain-scale .p{flex:1;aspect-ratio:1;border-radius:8px;background:#fafbfc;border:1.5px solid var(--line);font-weight:800;font-size:13px;display:grid;place-items:center;cursor:pointer;transition:.15s;color:var(--ink-soft)}
+  .pain-scale .p:hover{border-color:#0e1116}
+  .pain-scale .p.sel{background:#0e1116;color:#fff;border-color:#0e1116}
+  .pain-scale .p[data-v="0"].sel{background:#27c26b;border-color:#27c26b}
+  .pain-scale .p[data-v="1"].sel,.pain-scale .p[data-v="2"].sel,.pain-scale .p[data-v="3"].sel{background:#a8d96e;border-color:#a8d96e;color:#0e1116}
+  .pain-scale .p[data-v="4"].sel,.pain-scale .p[data-v="5"].sel,.pain-scale .p[data-v="6"].sel{background:#ffb84d;border-color:#ffb84d;color:#0e1116}
+  .pain-scale .p[data-v="7"].sel,.pain-scale .p[data-v="8"].sel,.pain-scale .p[data-v="9"].sel,.pain-scale .p[data-v="10"].sel{background:#ff4d6b;border-color:#ff4d6b}
+
+  /* I/O */
+  .io-row{display:grid;grid-template-columns:1fr 80px 60px;gap:8px;padding:8px 10px;background:#fafbfc;border-radius:10px;margin-bottom:4px;align-items:center;font-size:12px}
+  .io-row .nm{font-weight:700}
+  .io-row .sub{font-size:10px;color:var(--ink-mute)}
+  .io-row input{border:1px solid var(--line);border-radius:8px;padding:6px 8px;font:700 12px "Plus Jakarta Sans";text-align:right}
+  .io-row .u{font-size:10px;color:var(--ink-mute);text-align:left}
+  .io-totals{display:flex;justify-content:space-around;padding:14px;background:#0e1116;color:#fff;border-radius:14px;margin-top:8px}
+  .io-totals .t{text-align:center}
+  .io-totals .v{font-family:"Instrument Serif",serif;font-size:28px;line-height:1}
+  .io-totals .l{font-size:10px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin-top:2px}
+
+  /* Right rail */
+  .timeline{padding:14px;background:#fafbfc;border-radius:14px;border:1px solid var(--line)}
+  .tl-row{display:grid;grid-template-columns:54px 1fr;gap:10px;padding:10px 0;border-top:1px solid var(--line);font-size:11px}
+  .tl-row:first-of-type{border-top:0}
+  .tl-row .t{font-family:"Instrument Serif",serif;font-size:18px;color:var(--ink-mute);line-height:1}
+  .tl-row .t small{display:block;font-family:"Plus Jakarta Sans";font-size:9px;color:var(--ink-mute);text-transform:uppercase;font-weight:700}
+  .tl-row .vs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;font-size:11px}
+  .tl-row .vs span{font-weight:700}
+  .tl-row .vs small{font-size:9px;color:var(--ink-mute);font-weight:600;display:block}
+
+  .seg{display:flex;background:#fafbfc;border-radius:10px;padding:4px;border:1px solid var(--line);margin-bottom:8px}
+  .seg .o{flex:1;padding:8px;text-align:center;font:700 11px "Plus Jakarta Sans";color:var(--ink-soft);cursor:pointer;border-radius:7px}
+  .seg .o.act{background:#0e1116;color:#fff}
+</style></head>
+<body data-page="patients" data-base="../">
+
+<div class="page"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div data-bc='[{"label":"Patients","href":"Patients.html"},{"label":"Albert Smith","href":"PatientChart.html"},{"label":"Chart vitals"}]'></div>
+
+  <div class="head">
+    <div><h1 class="h1">Chart vitals</h1><div style="font-size:13px;color:var(--ink-soft);margin-top:4px">Capture vitals, pain, neuro check, and intake/output for this shift.</div></div>
+    <div style="display:flex;gap:8px"><button class="btn">Cancel</button><button class="btn primary">Save vitals <span class="arrow">→</span></button></div>
+  </div>
+
+  <div class="ctx">
+    <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=160&h=160&fit=crop&crop=faces')"></div>
+    <div>
+      <div class="nm">Albert Smith · MRN 4421-08 · 9 yo M</div>
+      <div class="meta"><span><b>Ward</b> Peds-2 / 14</span><span><b>Wt</b> 31 kg</span><span><b>Last vitals</b> 2 hr ago</span><span><b>Charting RN</b> Brooks, J</span></div>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center;font-size:11px;color:var(--ink-soft)">
+      <span class="pill good"><span class="pdot"></span>Manual</span>
+      <button class="btn" style="font-size:11px">Pull from monitor</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div style="display:flex;flex-direction:column;gap:14px">
+
+      <!-- Vitals -->
+      <div class="card panel">
+        <h2>Vitals</h2>
+        <div class="sub">Tap any tile to enter. Out-of-range values flag automatically per pediatric reference (age 9).</div>
+
+        <div class="v-grid">
+          <div class="v-tile focus" data-vital="hr">
+            <div class="lab"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>Heart rate</div>
+            <input value="96" data-min="70" data-max="110" />
+            <div class="unit">bpm · radial</div>
+            <div class="range">Normal 70–110</div>
+            <div class="delta dn">↓ 4 from last</div>
+            <span class="badge">High</span>
+          </div>
+
+          <div class="v-tile flag-w" data-vital="bp">
+            <div class="lab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2 7 7v9a3 3 0 0 0 3 3h4a3 3 0 0 0 3-3V7z"/></svg>Blood pressure</div>
+            <input value="118/76" />
+            <div class="unit">mmHg · L arm sit</div>
+            <div class="range">Normal &lt;115/75</div>
+            <div class="delta up">↑ 6 systolic</div>
+            <span class="badge">Watch</span>
+          </div>
+
+          <div class="v-tile" data-vital="spo2">
+            <div class="lab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/></svg>SpO₂</div>
+            <input value="97" data-min="94" data-max="100" />
+            <div class="unit">% · room air</div>
+            <div class="range">Normal ≥94%</div>
+            <div class="delta dn">↓ 1</div>
+            <span class="badge">Low</span>
+          </div>
+
+          <div class="v-tile" data-vital="rr">
+            <div class="lab">Resp rate</div>
+            <input value="18" data-min="14" data-max="24" />
+            <div class="unit">/min · 60s count</div>
+            <div class="range">Normal 14–24</div>
+            <div class="delta">— same</div>
+            <span class="badge">High</span>
+          </div>
+
+          <div class="v-tile" data-vital="temp">
+            <div class="lab">Temperature</div>
+            <input value="36.9" data-min="36" data-max="37.5" />
+            <div class="unit">°C · oral</div>
+            <div class="range">Normal 36.0–37.5</div>
+            <div class="delta dn">↓ 0.3</div>
+            <span class="badge">Fever</span>
+          </div>
+
+          <div class="v-tile" data-vital="weight">
+            <div class="lab">Weight</div>
+            <input value="31.0" />
+            <div class="unit">kg · standing</div>
+            <div class="range">Trend +0.4 kg/wk</div>
+            <div class="delta up">↑ 0.2 kg</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">
+          <div class="v-tile" data-vital="glucose">
+            <div class="lab">Capillary glucose</div>
+            <input value="—" />
+            <div class="unit">mg/dL · finger stick</div>
+            <div class="range">Normal 70–110 fasting</div>
+          </div>
+          <div class="v-tile" data-vital="o2">
+            <div class="lab">O₂ delivery</div>
+            <input value="Room air" />
+            <div class="unit">L/min · device</div>
+            <div class="range">Titrated to SpO₂ ≥94%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pain assessment -->
+      <div class="card panel">
+        <h2>Pain assessment</h2>
+        <div class="sub">Numerical rating scale 0–10. Tap body region to localize.</div>
+
+        <div style="display:grid;grid-template-columns:240px 1fr;gap:18px">
+          <div class="body-fig">
+            <svg viewBox="0 0 200 380" xmlns="http://www.w3.org/2000/svg">
+              <!-- Simple body outline with clickable regions -->
+              <ellipse cx="100" cy="32" rx="22" ry="28" class="region" data-r="head"/>
+              <rect x="78" y="58" width="44" height="14" rx="3" class="region" data-r="neck"/>
+              <path d="M55 72 q45 -16 90 0 l-6 80 q-39 12 -78 0z" class="region" data-r="chest"/>
+              <path d="M62 154 q38 12 76 0 l-4 50 q-34 10 -68 0z" class="region active" data-r="abdomen"/>
+              <path d="M55 72 l-18 70 q4 4 14 4 l8 -68z" class="region" data-r="lshoulder"/>
+              <path d="M145 72 l18 70 q-4 4 -14 4 l-8 -68z" class="region" data-r="rshoulder"/>
+              <rect x="32" y="142" width="22" height="80" rx="6" class="region" data-r="larm"/>
+              <rect x="146" y="142" width="22" height="80" rx="6" class="region" data-r="rarm"/>
+              <rect x="32" y="222" width="20" height="60" rx="6" class="region" data-r="lhand"/>
+              <rect x="148" y="222" width="20" height="60" rx="6" class="region" data-r="rhand"/>
+              <rect x="65" y="208" width="32" height="100" rx="8" class="region" data-r="lleg"/>
+              <rect x="103" y="208" width="32" height="100" rx="8" class="region" data-r="rleg"/>
+              <rect x="65" y="312" width="30" height="58" rx="6" class="region" data-r="lfoot"/>
+              <rect x="105" y="312" width="30" height="58" rx="6" class="region" data-r="rfoot"/>
+            </svg>
+          </div>
+
+          <div>
+            <div style="font-size:11px;font-weight:800;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Score (NRS)</div>
+            <div class="pain-scale">
+              <div class="p" data-v="0">0</div>
+              <div class="p" data-v="1">1</div>
+              <div class="p" data-v="2">2</div>
+              <div class="p sel" data-v="3">3</div>
+              <div class="p" data-v="4">4</div>
+              <div class="p" data-v="5">5</div>
+              <div class="p" data-v="6">6</div>
+              <div class="p" data-v="7">7</div>
+              <div class="p" data-v="8">8</div>
+              <div class="p" data-v="9">9</div>
+              <div class="p" data-v="10">10</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--ink-mute);margin-top:6px">
+              <span>None</span><span>Mild</span><span>Moderate</span><span>Severe</span><span>Worst</span>
+            </div>
+
+            <div style="margin-top:14px;font-size:11px;font-weight:800;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em">Quality</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
+              <span class="pill" style="cursor:pointer">Sharp</span>
+              <span class="pill" style="cursor:pointer;background:#0e1116;color:#fff">Cramping</span>
+              <span class="pill" style="cursor:pointer">Dull</span>
+              <span class="pill" style="cursor:pointer">Burning</span>
+              <span class="pill" style="cursor:pointer">Throbbing</span>
+              <span class="pill" style="cursor:pointer">Stabbing</span>
+            </div>
+
+            <div style="margin-top:14px;font-size:11px;font-weight:800;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em">Onset / triggers</div>
+            <textarea style="width:100%;margin-top:6px;padding:10px;border:1px solid var(--line);border-radius:10px;font:500 12px 'Plus Jakarta Sans';height:60px;resize:vertical">Began ~30 min ago, mid-abdomen, mild cramping. Worsens after eating, no radiation. Non-tender on palpation.</textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- I/O -->
+      <div class="card panel">
+        <h2>Intake &amp; output</h2>
+        <div class="sub">Shift tally — 7am to now (5h 32m). Auto-aggregates from medication admin, IV bag changes, and manual entries.</div>
+
+        <div class="seg">
+          <div class="o act">This shift</div>
+          <div class="o">Last 24h</div>
+          <div class="o">Last 72h</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div>
+            <div style="font-size:11px;font-weight:800;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Intake (in)</div>
+            <div class="io-row"><div><div class="nm">D5 ½ NS</div><div class="sub">IV · 60 mL/hr · auto</div></div><input value="330"/><div class="u">mL</div></div>
+            <div class="io-row"><div><div class="nm">PO water</div><div class="sub">Cup × 2</div></div><input value="240"/><div class="u">mL</div></div>
+            <div class="io-row"><div><div class="nm">Apple juice</div><div class="sub">Breakfast tray</div></div><input value="120"/><div class="u">mL</div></div>
+            <div class="io-row"><div><div class="nm">IV med flush</div><div class="sub">Methylpred + saline</div></div><input value="50"/><div class="u">mL</div></div>
+            <div class="io-row"><div><div class="nm">+ Add intake</div></div><input/><div class="u"></div></div>
+          </div>
+
+          <div>
+            <div style="font-size:11px;font-weight:800;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Output (out)</div>
+            <div class="io-row"><div><div class="nm">Urine void</div><div class="sub">10:14 · clear yellow</div></div><input value="220"/><div class="u">mL</div></div>
+            <div class="io-row"><div><div class="nm">Urine void</div><div class="sub">12:32 · clear yellow</div></div><input value="180"/><div class="u">mL</div></div>
+            <div class="io-row"><div><div class="nm">Stool</div><div class="sub">Soft, brown ×1</div></div><input value="—"/><div class="u"></div></div>
+            <div class="io-row"><div><div class="nm">Emesis</div><div class="sub">None</div></div><input value="0"/><div class="u">mL</div></div>
+            <div class="io-row"><div><div class="nm">+ Add output</div></div><input/><div class="u"></div></div>
+          </div>
+        </div>
+
+        <div class="io-totals">
+          <div class="t"><div class="v">740</div><div class="l">Total in (mL)</div></div>
+          <div class="t"><div class="v">400</div><div class="l">Total out (mL)</div></div>
+          <div class="t"><div class="v" style="color:#27c26b">+340</div><div class="l">Net balance</div></div>
+          <div class="t"><div class="v">2.6</div><div class="l">Urine mL/kg/hr</div></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right rail: history -->
+    <div style="display:flex;flex-direction:column;gap:14px;position:sticky;top:14px">
+      <div class="card panel" style="padding:18px">
+        <h2 style="font-size:22px">Vitals timeline</h2>
+        <div class="sub">Last 6 readings · today</div>
+
+        <div class="timeline">
+          <div class="tl-row">
+            <div class="t">14:00<small>Now</small></div>
+            <div class="vs"><span>96<small>HR</small></span><span>118/76<small>BP</small></span><span>97<small>SpO₂</small></span></div>
+          </div>
+          <div class="tl-row">
+            <div class="t">12:00<small>2h ago</small></div>
+            <div class="vs"><span>100<small>HR</small></span><span>112/72<small>BP</small></span><span>98<small>SpO₂</small></span></div>
+          </div>
+          <div class="tl-row">
+            <div class="t">10:00<small>4h ago</small></div>
+            <div class="vs"><span>104<small>HR</small></span><span>114/74<small>BP</small></span><span>96<small>SpO₂</small></span></div>
+          </div>
+          <div class="tl-row">
+            <div class="t">08:00<small>6h ago</small></div>
+            <div class="vs"><span>108<small>HR</small></span><span>118/76<small>BP</small></span><span>95<small>SpO₂</small></span></div>
+          </div>
+          <div class="tl-row">
+            <div class="t">06:00<small>8h ago</small></div>
+            <div class="vs"><span>112<small>HR</small></span><span>122/78<small>BP</small></span><span>94<small>SpO₂</small></span></div>
+          </div>
+          <div class="tl-row">
+            <div class="t">04:00<small>10h ago</small></div>
+            <div class="vs"><span>118<small>HR</small></span><span>120/76<small>BP</small></span><span>93<small>SpO₂</small></span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card panel" style="padding:18px">
+        <h2 style="font-size:22px">Auto-flags</h2>
+        <div class="sub">System-detected concerns this shift</div>
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:12px">
+          <div style="padding:10px;background:#fff3df;border-left:3px solid var(--warn);border-radius:8px">
+            <div style="font-weight:800;color:#a05a00">⚠ Mild tachycardia trend</div>
+            <div style="color:#7a4400;font-size:11px;margin-top:2px">HR 96–118 over 10h, slowly improving</div>
+          </div>
+          <div style="padding:10px;background:#e6efff;border-left:3px solid var(--info);border-radius:8px">
+            <div style="font-weight:800;color:#1a4fb3">ℹ Pain trend</div>
+            <div style="color:#1a4fb3;font-size:11px;margin-top:2px">Down from 5 → 3 since last analgesic</div>
+          </div>
+          <div style="padding:10px;background:#dff7e7;border-left:3px solid var(--good);border-radius:8px">
+            <div style="font-weight:800;color:#1a8a48">✓ Adequate UOP</div>
+            <div style="color:#1a8a48;font-size:11px;margin-top:2px">2.6 mL/kg/hr · target ≥1.0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card panel" style="padding:18px">
+        <h2 style="font-size:22px">Quick actions</h2>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">
+          <a href="OrderDetail.html" class="btn" style="justify-content:flex-start;text-decoration:none">→ Order PRN analgesia</a>
+          <a href="PatientChart.html" class="btn" style="justify-content:flex-start;text-decoration:none">→ Open chart</a>
+          <a href="Telemetry.html" class="btn" style="justify-content:flex-start;text-decoration:none">→ Live telemetry</a>
+          <a href="Documents.html" class="btn" style="justify-content:flex-start;text-decoration:none">→ Add nursing note</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div></div>
+
+<script src="../scripts/nav.js"></script>
+<script src="../scripts/breadcrumbs.js"></script>
+<script>
+// Pain scale
+document.querySelectorAll('.pain-scale .p').forEach(p => {
+  p.addEventListener('click', () => {
+    document.querySelectorAll('.pain-scale .p').forEach(x=>x.classList.remove('sel'));
+    p.classList.add('sel');
+  });
+});
+
+// Body region
+document.querySelectorAll('.body-fig .region').forEach(r => {
+  r.addEventListener('click', () => {
+    document.querySelectorAll('.body-fig .region').forEach(x=>x.classList.remove('active'));
+    r.classList.add('active');
+  });
+});
+
+// Tile focus
+document.querySelectorAll('.v-tile').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.v-tile').forEach(x=>x.classList.remove('focus'));
+    t.classList.add('focus');
+    t.querySelector('input')?.focus();
+  });
+});
+
+// Live range checking
+document.querySelectorAll('.v-tile input[data-min]').forEach(inp => {
+  inp.addEventListener('input', () => {
+    const tile = inp.closest('.v-tile');
+    const v = parseFloat(inp.value);
+    const min = +inp.dataset.min, max = +inp.dataset.max;
+    tile.classList.remove('flag','flag-w');
+    if(isNaN(v)) return;
+    if(v < min*0.85 || v > max*1.15) tile.classList.add('flag');
+    else if(v < min || v > max) tile.classList.add('flag-w');
+  });
+});
+</script>
+<script>
+window.MC_ROUTES = [{sel:'.btn.primary', href:'PatientChart.html', title:'Save & return to chart'}];
+</script>
+<script src="../scripts/router.js"></script>
+</body>
+</html>

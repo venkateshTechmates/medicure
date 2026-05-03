@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Clinic visit</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin:8px 4px 22px;flex-wrap:wrap;gap:14px}
+  .head .h1{font-size:46px}
+  .head .meta{color:var(--ink-soft);font-size:13px;margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}
+  .head .meta b{color:var(--ink)}
+
+  .layout{display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start}
+  .card{padding:0;overflow:hidden}
+  .ch{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:14px}
+  .ch .t{font-weight:800;font-size:14px}
+  .ch .s{font-size:11px;color:var(--ink-mute);font-family:"JetBrains Mono",monospace}
+
+  /* Encounter timeline */
+  .timeline{display:flex;background:#fff;border-radius:14px;padding:0;box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden}
+  .ts{flex:1;padding:16px 18px;border-right:1px solid var(--line);position:relative;cursor:pointer}
+  .ts:last-child{border-right:0}
+  .ts .l{font-size:9.5px;color:var(--ink-mute);font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+  .ts .nm{font-weight:800;font-size:13px;margin-top:4px}
+  .ts .when{font-size:10.5px;color:var(--ink-mute);font-family:"JetBrains Mono",monospace;margin-top:3px}
+  .ts.done{background:#fafbfc}
+  .ts.done .nm{color:var(--ink-mute)}
+  .ts.now{background:#0e1116;color:#fff}
+  .ts.now .l,.ts.now .when{color:rgba(255,255,255,.55)}
+  .ts.up .l{color:#a06e0d}
+  .ts .check{position:absolute;top:14px;right:14px;width:20px;height:20px;border-radius:50%;background:#27c26b;color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center}
+  .ts.now .check{background:#3a86ff}
+  .ts.up .check{background:transparent;border:2px solid var(--line);color:transparent}
+
+  /* Reason / HPI */
+  .hpi{padding:18px}
+  .hpi .reason{font-family:"Instrument Serif",serif;font-size:30px;line-height:1.15;letter-spacing:-.015em;margin-bottom:6px}
+  .hpi .quote{color:var(--ink-soft);font-size:13.5px;line-height:1.6;font-style:italic;border-left:3px solid var(--line);padding-left:12px;margin:14px 0}
+  .hpi-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-top:14px}
+  .hp{background:#fafbfc;border:1px solid var(--line);border-radius:10px;padding:10px}
+  .hp .l{font-size:9px;font-weight:800;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em}
+  .hp .v{font-family:"JetBrains Mono",monospace;font-weight:800;font-size:13px;margin-top:4px}
+
+  /* Vitals strip */
+  .vstrip{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--line);border-radius:10px;overflow:hidden;margin:14px 18px;padding:1px}
+  .vc{background:#fff;padding:11px}
+  .vc .l{font-size:9px;color:var(--ink-mute);font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+  .vc .v{font-family:"Instrument Serif",serif;font-size:24px;line-height:1;margin-top:4px}
+  .vc .d{font-size:10px;color:var(--ink-mute);font-family:"JetBrains Mono",monospace;margin-top:3px}
+  .vc.warn .v{color:#a06e0d}
+  .vc.bad .v{color:#c43c3c}
+  .vc.ok .v{color:#1a8a48}
+
+  /* Assessment / plan editor */
+  .ap{padding:0}
+  .ap-row{display:grid;grid-template-columns:1fr 100px;gap:14px;padding:14px 18px;border-top:1px solid var(--line);align-items:flex-start}
+  .ap-row:first-child{border-top:0}
+  .ap-row .nm{font-weight:800;font-size:14px;margin-bottom:4px}
+  .ap-row .nm .icd{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:11px;color:var(--ink-mute);margin-left:6px}
+  .ap-row .stat{font-size:9.5px;font-weight:800;padding:3px 8px;border-radius:5px;text-align:center;text-transform:uppercase;align-self:flex-start;margin-top:2px}
+  .stat.act{background:#ffe3e3;color:#7a1f1f}
+  .stat.ctrl{background:#dff7e7;color:#1a6d3c}
+  .stat.new{background:#fff5e2;color:#a06e0d}
+  .ap-row .body{font-size:12.5px;color:var(--ink-soft);line-height:1.6}
+  .ap-row .body p{margin:0 0 6px}
+  .ap-row .body ul{margin:6px 0 6px 18px;padding:0}
+  .ap-row .body ul li{margin-bottom:3px}
+  .ap-row .body b{color:var(--ink)}
+
+  /* Schedule strip */
+  .sched{padding:0}
+  .slot{display:grid;grid-template-columns:80px 1fr 90px;gap:10px;padding:10px 18px;border-top:1px solid var(--line);font-size:11.5px;align-items:center}
+  .slot:first-child{border-top:0}
+  .slot.curr{background:#e6efff}
+  .slot .when{font-family:"JetBrains Mono",monospace;font-weight:800}
+  .slot .nm{font-weight:700}
+  .slot .nm small{display:block;color:var(--ink-mute);font-weight:500;font-size:10px;margin-top:1px;font-family:"JetBrains Mono",monospace}
+  .slot .stat{font-size:9.5px;font-weight:800;padding:3px 7px;border-radius:5px;text-align:center;text-transform:uppercase}
+  .stat.done{background:#dff7e7;color:#1a6d3c}
+  .stat.exam{background:#0e1116;color:#fff}
+  .stat.room{background:#fff5e2;color:#a06e0d}
+  .stat.ck{background:#e6efff;color:#1a4fb3}
+  .stat.up{background:#fafbfc;color:var(--ink-mute)}
+
+  /* Order pad */
+  .ord-grp{padding:14px 18px;border-top:1px solid var(--line)}
+  .ord-grp:first-of-type{border-top:0}
+  .ord-grp h5{margin:0 0 8px;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-mute)}
+  .ord-grp .grid{display:flex;gap:5px;flex-wrap:wrap}
+  .pill{font-size:11.5px;font-weight:700;padding:7px 11px;border-radius:8px;background:#fafbfc;border:1px solid var(--line);cursor:pointer;font-family:"Plus Jakarta Sans",sans-serif}
+  .pill:hover{border-color:#0e1116}
+  .pill.added{background:#0e1116;color:#fff;border-color:#0e1116}
+  .pill.added::before{content:"✓ ";font-family:"JetBrains Mono",monospace}
+
+  /* Past visits compact */
+  .past-row{display:grid;grid-template-columns:60px 1fr 80px;gap:10px;padding:9px 16px;border-top:1px solid var(--line);font-size:11.5px;align-items:flex-start}
+  .past-row:first-child{border-top:0}
+  .past-row .when{font-family:"JetBrains Mono",monospace;font-weight:800;color:var(--ink-mute);font-size:10.5px;line-height:1.3}
+  .past-row .reason{font-weight:700;line-height:1.4}
+  .past-row .reason small{display:block;color:var(--ink-mute);font-weight:500;font-size:10px;margin-top:2px;font-family:"JetBrains Mono",monospace}
+  .past-row .who{font-size:10px;color:var(--ink-mute);font-family:"JetBrains Mono",monospace;font-weight:700;text-align:right}
+</style></head>
+<body data-page="overview" data-base="../">
+
+<div class="page" style="max-width:1500px"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div data-bc='[{"label":"Outpatient"},{"label":"Internal medicine clinic"},{"label":"Encounter ENC-2026-091422"}]'></div>
+
+  <div class="head">
+    <div>
+      <h1 class="h1">Office visit</h1>
+      <div class="meta">
+        <span><b>Henry Tanaka</b> · M · 58 yo · MRN 4451209</span>
+        <span>PCP · <b>Dr. P. Mendoza</b> · room 4</span>
+        <span>Type · 99214 · est follow-up · 30 min</span>
+        <span>Insurer · BCBS PPO · co-pay $25 collected</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn">+ Order</button>
+      <button class="btn">+ Rx</button>
+      <button class="btn">Save draft</button>
+      <button class="btn primary">Sign &amp; close →</button>
+    </div>
+  </div>
+
+  <div class="timeline">
+    <div class="ts done"><div class="check">✓</div><div class="l">01 · Check-in</div><div class="nm">Front desk</div><div class="when">14:02 · 12 min wait</div></div>
+    <div class="ts done"><div class="check">✓</div><div class="l">02 · Rooming + vitals</div><div class="nm">MA · L. Ortiz</div><div class="when">14:14 · room 4</div></div>
+    <div class="ts done"><div class="check">✓</div><div class="l">03 · HPI / interview</div><div class="nm">5-min update</div><div class="when">14:24</div></div>
+    <div class="ts now"><div class="check">●</div><div class="l">04 · Exam + A/P</div><div class="nm">In progress</div><div class="when">14:29 · 11 min in</div></div>
+    <div class="ts up"><div class="check"></div><div class="l">05 · Orders + Rx</div><div class="nm">Pending</div><div class="when">— next</div></div>
+    <div class="ts up"><div class="check"></div><div class="l">06 · Counseling</div><div class="nm">Pending</div><div class="when">—</div></div>
+    <div class="ts up"><div class="check"></div><div class="l">07 · Sign-out</div><div class="nm">Visit summary + f/u</div><div class="when">—</div></div>
+  </div>
+
+  <div class="layout">
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <div class="card">
+        <div class="ch"><span class="t">Reason &amp; HPI</span><span class="s">Last visit · 6 mo ago · DM follow-up</span></div>
+        <div class="hpi">
+          <div class="reason">Diabetes follow-up · A1c review · medication recheck</div>
+          <div class="quote">"Sugars have been a bit higher since the holidays — running 160s in the morning. Started walking again 3 weeks ago, knees ache afterward. Wife wants me to bring up the snoring." — pt</div>
+          <div class="hpi-grid">
+            <div class="hp"><div class="l">Onset</div><div class="v">~ 8 wks</div></div>
+            <div class="hp"><div class="l">Quality</div><div class="v">↑ FBG</div></div>
+            <div class="hp"><div class="l">Severity</div><div class="v">moderate</div></div>
+            <div class="hp"><div class="l">Course</div><div class="v">stable-↑</div></div>
+            <div class="hp"><div class="l">Modifying</div><div class="v">diet · exer</div></div>
+            <div class="hp"><div class="l">Assoc sx</div><div class="v">snore</div></div>
+            <div class="hp"><div class="l">Not</div><div class="v">no polyuria</div></div>
+          </div>
+        </div>
+        <div class="vstrip">
+          <div class="vc"><div class="l">BP sit</div><div class="v" style="color:#a06e0d">142/88</div><div class="d">↑ from 134/82</div></div>
+          <div class="vc"><div class="l">HR</div><div class="v">76</div><div class="d">reg</div></div>
+          <div class="vc"><div class="l">RR · SpO2</div><div class="v">16</div><div class="d">98% RA</div></div>
+          <div class="vc"><div class="l">Temp</div><div class="v">36.7</div><div class="d">°C</div></div>
+          <div class="vc warn"><div class="l">Wt · BMI</div><div class="v">94.2</div><div class="d">BMI 30.4 ↑0.6</div></div>
+          <div class="vc warn"><div class="l">Pain</div><div class="v">3/10</div><div class="d">b/l knees</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Assessment &amp; plan</span><span class="s">5 problems addressed · 3 chronic · 1 new · 1 prev</span></div>
+        <div class="ap">
+          <div class="ap-row">
+            <div>
+              <div class="nm">Type 2 diabetes · uncontrolled <span class="icd">E11.65</span></div>
+              <div class="body">
+                <p>A1c <b>8.2 %</b> (target ≤ 7.0) — up from 7.1. SMBG diary shows fasting 150–170s, post-prandial 200s. Adherence good per pt; weight ↑ 2.6 kg over 6 mo.</p>
+                <p><b>Plan</b></p>
+                <ul>
+                  <li>Add <b>semaglutide 0.25 mg SQ weekly</b> × 4 wk → 0.5 mg; teach inj technique today.</li>
+                  <li>Continue metformin 1000 mg BID, empagliflozin 10 mg daily.</li>
+                  <li>Recheck A1c, lipid, BMP, UACR in <b>3 mo</b>.</li>
+                  <li>Refer RD; portal-message diet handout.</li>
+                </ul>
+              </div>
+            </div>
+            <span class="stat act">Active · ↑</span>
+          </div>
+
+          <div class="ap-row">
+            <div>
+              <div class="nm">Hypertension · borderline today <span class="icd">I10</span></div>
+              <div class="body">
+                <p>BP 142/88 in office · home avg 132/82 last 14 d (logged on portal). Currently on lisinopril 20 mg.</p>
+                <p><b>Plan</b> — re-check at home AM/PM × 7 d; if avg ≥ 135/85, add chlorthalidone 12.5 mg. Reinforce DASH.</p>
+              </div>
+            </div>
+            <span class="stat ctrl">Stable</span>
+          </div>
+
+          <div class="ap-row">
+            <div>
+              <div class="nm">Hyperlipidemia <span class="icd">E78.5</span></div>
+              <div class="body">
+                <p>LDL 78 (last 4 mo) on rosuvastatin 20 mg — at goal. Tolerating, no myalgias.</p>
+                <p><b>Plan</b> — continue. Repeat lipids w/ A1c in 3 mo.</p>
+              </div>
+            </div>
+            <span class="stat ctrl">At goal</span>
+          </div>
+
+          <div class="ap-row">
+            <div>
+              <div class="nm">Knee pain · b/l · likely OA <span class="icd">M17.0</span></div>
+              <div class="body">
+                <p>Worse with new walking program · stairs ≥ flat ground. No locking, no swelling, no trauma. Crepitus on exam, no effusion. ROM full.</p>
+                <p><b>Plan</b> — APAP 1g TID prn, topical diclofenac, knee strengthening handout. Imaging only if not improving 4–6 wk.</p>
+              </div>
+            </div>
+            <span class="stat new">New today</span>
+          </div>
+
+          <div class="ap-row">
+            <div>
+              <div class="nm">OSA screening — concerning <span class="icd">G47.30</span></div>
+              <div class="body">
+                <p>Loud nightly snoring per partner, witnessed apnea, AM headaches. <b>STOP-BANG = 5 (high)</b>. BMI 30, neck 16.5".</p>
+                <p><b>Plan</b> — refer sleep medicine for home sleep study. ESS questionnaire today (score 12).</p>
+              </div>
+            </div>
+            <span class="stat new">New</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Order pad · this visit</span><span class="s">3 added · all in CPOE queue</span></div>
+        <div class="ord-grp">
+          <h5>Labs</h5>
+          <div class="grid">
+            <button class="pill added">A1c</button>
+            <button class="pill added">Lipid panel</button>
+            <button class="pill added">BMP</button>
+            <button class="pill added">UACR (random)</button>
+            <button class="pill">CBC</button>
+            <button class="pill">TSH</button>
+            <button class="pill">LFTs</button>
+            <button class="pill">+ custom…</button>
+          </div>
+        </div>
+        <div class="ord-grp">
+          <h5>Imaging</h5>
+          <div class="grid">
+            <button class="pill">Knee XR · b/l</button>
+            <button class="pill">Foot XR</button>
+            <button class="pill">CXR</button>
+            <button class="pill">+ custom…</button>
+          </div>
+        </div>
+        <div class="ord-grp">
+          <h5>Referrals</h5>
+          <div class="grid">
+            <button class="pill added">Sleep medicine</button>
+            <button class="pill added">RD · diabetes</button>
+            <button class="pill">Endo</button>
+            <button class="pill">Ortho</button>
+            <button class="pill">PT</button>
+            <button class="pill">+ custom…</button>
+          </div>
+        </div>
+        <div class="ord-grp">
+          <h5>Vaccines &amp; preventive</h5>
+          <div class="grid">
+            <button class="pill added">Flu (Fluzone HD)</button>
+            <button class="pill">Tdap</button>
+            <button class="pill">Pneumovax 23</button>
+            <button class="pill">Shingrix #2</button>
+            <button class="pill">FIT colon screen</button>
+          </div>
+        </div>
+        <div class="ord-grp">
+          <h5>Rx · today</h5>
+          <div class="grid">
+            <button class="pill added">Semaglutide 0.25 → 0.5 SQ wk</button>
+            <button class="pill added">Diclofenac 1% gel</button>
+            <button class="pill added">APAP 1g TID prn</button>
+            <button class="pill">+ new Rx…</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <div class="card">
+        <div class="ch"><span class="t">Today's schedule · Dr. Mendoza</span><span class="s">14 visits · 4 done · 1 in-room · 1 walk-in</span></div>
+        <div class="sched">
+          <div class="slot"><span class="when">14:00</span><span class="nm">M. Lin · 67F<small>BP recheck · 99213</small></span><span class="stat done">✓ done</span></div>
+          <div class="slot"><span class="when">14:15</span><span class="nm">D. Park · 41M<small>annual · 99396</small></span><span class="stat done">✓ done</span></div>
+          <div class="slot curr"><span class="when">14:30</span><span class="nm">H. Tanaka · 58M<small>DM f/u · 99214 · NOW</small></span><span class="stat exam">▶ in exam</span></div>
+          <div class="slot"><span class="when">14:45</span><span class="nm">B. Goldberg · 72F<small>knee pain · 99213</small></span><span class="stat room">→ rooming</span></div>
+          <div class="slot"><span class="when">15:00</span><span class="nm">A. Kim · 35F<small>med refill · 99212</small></span><span class="stat ck">checked-in</span></div>
+          <div class="slot"><span class="when">15:15</span><span class="nm">P. Sharma · 28F<small>cough 5 d</small></span><span class="stat up">scheduled</span></div>
+          <div class="slot"><span class="when">15:30</span><span class="nm">— walk-in slot —<small>R. Patel · sick · TRIAGE</small></span><span class="stat up">walk-in</span></div>
+          <div class="slot"><span class="when">15:45</span><span class="nm">J. Wu · 50M<small>HTN · 99213</small></span><span class="stat up">scheduled</span></div>
+          <div class="slot"><span class="when">16:00</span><span class="nm">— buffer —<small>charting</small></span><span class="stat up">held</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Last 6 visits · Tanaka</span><span class="s">since 2024</span></div>
+        <div>
+          <div class="past-row"><span class="when">2025<br>10-04</span><span class="reason">DM follow-up<small>A1c 7.1 · maintained meds</small></span><span class="who">Mendoza</span></div>
+          <div class="past-row"><span class="when">2025<br>04-12</span><span class="reason">Annual physical<small>vaccines updated · CRC neg</small></span><span class="who">Mendoza</span></div>
+          <div class="past-row"><span class="when">2024<br>11-18</span><span class="reason">URI · self-resolved<small>supportive care</small></span><span class="who">on call</span></div>
+          <div class="past-row"><span class="when">2024<br>09-02</span><span class="reason">DM follow-up<small>A1c 7.4 · added empag</small></span><span class="who">Mendoza</span></div>
+          <div class="past-row"><span class="when">2024<br>03-21</span><span class="reason">Annual physical<small>baseline DM dx · started metf</small></span><span class="who">Mendoza</span></div>
+          <div class="past-row"><span class="when">2024<br>01-08</span><span class="reason">Established care<small>new pt intake</small></span><span class="who">Mendoza</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Care gaps · open</span><span class="s">HEDIS · 4 of 9 due</span></div>
+        <div style="padding:10px 14px;font-size:11.5px;display:flex;flex-direction:column;gap:6px">
+          <div style="padding:8px 10px;background:#ffe3e3;border-radius:8px"><b style="color:#7a1f1f">DM eye exam</b> — 18 mo overdue; refer ophtho today.</div>
+          <div style="padding:8px 10px;background:#fff5e2;border-radius:8px"><b style="color:#5c4108">DM monofilament foot exam</b> — done today, normal both feet ✓.</div>
+          <div style="padding:8px 10px;background:#fff5e2;border-radius:8px"><b style="color:#5c4108">Pneumococcal · age 65 schedule</b> — under 65 still; flag at 65.</div>
+          <div style="padding:8px 10px;background:#dff7e7;border-radius:8px"><b style="color:#1a6d3c">Flu · season 25/26</b> — given today ✓.</div>
+          <div style="padding:8px 10px;background:#dff7e7;border-radius:8px"><b style="color:#1a6d3c">Colon Ca screen</b> — colonoscopy 2024 normal.</div>
+          <div style="padding:8px 10px;background:#fff5e2;border-radius:8px"><b style="color:#5c4108">Depression PHQ-9</b> — done · score 4 (none/mild).</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Coding suggestions</span><span class="s">99214 + smart-prompts</span></div>
+        <div style="padding:12px 16px;font-size:11.5px;line-height:1.55">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px"><b style="font-size:13px">CPT 99214</b><span style="font-family:'JetBrains Mono',monospace;color:var(--ink-mute);font-size:11px">est · MDM moderate · 30 min</span></div>
+          <div style="background:#fafbfc;border-radius:8px;padding:9px 10px;margin-bottom:6px"><b>Diagnoses linked (5)</b><br/>E11.65 · I10 · E78.5 · M17.0 · G47.30</div>
+          <div style="background:#dff7e7;border-radius:8px;padding:9px 10px;color:#1a6d3c"><b>Suggested add-on</b> · 99497 (advance care planning, 30 min) — not done today.</div>
+          <div style="background:#fff5e2;border-radius:8px;padding:9px 10px;color:#a06e0d;margin-top:6px"><b>Documentation prompts</b> — 1 ROS missing (psych); add 1 line to bill 99214.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div></div>
+
+<script src="../scripts/nav.js"></script>
+<script src="../scripts/breadcrumbs.js"></script>
+</body></html>

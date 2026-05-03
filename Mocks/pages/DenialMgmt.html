@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — Denial Management</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin:8px 4px 22px;flex-wrap:wrap;gap:14px}
+  .head .h1{font-size:54px}
+  .head .meta{color:var(--ink-soft);font-size:13px;margin-top:6px}
+
+  .stat-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
+  .stat-card{background:#fff;border-radius:16px;padding:14px 16px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .stat-card .lbl{display:flex;align-items:center;gap:8px;color:var(--ink-soft);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+  .stat-card .num{font-family:"Instrument Serif",serif;font-size:36px;letter-spacing:-.02em;line-height:1;margin-top:6px}
+  .stat-card .delta{font-size:10px;color:var(--ink-mute);margin-top:4px}
+
+  .layout{display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start}
+
+  .card{padding:0;overflow:hidden}
+  .ch{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+  .ch .t{font-weight:800;font-size:14px}
+
+  .seg{display:flex;background:#fafbfc;border-radius:10px;padding:3px;gap:2px}
+  .seg .s{padding:6px 12px;font:700 11.5px "Plus Jakarta Sans";color:var(--ink-soft);cursor:pointer;border-radius:7px}
+  .seg .s.act{background:#0e1116;color:#fff}
+
+  /* Bucket bar */
+  .bucket-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;padding:18px;border-bottom:1px solid var(--line)}
+  .bucket{padding:14px;border-radius:12px;background:#fafbfc;border:1px solid var(--line);cursor:pointer}
+  .bucket:hover{border-color:#0e1116;transform:translateY(-2px);transition:.15s}
+  .bucket.sel{background:#0e1116;color:#fff;border-color:#0e1116}
+  .bucket .code{font-family:"JetBrains Mono",monospace;font-size:13px;font-weight:800;letter-spacing:-.01em}
+  .bucket .desc{font-size:10px;color:var(--ink-mute);margin-top:3px;line-height:1.4}
+  .bucket.sel .desc{color:rgba(255,255,255,.7)}
+  .bucket .ct{font-family:"Instrument Serif",serif;font-size:24px;line-height:1;margin-top:8px;letter-spacing:-.02em}
+  .bucket .amt{font-size:10px;color:var(--ink-mute);font-family:"JetBrains Mono",monospace;margin-top:2px}
+  .bucket.sel .amt{color:rgba(255,255,255,.6)}
+
+  /* Denial table */
+  .deny-row{display:grid;grid-template-columns:24px 130px 1fr 100px 100px 100px 90px 80px;gap:10px;padding:13px 18px;border-top:1px solid var(--line);align-items:center;font-size:12px;cursor:pointer}
+  .deny-row:hover{background:#fafbfc}
+  .deny-row.h{font-size:9.5px;font-weight:800;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;border-top:0;padding:8px 18px;background:#fafbfc;cursor:default}
+
+  .deny-row .pt{font-weight:700}
+  .deny-row .pt .sub{font-size:10.5px;color:var(--ink-mute);font-family:"JetBrains Mono",monospace;margin-top:2px;font-weight:600}
+  .deny-row .reason{font-size:11.5px}
+  .deny-row .reason .code{font-family:"JetBrains Mono",monospace;font-weight:800;color:#c43c3c}
+  .deny-row .reason .txt{color:var(--ink-soft);margin-top:2px}
+  .deny-row .num{font-family:"JetBrains Mono",monospace;font-weight:700;text-align:right}
+  .deny-row .age{font-family:"JetBrains Mono",monospace;font-size:11px}
+  .age.fresh{color:#1a8a48}
+  .age.warn{color:#a06e0d}
+  .age.crit{color:#c43c3c}
+
+  .stat-pill{font-size:9px;font-weight:800;padding:3px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:.05em;display:inline-block}
+  .stat-pill.new{background:#ffe3e3;color:#c43c3c}
+  .stat-pill.work{background:#fff5e2;color:#a06e0d}
+  .stat-pill.app{background:#e6efff;color:#1a4fb3}
+  .stat-pill.win{background:#dff7e7;color:#1a8a48}
+
+  .pri-flag{width:18px;height:18px;border-radius:5px;display:inline-grid;place-items:center;font-size:10px;font-weight:800}
+  .pri-flag.high{background:#c43c3c;color:#fff}
+  .pri-flag.med{background:#f0d99c;color:#5c4108}
+  .pri-flag.low{background:#fafbfc;color:var(--ink-mute);border:1px solid var(--line)}
+
+  /* Sidebar */
+  .ai-card{background:linear-gradient(135deg,#5a3232,#a04848);color:#fff;padding:16px;border-radius:14px;margin:16px}
+  .ai-card .ti{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.7)}
+  .ai-card h4{font-family:"Instrument Serif",serif;font-size:20px;letter-spacing:-.01em;margin:6px 0 10px;font-weight:400;line-height:1.2}
+  .ai-stat{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.15)}
+  .ai-stat .b{font-family:"Instrument Serif",serif;font-size:24px;line-height:1;letter-spacing:-.01em}
+  .ai-stat .l{font-size:10px;color:rgba(255,255,255,.7);margin-top:3px;text-transform:uppercase;font-weight:700}
+
+  .why-row{padding:11px 18px;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 60px 50px;gap:10px;font-size:12px;align-items:center}
+  .why-row:first-of-type{border-top:0}
+  .why-row .nm{font-weight:700}
+  .why-row .nm .sub{font-size:10px;color:var(--ink-mute);font-family:"JetBrains Mono",monospace;margin-top:2px;font-weight:600}
+  .why-row .ct{font-family:"JetBrains Mono",monospace;font-weight:800;text-align:right}
+  .why-row .pct{font-size:11px;font-weight:800;text-align:right}
+  .pct.bad{color:#c43c3c}
+  .pct.ok{color:#1a8a48}
+</style></head>
+<body data-page="billing" data-base="../">
+
+<div class="page" style="max-width:1500px"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div data-bc='[{"label":"Billing","href":"Billing.html"},{"label":"Denial management"}]'></div>
+
+  <div class="head">
+    <div><h1 class="h1">Denial management</h1><div class="meta">42 open denials · $84,210 at risk · 8 due to expire in 7 days</div></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn">Bulk appeal</button>
+      <button class="btn">Export worklist</button>
+      <button class="btn primary">+ New appeal</button>
+    </div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-card"><div class="lbl" style="color:#c43c3c">Open denials</div><div class="num">42</div><div class="delta">$84,210 at risk</div></div>
+    <div class="stat-card"><div class="lbl">Worked this week</div><div class="num">28</div><div class="delta">$54,400 recovered</div></div>
+    <div class="stat-card"><div class="lbl">Win rate · 90d</div><div class="num">71%</div><div class="delta" style="color:#1a8a48">+4.2% vs LY</div></div>
+    <div class="stat-card"><div class="lbl">Avg days to appeal</div><div class="num">4.2</div><div class="delta">target ≤ 7</div></div>
+    <div class="stat-card"><div class="lbl">Expiring &lt; 7d</div><div class="num" style="color:#c43c3c">8</div><div class="delta">$18,440 — work first</div></div>
+  </div>
+
+  <div class="layout">
+
+    <div class="card">
+
+      <div class="bucket-grid">
+        <div class="bucket sel">
+          <div class="code">CO-50</div>
+          <div class="desc">Not medically necessary</div>
+          <div class="ct">14</div>
+          <div class="amt">$32,180</div>
+        </div>
+        <div class="bucket">
+          <div class="code">CO-197</div>
+          <div class="desc">Pre-auth missing</div>
+          <div class="ct">9</div>
+          <div class="amt">$21,400</div>
+        </div>
+        <div class="bucket">
+          <div class="code">CO-16</div>
+          <div class="desc">Info missing/invalid</div>
+          <div class="ct">8</div>
+          <div class="amt">$11,820</div>
+        </div>
+        <div class="bucket">
+          <div class="code">CO-29</div>
+          <div class="desc">Timely filing</div>
+          <div class="ct">5</div>
+          <div class="amt">$9,840</div>
+        </div>
+        <div class="bucket">
+          <div class="code">CO-11</div>
+          <div class="desc">Dx incompatible w/ proc</div>
+          <div class="ct">4</div>
+          <div class="amt">$6,200</div>
+        </div>
+        <div class="bucket">
+          <div class="code">PR-119</div>
+          <div class="desc">Benefit max reached</div>
+          <div class="ct">2</div>
+          <div class="amt">$2,770</div>
+        </div>
+      </div>
+
+      <div class="ch" style="border-bottom:0">
+        <span class="t">Worklist · CO-50 not medically necessary · 14 items</span>
+        <div class="seg">
+          <div class="s act">All</div>
+          <div class="s">New · 6</div>
+          <div class="s">Working · 5</div>
+          <div class="s">Submitted · 3</div>
+        </div>
+      </div>
+
+      <div class="deny-row h">
+        <span></span>
+        <span>Claim</span>
+        <span>Patient · payer · denial reason</span>
+        <span style="text-align:right">Amount</span>
+        <span>Filed</span>
+        <span>Days left</span>
+        <span>Status</span>
+        <span></span>
+      </div>
+
+      <div class="deny-row">
+        <span class="pri-flag high">!</span>
+        <div class="pt">
+          <div>CLM-44872</div>
+          <div class="sub">J1956 · 2u</div>
+        </div>
+        <div>
+          <div style="font-weight:700">Aria Chen <span style="color:var(--ink-mute);font-weight:600">· Aetna POS II</span></div>
+          <div class="reason"><span class="code">CO-50</span> <span class="txt">Levofloxacin IV not medically necessary for outpatient — payer wants oral first-line</span></div>
+        </div>
+        <span class="num">$84.00</span>
+        <span class="age">May 1</span>
+        <span class="age crit">2d</span>
+        <span class="stat-pill new">⚠ New</span>
+        <span style="font-size:14px;color:var(--ink-mute);text-align:right">→</span>
+      </div>
+
+      <div class="deny-row">
+        <span class="pri-flag high">!</span>
+        <div class="pt">
+          <div>CLM-44814</div>
+          <div class="sub">J9217 · 1u</div>
+        </div>
+        <div>
+          <div style="font-weight:700">Marcus Rivera <span style="color:var(--ink-mute);font-weight:600">· UHC Choice Plus</span></div>
+          <div class="reason"><span class="code">CO-50</span> <span class="txt">Lupron not medically necessary — peer-to-peer requested</span></div>
+        </div>
+        <span class="num">$3,840.00</span>
+        <span class="age">Apr 28</span>
+        <span class="age crit">5d</span>
+        <span class="stat-pill work">Working</span>
+        <span style="font-size:14px;color:var(--ink-mute);text-align:right">→</span>
+      </div>
+
+      <div class="deny-row">
+        <span class="pri-flag med">!</span>
+        <div class="pt">
+          <div>CLM-44762</div>
+          <div class="sub">70551</div>
+        </div>
+        <div>
+          <div style="font-weight:700">Priya Sharma <span style="color:var(--ink-mute);font-weight:600">· BCBS PPO</span></div>
+          <div class="reason"><span class="code">CO-50</span> <span class="txt">MRI brain — payer claims criteria not met (no failed conservative trial)</span></div>
+        </div>
+        <span class="num">$1,840.00</span>
+        <span class="age">Apr 24</span>
+        <span class="age warn">12d</span>
+        <span class="stat-pill app">Appeal sent</span>
+        <span style="font-size:14px;color:var(--ink-mute);text-align:right">→</span>
+      </div>
+
+      <div class="deny-row">
+        <span class="pri-flag med">!</span>
+        <div class="pt">
+          <div>CLM-44721</div>
+          <div class="sub">29881</div>
+        </div>
+        <div>
+          <div style="font-weight:700">James Wu <span style="color:var(--ink-mute);font-weight:600">· Cigna Open Access</span></div>
+          <div class="reason"><span class="code">CO-50</span> <span class="txt">Knee arthroscopy — payer says PT not exhausted, requires 6 wk documented</span></div>
+        </div>
+        <span class="num">$4,210.00</span>
+        <span class="age">Apr 22</span>
+        <span class="age warn">14d</span>
+        <span class="stat-pill work">Working</span>
+        <span style="font-size:14px;color:var(--ink-mute);text-align:right">→</span>
+      </div>
+
+      <div class="deny-row">
+        <span class="pri-flag med">!</span>
+        <div class="pt">
+          <div>CLM-44688</div>
+          <div class="sub">93312</div>
+        </div>
+        <div>
+          <div style="font-weight:700">Sofia Russo <span style="color:var(--ink-mute);font-weight:600">· Humana Gold</span></div>
+          <div class="reason"><span class="code">CO-50</span> <span class="txt">TEE — payer says TTE adequate, won't pay for both same encounter</span></div>
+        </div>
+        <span class="num">$1,240.00</span>
+        <span class="age">Apr 20</span>
+        <span class="age warn">16d</span>
+        <span class="stat-pill app">Appeal sent</span>
+        <span style="font-size:14px;color:var(--ink-mute);text-align:right">→</span>
+      </div>
+
+      <div class="deny-row">
+        <span class="pri-flag low">!</span>
+        <div class="pt">
+          <div>CLM-44620</div>
+          <div class="sub">99214</div>
+        </div>
+        <div>
+          <div style="font-weight:700">Ben Goldberg <span style="color:var(--ink-mute);font-weight:600">· Anthem PPO</span></div>
+          <div class="reason"><span class="code">CO-50</span> <span class="txt">E&amp;M level 4 — payer down-coded to 99213, $48 differential</span></div>
+        </div>
+        <span class="num">$48.00</span>
+        <span class="age">Apr 16</span>
+        <span class="age warn">20d</span>
+        <span class="stat-pill win">✓ Won</span>
+        <span style="font-size:14px;color:var(--ink-mute);text-align:right">→</span>
+      </div>
+
+      <div class="deny-row">
+        <span class="pri-flag low">!</span>
+        <div class="pt">
+          <div>CLM-44570</div>
+          <div class="sub">A4570</div>
+        </div>
+        <div>
+          <div style="font-weight:700">Mei Tanaka <span style="color:var(--ink-mute);font-weight:600">· Aetna POS II</span></div>
+          <div class="reason"><span class="code">CO-50</span> <span class="txt">DME splint — payer says generic adequate, branded not necessary</span></div>
+        </div>
+        <span class="num">$48.00</span>
+        <span class="age">Apr 12</span>
+        <span class="age warn">24d</span>
+        <span class="stat-pill app">Appeal sent</span>
+        <span style="font-size:14px;color:var(--ink-mute);text-align:right">→</span>
+      </div>
+
+    </div>
+
+    <!-- SIDEBAR -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <div class="card">
+        <div class="ai-card">
+          <div class="ti">Recovery advisor · AI</div>
+          <h4>Appeal these 3 first — $5,000+ likely recovered</h4>
+          <ul style="margin:0;padding:0;list-style:none;font-size:12px;line-height:1.6">
+            <li style="padding-left:18px;position:relative"><span style="position:absolute;left:0;color:#27c26b">→</span> CLM-44814 (Lupron) · request peer-to-peer · 84% win on this CPT</li>
+            <li style="padding-left:18px;position:relative"><span style="position:absolute;left:0;color:#27c26b">→</span> CLM-44721 (knee scope) · attach PT notes from Mar 14 · 76% win</li>
+            <li style="padding-left:18px;position:relative"><span style="position:absolute;left:0;color:#27c26b">→</span> CLM-44872 (Levo IV) · cite IDSA 2024 guidelines · 88% win</li>
+          </ul>
+          <div class="ai-stat">
+            <div><div class="b">$5,840</div><div class="l">Predicted recovery</div></div>
+            <div><div class="b">2.4 hr</div><div class="l">Est. work effort</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Top denial reasons · 30d</span></div>
+        <div class="why-row"><div class="nm"><div>Not medically necessary</div><div class="sub">CO-50</div></div><span class="ct">14</span><span class="pct bad">38%</span></div>
+        <div class="why-row"><div class="nm"><div>Pre-auth missing</div><div class="sub">CO-197</div></div><span class="ct">9</span><span class="pct bad">22%</span></div>
+        <div class="why-row"><div class="nm"><div>Info missing</div><div class="sub">CO-16</div></div><span class="ct">8</span><span class="pct bad">19%</span></div>
+        <div class="why-row"><div class="nm"><div>Timely filing</div><div class="sub">CO-29</div></div><span class="ct">5</span><span class="pct ok">12%</span></div>
+        <div class="why-row"><div class="nm"><div>Dx mismatch</div><div class="sub">CO-11</div></div><span class="ct">4</span><span class="pct ok">10%</span></div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="t">Worst payers · denial rate</span></div>
+        <div class="why-row"><div class="nm"><div>Humana Gold</div><div class="sub">142 claims</div></div><span class="ct">22</span><span class="pct bad">15.5%</span></div>
+        <div class="why-row"><div class="nm"><div>UHC Choice Plus</div><div class="sub">208 claims</div></div><span class="ct">28</span><span class="pct bad">13.5%</span></div>
+        <div class="why-row"><div class="nm"><div>Anthem PPO</div><div class="sub">96 claims</div></div><span class="ct">8</span><span class="pct ok">8.3%</span></div>
+        <div class="why-row"><div class="nm"><div>Aetna POS II</div><div class="sub">312 claims</div></div><span class="ct">22</span><span class="pct ok">7.1%</span></div>
+        <div class="why-row"><div class="nm"><div>BCBS PPO</div><div class="sub">184 claims</div></div><span class="ct">11</span><span class="pct ok">6.0%</span></div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div></div>
+
+<script src="../scripts/nav.js"></script>
+<script src="../scripts/breadcrumbs.js"></script>
+</body>
+</html>

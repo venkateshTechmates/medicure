@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/><title>Medcure — New Note · Albert Smith</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;justify-content:space-between;align-items:flex-end;margin:8px 4px 18px;flex-wrap:wrap;gap:14px}
+  .head .h1{font-size:48px}
+  .ctx{display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;background:#fff;border-radius:18px;padding:14px 18px;box-shadow:var(--shadow);margin-bottom:14px}
+  .ctx .pic{width:48px;height:48px;border-radius:14px;background:#888 center/cover}
+  .ctx .nm{font-weight:700}
+  .ctx .meta{font-size:11px;color:var(--ink-soft);display:flex;gap:14px;flex-wrap:wrap;margin-top:3px}
+  .ctx .meta b{color:var(--ink)}
+
+  .layout{display:grid;grid-template-columns:240px 1fr 320px;gap:14px;align-items:start}
+
+  /* Left rail: templates */
+  .rail{background:#fff;border-radius:18px;padding:12px;box-shadow:var(--shadow);position:sticky;top:14px}
+  .rail h3{margin:6px 6px 8px;font-size:11px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;font-weight:800}
+  .rail-item{padding:9px 10px;border-radius:10px;font:600 12px "Plus Jakarta Sans";color:var(--ink-soft);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:6px}
+  .rail-item:hover{background:#fafbfc;color:var(--ink)}
+  .rail-item.act{background:#0e1116;color:#fff}
+  .rail-item .ct{font-size:10px;opacity:.6}
+  .rail-item.act .ct{color:#ffd633}
+
+  /* Editor */
+  .editor{background:#fff;border-radius:18px;padding:0;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;min-height:680px}
+  .ed-tools{display:flex;align-items:center;gap:6px;padding:10px 14px;border-bottom:1px solid var(--line);background:#fafbfc;flex-wrap:wrap}
+  .ed-tools button{width:30px;height:30px;border-radius:8px;border:0;background:transparent;color:var(--ink-soft);cursor:pointer;display:grid;place-items:center;font-weight:800;font-size:12px;font-family:'Plus Jakarta Sans'}
+  .ed-tools button:hover{background:#e9ecf3;color:var(--ink)}
+  .ed-tools button.act{background:#0e1116;color:#fff}
+  .ed-tools .div{width:1px;height:18px;background:var(--line);margin:0 4px}
+  .ed-tools .voice{margin-left:auto;display:flex;align-items:center;gap:6px;background:#ff4d6b;color:#fff;padding:6px 12px;border-radius:999px;width:auto;font:700 11px "Plus Jakarta Sans"}
+  .ed-tools .voice i{width:6px;height:6px;border-radius:50%;background:#fff;animation:pulse 1.2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+  .ed-meta{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;padding:14px 22px;border-bottom:1px solid var(--line);font-size:12px}
+  .ed-meta .f{display:flex;flex-direction:column;gap:3px}
+  .ed-meta .f label{font-size:10px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;font-weight:800}
+  .ed-meta .f input,.ed-meta .f select{border:1px solid var(--line);border-radius:8px;padding:7px 9px;font:600 12px "Plus Jakarta Sans";background:#fff}
+
+  .ed-body{padding:28px 36px;flex:1;font-family:"Lora",Georgia,serif;font-size:14.5px;line-height:1.7;color:#1a1d24}
+  .ed-body h2{font-family:"Instrument Serif",serif;font-weight:400;font-size:26px;color:#0e1116;margin:18px 0 8px;border-bottom:1px solid var(--line);padding-bottom:4px;letter-spacing:-.01em}
+  .ed-body h2:first-child{margin-top:0}
+  .ed-body p{margin:0 0 10px}
+  .ed-body .smart{background:#fff3a8;color:#7a5c00;padding:1px 5px;border-radius:4px;font-weight:600;cursor:pointer}
+  .ed-body .smart:hover{background:#ffe26b}
+  .ed-body .vital{display:inline-block;font-family:"JetBrains Mono",monospace;background:#0e1116;color:#fff;padding:2px 8px;border-radius:6px;font-size:12px;font-weight:600}
+  .ed-body .meds{padding:10px 14px;background:#fafbfc;border-left:3px solid var(--info);border-radius:8px;font-family:"Plus Jakarta Sans";font-size:12px;line-height:1.6;margin:8px 0}
+
+  .ed-foot{padding:14px 22px;border-top:1px solid var(--line);background:#fafbfc;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+  .save-status{font-size:11px;color:var(--good);display:flex;align-items:center;gap:6px;font-weight:700}
+  .save-status::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--good)}
+
+  /* Right rail: snippets, problems, billing */
+  .side-card{background:#fff;border-radius:14px;padding:14px;box-shadow:var(--shadow)}
+  .side-card h4{margin:0 0 8px;font-size:11px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em;font-weight:800}
+  .snippet{padding:8px 10px;background:#fafbfc;border-radius:8px;margin-bottom:5px;font-size:11.5px;cursor:pointer;border:1px solid var(--line)}
+  .snippet:hover{border-color:#0e1116;background:#fff}
+  .snippet b{display:block;color:var(--ink);font-weight:700;margin-bottom:1px}
+  .snippet span{color:var(--ink-soft)}
+
+  .problem-pill{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#fafbfc;border-radius:8px;margin-bottom:4px;font-size:12px;cursor:pointer;border:1px solid var(--line)}
+  .problem-pill:hover{border-color:#0e1116}
+  .problem-pill .nm{font-weight:700}
+  .problem-pill .code{font-family:'SF Mono',monospace;font-size:10px;color:var(--ink-mute)}
+
+  .cpt-row{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;padding:6px 0;font-size:12px;border-bottom:1px solid var(--line)}
+  .cpt-row:last-child{border-bottom:0}
+  .cpt-row .c{font-family:'SF Mono',monospace;font-size:10px;color:var(--ink-mute)}
+  .cpt-row .n{font-weight:700}
+  .cpt-row .p{font-weight:800;color:var(--good)}
+</style></head>
+<body data-page="patients" data-base="../">
+
+<div class="page" style="max-width:1500px"><div class="frame">
+  <div class="nav" id="medcure-nav"></div>
+
+  <div data-bc='[{"label":"Patients","href":"Patients.html"},{"label":"Albert Smith","href":"PatientChart.html"},{"label":"New progress note"}]'></div>
+
+  <div class="head">
+    <div><h1 class="h1">Compose note</h1><div style="font-size:13px;color:var(--ink-soft);margin-top:4px">Day 3 progress · Pediatrics · Asthma exacerbation</div></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span class="save-status">Auto-saved 8 sec ago</span>
+      <button class="btn">Save draft</button>
+      <button class="btn">Cosign &amp; route</button>
+      <button class="btn primary">Sign &amp; file <span class="arrow">→</span></button>
+    </div>
+  </div>
+
+  <div class="ctx">
+    <div class="pic" style="background-image:url('https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=160&h=160&fit=crop&crop=faces')"></div>
+    <div>
+      <div class="nm">Albert Smith · MRN 4421-08 · 9 yo M</div>
+      <div class="meta"><span><b>Encounter</b> Inpt-2024-08841 · Day 3</span><span><b>Author</b> Dr. M. Achebe, Pediatrics</span><span><b>Cosign</b> Required (Resident → Attending)</span></div>
+    </div>
+    <div style="display:flex;gap:6px"><span class="pill warn"><span class="pdot"></span>Draft</span></div>
+  </div>
+
+  <div class="layout">
+    <!-- LEFT: TEMPLATES -->
+    <div class="rail">
+      <h3>Note type</h3>
+      <div class="rail-item act">SOAP progress <span class="ct">Active</span></div>
+      <div class="rail-item">H&amp;P (admission)</div>
+      <div class="rail-item">Discharge summary</div>
+      <div class="rail-item">Procedure note</div>
+      <div class="rail-item">Operative</div>
+      <div class="rail-item">Consult</div>
+      <div class="rail-item">Nursing</div>
+      <div class="rail-item">Telephone</div>
+      <div class="rail-item">Critical care</div>
+      <div class="rail-item">Death note</div>
+
+      <h3 style="margin-top:14px">Specialty templates</h3>
+      <div class="rail-item">Asthma exac (Peds) <span class="ct">★</span></div>
+      <div class="rail-item">Sepsis admit</div>
+      <div class="rail-item">Chest pain r/o</div>
+      <div class="rail-item">Diabetic admit</div>
+      <div class="rail-item">Stroke alert</div>
+
+      <h3 style="margin-top:14px">My favorites</h3>
+      <div class="rail-item">Asthma exac (Peds)</div>
+      <div class="rail-item">Quick re-assessment</div>
+    </div>
+
+    <!-- CENTER: EDITOR -->
+    <div class="editor">
+      <div class="ed-tools">
+        <button class="act"><b>B</b></button>
+        <button><i>I</i></button>
+        <button><u>U</u></button>
+        <div class="div"></div>
+        <button>H1</button>
+        <button>H2</button>
+        <button>•</button>
+        <button>1.</button>
+        <div class="div"></div>
+        <button title="Link">🔗</button>
+        <button title="Insert smart phrase">⚡</button>
+        <button title="Pull vitals">+ Vitals</button>
+        <button title="Pull meds">+ Meds</button>
+        <button title="Pull labs">+ Labs</button>
+        <button title="Insert macro">.dot</button>
+        <div class="voice">
+          <i></i> Recording 0:14
+        </div>
+      </div>
+
+      <div class="ed-meta">
+        <div class="f"><label>Encounter</label><input value="Inpatient · Peds-2 / 14" readonly></div>
+        <div class="f"><label>Service</label><input value="Pediatrics — Hospitalist"></div>
+        <div class="f"><label>Visit type</label><select><option>Progress</option><option>Admission H&P</option><option>Discharge</option></select></div>
+        <div class="f"><label>Date / time</label><input value="2024-01-21 · 08:14" readonly></div>
+      </div>
+
+      <div class="ed-body" contenteditable="true" id="editor">
+        <h2>Subjective</h2>
+        <p>Patient is a 9-year-old male with a known history of <span class="smart">asthma</span> and <span class="smart">allergic rhinitis</span> admitted 3 days ago for acute exacerbation. Mother reports overnight he slept well, used <span class="smart">2 puffs of albuterol</span> at bedtime. This morning he denies shortness of breath at rest, mild cough productive of clear sputum, no fever or chills. Tolerating PO well, ate full breakfast. Denies chest pain, palpitations, headache.</p>
+
+        <h2>Objective</h2>
+        <p><b>Vitals (last 4 hrs):</b> <span class="vital">HR 96</span> <span class="vital">BP 118/76</span> <span class="vital">SpO₂ 97% RA</span> <span class="vital">RR 18</span> <span class="vital">T 36.9°C</span> · trending toward baseline.</p>
+        <p><b>General:</b> Alert, well-appearing, in no acute distress, conversant. <b>HEENT:</b> NCAT, oropharynx clear, no nasal flaring, mild rhinorrhea. <b>Neck:</b> supple, no LAD. <b>Lungs:</b> mild expiratory wheeze bilaterally, improved air entry compared to admission, no retractions. <b>Cardiac:</b> RRR, no m/r/g. <b>Abdomen:</b> soft, non-tender, +BS. <b>Skin:</b> warm, dry, no rashes. <b>Neuro:</b> CN II–XII grossly intact, AAOx3.</p>
+
+        <p><b>Pertinent labs / studies:</b></p>
+        <div class="meds">
+          • CBC: WBC 11.2 (↑ from 10.8), Hgb 13.4, Plt 280<br>
+          • CRP: 14 mg/L (↓ from 28)<br>
+          • Peak flow AM: 82% predicted (↑ from 60% on admission)<br>
+          • CXR (Day 1): hyperinflation, no infiltrate
+        </div>
+
+        <p><b>Active medications:</b></p>
+        <div class="meds">
+          • Albuterol HFA 90 mcg — 2 puffs INH q4h PRN wheezing<br>
+          • Methylprednisolone 40 mg IV q6h × 48h (last dose 06:00, switching to PO today)<br>
+          • Fluticasone nasal 2 sprays BID<br>
+          • Cetirizine 5 mg PO daily<br>
+          • Acetaminophen 325 mg PO q6h PRN
+        </div>
+
+        <h2>Assessment</h2>
+        <p><b>1. Acute asthma exacerbation, moderate</b> (<span class="smart">J45.901</span>) — Day 3, responding well to bronchodilators and systemic corticosteroids. Peak flow up 22 points. Discharge anticipated tomorrow if overnight stable.</p>
+        <p><b>2. Allergic rhinitis</b> (<span class="smart">J30.9</span>) — chronic, controlled on fluticasone and cetirizine.</p>
+        <p><b>3. Asthma medication adherence</b> — Mother reports inconsistent ICS use at home. Will provide written action plan and Allergy referral.</p>
+
+        <h2>Plan</h2>
+        <p><b>Pulmonary:</b></p>
+        <div class="meds">
+          • Continue albuterol PRN, wean as tolerated<br>
+          • Switch methylprednisolone IV → prednisolone PO 30 mg daily × 4d, then taper<br>
+          • Start ICS — Fluticasone 110 mcg HFA 1 puff BID<br>
+          • Peak flow monitoring AM/PM until d/c<br>
+          • Pulse ox continuous overnight, intermittent during day
+        </div>
+        <p><b>Disposition:</b> Plan d/c tomorrow if overnight stable, no nocturnal symptoms, peak flow ≥80% predicted, tolerating PO meds. Asthma action plan reviewed with mother. Allergy referral placed for outpt skin testing.</p>
+        <p><b>Follow-up:</b> PCP within 1 week, Pediatric Pulm in 4 weeks, ED return precautions given.</p>
+        <p><i>Time spent: 28 min total · 12 min face-to-face counseling re: asthma management and trigger avoidance.</i></p>
+      </div>
+
+      <div class="ed-foot">
+        <div style="display:flex;gap:14px;font-size:11px;color:var(--ink-mute)">
+          <span><b>Words</b> 384</span>
+          <span><b>Reading time</b> 2 min</span>
+          <span><b>CC time</b> 12 min counseling</span>
+          <span><b>Auto-billed</b> 99232 (Level 2 subsequent)</span>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn">Preview</button>
+          <button class="btn">Spell check</button>
+          <button class="btn primary">Sign &amp; file <span class="arrow">→</span></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: SIDE PANELS -->
+    <div style="display:flex;flex-direction:column;gap:12px">
+
+      <div class="side-card">
+        <h4>Smart phrases · .dot</h4>
+        <div class="snippet"><b>.asthma-pe</b><span>Mild expiratory wheeze, no retractions...</span></div>
+        <div class="snippet"><b>.normalcv</b><span>RRR, no m/r/g, S1/S2 normal...</span></div>
+        <div class="snippet"><b>.normalresp</b><span>CTAB, no wheezing/rales/rhonchi...</span></div>
+        <div class="snippet"><b>.normalabd</b><span>Soft, non-tender, +BS, no HSM...</span></div>
+        <div class="snippet"><b>.dispo-home</b><span>D/c home in stable condition with...</span></div>
+        <div class="snippet"><b>.asthma-ap</b><span>Asthma action plan: green/yellow/red...</span></div>
+      </div>
+
+      <div class="side-card">
+        <h4>Problem list · pull to A/P</h4>
+        <div class="problem-pill"><div><div class="nm">Asthma exacerbation</div></div><span class="code">J45.901</span></div>
+        <div class="problem-pill"><div><div class="nm">Allergic rhinitis</div></div><span class="code">J30.9</span></div>
+        <div class="problem-pill"><div><div class="nm">Penicillin allergy</div></div><span class="code">Z88.0</span></div>
+        <div class="problem-pill"><div><div class="nm">URI · resolving</div></div><span class="code">J06.9</span></div>
+        <div class="problem-pill" style="border-style:dashed;color:var(--ink-mute)"><div>+ Add to problem list</div><span></span></div>
+      </div>
+
+      <div class="side-card">
+        <h4>Coding suggestions (E/M)</h4>
+        <div class="cpt-row"><span class="c">99232</span><span class="n">Subseq · Level 2</span><span class="p">$84</span></div>
+        <div class="cpt-row"><span class="c">99233</span><span class="n">Subseq · Level 3</span><span class="p">$120</span></div>
+        <div class="cpt-row"><span class="c">99291</span><span class="n">Critical care 30–74m</span><span class="p" style="color:var(--ink-mute)">—</span></div>
+        <div class="cpt-row"><span class="c">G2212</span><span class="n">Add'l 15m time</span><span class="p" style="color:var(--ink-mute)">—</span></div>
+        <div style="font-size:10px;color:var(--ink-mute);margin-top:6px;line-height:1.5">Auto-suggested from documented MDM + 28-min total time. Tap to override.</div>
+      </div>
+
+      <div class="side-card">
+        <h4>Reminders</h4>
+        <div style="font-size:11.5px;line-height:1.55;color:var(--ink-soft)">
+          • Cosign required by attending within 24 hrs<br>
+          • Update problem list before signing<br>
+          • Asthma action plan PDF must be attached for d/c<br>
+          • Med rec required for PO transition
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div></div>
+
+<script src="../scripts/nav.js"></script>
+<script src="../scripts/breadcrumbs.js"></script>
+<script>
+// Template selection
+document.querySelectorAll('.rail-item').forEach(r => {
+  r.addEventListener('click', () => {
+    document.querySelectorAll('.rail-item').forEach(x=>x.classList.remove('act'));
+    r.classList.add('act');
+  });
+});
+// Snippet → insert at cursor
+document.querySelectorAll('.snippet').forEach(s => {
+  s.addEventListener('click', () => {
+    s.style.background = '#dff7e7';
+    setTimeout(() => s.style.background = '', 400);
+  });
+});
+</script>
+<script>
+window.MC_ROUTES = [{sel:'.btn.primary', href:'PatientChart.html', title:'Sign and return to chart'}];
+</script>
+<script src="../scripts/router.js"></script>
+</body>
+</html>

@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Medcure — Messages</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/medcure.css">
+<style>
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin:8px 4px 18px;gap:20px;flex-wrap:wrap}
+  .head .h1{font-size:56px}
+  .grid{display:grid;grid-template-columns:300px 1fr 280px;gap:14px;height:760px}
+  .panel{background:#fff;border-radius:22px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
+  /* List */
+  .list-head{padding:18px;border-bottom:1px solid var(--line)}
+  .filters{display:flex;gap:6px;margin-top:12px}
+  .filters .f{padding:6px 12px;border-radius:999px;background:#f4f6f9;font:600 11px "Plus Jakarta Sans";color:var(--ink-soft);cursor:pointer}
+  .filters .f.active{background:#0e1116;color:#fff}
+  .convs{overflow:auto;flex:1}
+  .conv{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;gap:12px;cursor:pointer;position:relative}
+  .conv:hover{background:#fafbfd}
+  .conv.active{background:#fff8d6}
+  .conv .av{width:40px;height:40px;border-radius:50%;background:#eee center/cover;flex:none;position:relative}
+  .conv .av .pres{position:absolute;bottom:0;right:0;width:11px;height:11px;border-radius:50%;background:var(--good);border:2px solid #fff}
+  .conv .meta{flex:1;min-width:0}
+  .conv .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+  .conv .nm{font-weight:700;font-size:13px}
+  .conv .tm{font-size:10px;color:var(--ink-mute)}
+  .conv .role{font-size:10px;color:var(--ink-mute);margin-bottom:2px}
+  .conv .pv{font-size:12px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .conv .badge{position:absolute;right:18px;bottom:14px;background:var(--bad);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px}
+  .conv .pri{position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--bad)}
+
+  /* Thread */
+  .thread-head{padding:18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px}
+  .thread-head .av{width:46px;height:46px;border-radius:50%;background:#eee center/cover}
+  .thread-head .nm{font-weight:700}
+  .thread-head .sub{font-size:11px;color:var(--ink-mute)}
+  .thread-head .actions{margin-left:auto;display:flex;gap:8px}
+  .thread{flex:1;overflow:auto;padding:22px;background:linear-gradient(180deg,#fafbfd 0%,#fff 100%)}
+  .day{text-align:center;font-size:11px;color:var(--ink-mute);margin:14px 0;text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+  .msg{display:flex;gap:10px;margin-bottom:14px;max-width:75%}
+  .msg .av-s{width:28px;height:28px;border-radius:50%;background:#eee center/cover;flex:none}
+  .msg .bub{background:#fff;border:1px solid var(--line);padding:10px 14px;border-radius:14px 14px 14px 4px;font-size:13px;line-height:1.5;color:var(--ink)}
+  .msg .meta{font-size:10px;color:var(--ink-mute);margin-top:4px}
+  .msg.me{margin-left:auto;flex-direction:row-reverse}
+  .msg.me .bub{background:#0e1116;color:#fff;border:0;border-radius:14px 14px 4px 14px}
+  .msg.alert .bub{background:#fff;border:1px solid #ffd6dd;border-left:3px solid var(--bad)}
+  .msg.alert .bub b{color:var(--bad)}
+  .attach{display:flex;gap:8px;align-items:center;margin-top:8px;padding:8px 10px;background:rgba(255,255,255,.08);border-radius:10px;font-size:11px}
+  .composer{padding:14px 18px;border-top:1px solid var(--line);display:flex;gap:10px;align-items:center}
+  .composer .ipt{flex:1;background:#f4f6f9;border-radius:999px;padding:12px 18px;border:0;font:500 13px "Plus Jakarta Sans"}
+  .composer button{width:42px;height:42px;border-radius:50%;border:0;cursor:pointer;display:grid;place-items:center}
+  .composer .send{background:var(--accent)}
+  .composer .ico{background:#f4f6f9;color:var(--ink-soft)}
+
+  /* Right panel */
+  .info{padding:18px;display:flex;flex-direction:column;gap:14px;overflow:auto}
+  .info .av-l{width:84px;height:84px;border-radius:50%;background:#eee center/cover;margin:0 auto}
+  .info h3{font-family:"Instrument Serif",serif;font-weight:400;font-size:24px;text-align:center;margin:0}
+  .info .sub2{text-align:center;font-size:12px;color:var(--ink-mute)}
+  .quick{display:flex;justify-content:center;gap:8px;margin-top:6px}
+  .quick button{width:38px;height:38px;border-radius:50%;border:0;background:#f4f6f9;cursor:pointer;display:grid;place-items:center;color:var(--ink-soft)}
+  .quick button.y{background:var(--accent)}
+  .info-row{display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px dashed var(--line)}
+  .info-row b{font-weight:700}
+  .files{display:flex;gap:8px;flex-wrap:wrap}
+  .file-chip{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f4f6f9;border-radius:12px;font-size:11px;font-weight:600}
+  .file-chip .fi{width:24px;height:24px;border-radius:6px;background:#fde7eb;color:#d04d63;display:grid;place-items:center}
+</style>
+</head>
+<body data-page="message" data-base="../">
+
+<div class="page">
+  <div class="frame">
+    <div class="nav" id="medcure-nav"></div>
+
+    <div class="head">
+      <div>
+        <div class="eyebrow">Secure clinical messaging</div>
+        <h1 class="h1">Messages</h1>
+        <div style="color:var(--ink-soft);font-size:13px;margin-top:6px">12 unread · 3 high-severity · end-to-end encrypted</div>
+      </div>
+      <button class="btn primary">New message <span class="arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <div class="list-head">
+          <div class="searchbox" style="min-width:0;box-shadow:none;background:#f4f6f9">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input placeholder="Search conversations"/>
+          </div>
+          <div class="filters">
+            <div class="f active">All</div><div class="f">Unread</div><div class="f">Urgent</div><div class="f">Teams</div>
+          </div>
+        </div>
+        <div class="convs" id="convs"></div>
+      </div>
+
+      <div class="panel">
+        <div class="thread-head">
+          <div class="av" style="background-image:url('https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=120&h=120&fit=crop&crop=faces')"></div>
+          <div>
+            <div class="nm">Dr. Aanya Patel <span class="pill good" style="margin-left:6px"><span class="pdot"></span>online</span></div>
+            <div class="sub">Pediatrics · Attending · re: Albert Smith (MRN-08421)</div>
+          </div>
+          <div class="actions">
+            <button class="icon-btn" title="call"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.33 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
+            <button class="icon-btn" title="video"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m22 8-6 4 6 4z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg></button>
+            <button class="icon-btn" title="more"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
+          </div>
+        </div>
+        <div class="thread">
+          <div class="day">Today · 10:24 AM</div>
+          <div class="msg">
+            <div class="av-s" style="background-image:url('https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=120&h=120&fit=crop&crop=faces')"></div>
+            <div>
+              <div class="bub">Hi — checking in on Albert. Vitals from the last round look stable. Are we still planning discharge tomorrow morning?</div>
+              <div class="meta">10:24 AM · Read</div>
+            </div>
+          </div>
+          <div class="msg me">
+            <div>
+              <div class="bub">Yes, planning AM discharge. CBC and BMP came back normal at 09:15. PT is comfortable, ambulating. Mom signed the discharge instructions.</div>
+              <div class="meta">10:31 AM · Read by Dr. Patel</div>
+            </div>
+          </div>
+          <div class="msg">
+            <div class="av-s" style="background-image:url('https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=120&h=120&fit=crop&crop=faces')"></div>
+            <div>
+              <div class="bub">Great — please make sure pharmacy reconciliation is signed off and we have a follow-up scheduled in 7 days.</div>
+              <div class="meta">10:33 AM</div>
+            </div>
+          </div>
+          <div class="day">High Severity</div>
+          <div class="msg alert">
+            <div class="av-s" style="background:#ffe7eb;color:#b3263d;display:grid;place-items:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div>
+            <div>
+              <div class="bub"><b>Sepsis Alert · NEWS2 = 7</b><br/>Maria Hernandez (MRN-08401) — score crossed threshold at 11:02 AM. Bundle initiation recommended within 1h.<div class="attach" style="background:#f4f6f9;color:var(--ink-soft)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg> Sepsis Bundle Order Set · v3.2</div></div>
+              <div class="meta">11:02 AM · auto-routed by Predictor V4.2</div>
+            </div>
+          </div>
+          <div class="msg me">
+            <div>
+              <div class="bub">Acknowledged. Initiating bundle. Lactate ordered, fluids running.</div>
+              <div class="meta">11:04 AM · Delivered</div>
+            </div>
+          </div>
+        </div>
+        <div class="composer">
+          <button class="ico" title="attach"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></button>
+          <input class="ipt" placeholder="Type a secure message…"/>
+          <button class="ico" title="emoji"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg></button>
+          <button class="send"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg></button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="info">
+          <div class="av-l" style="background-image:url('https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=240&h=240&fit=crop&crop=faces')"></div>
+          <div>
+            <h3>Dr. Aanya Patel</h3>
+            <div class="sub2">Pediatric Attending · Pediatrics 4B</div>
+            <div class="quick">
+              <button class="y" title="message"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
+              <button title="call"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.33 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
+              <button title="page"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/></svg></button>
+            </div>
+          </div>
+          <div>
+            <div class="eyebrow" style="margin-bottom:6px">Details</div>
+            <div class="info-row"><span>NPI</span><b>1457809321</b></div>
+            <div class="info-row"><span>Pager</span><b>x4421</b></div>
+            <div class="info-row"><span>Shift</span><b>07:00 – 19:00</b></div>
+            <div class="info-row"><span>Coverage</span><b>Dr. Mendez</b></div>
+          </div>
+          <div>
+            <div class="eyebrow" style="margin-bottom:8px">Shared Files</div>
+            <div class="files">
+              <div class="file-chip"><span class="fi"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></span>Discharge.pdf</div>
+              <div class="file-chip"><span class="fi" style="background:#e6efff;color:#3a86ff"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg></span>CXR.dcm</div>
+              <div class="file-chip"><span class="fi"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></span>CBC.pdf</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../scripts/nav.js"></script>
+<script>
+const convs = [
+  {n:'Dr. Aanya Patel', r:'Pediatrics · Attending', pv:'Great — please make sure pharmacy…', t:'10:33', a:true, p:'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=120&h=120&fit=crop&crop=faces', online:true},
+  {n:'Sepsis Alert Bot', r:'NEWS2 monitor', pv:'⚠ Score 7 · Maria Hernandez', t:'11:02', un:1, urgent:true, p:'https://images.unsplash.com/photo-1581595220892-b0739db3ba8c?w=120&h=120&fit=crop'},
+  {n:'ICU Charge Nurse', r:'Team channel · 6 people', pv:'Bed 2 turning over in 20 min', t:'10:48', un:3, p:'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=120&h=120&fit=crop'},
+  {n:'Pharmacy', r:'Order verification', pv:'Vancomycin trough recommended…', t:'10:12', un:1, p:'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=120&h=120&fit=crop'},
+  {n:'Dr. Marcus Cheng', r:'Cardiology · Consult', pv:'Echo report attached', t:'9:41', online:true, p:'https://images.unsplash.com/photo-1612531386530-97286d97c2d2?w=120&h=120&fit=crop&crop=faces'},
+  {n:'Lab — Hematology', r:'Critical result', pv:'WBC 18.4 · awaiting ack', t:'9:15', un:1, urgent:true, p:'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=120&h=120&fit=crop'},
+  {n:'Transport Dispatch', r:'Porter team', pv:'Pickup ready — 4B → MRI', t:'8:58', p:'https://images.unsplash.com/photo-1530497610245-94d3c16cda28?w=120&h=120&fit=crop'},
+  {n:'Dr. Sofia Mendez', r:'Maternity · Attending', pv:'Thanks for the handoff!', t:'Yest', p:'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&h=120&fit=crop&crop=faces'},
+];
+document.getElementById('convs').innerHTML = convs.map((c,i)=>`
+  <div class="conv ${i===0?'active':''}">
+    ${c.urgent?'<div class="pri"></div>':''}
+    <div class="av" style="background-image:url('${c.p}')">${c.online?'<span class="pres"></span>':''}</div>
+    <div class="meta">
+      <div class="role">${c.r}</div>
+      <div class="top"><div class="nm">${c.n}</div><div class="tm">${c.t}</div></div>
+      <div class="pv">${c.pv}</div>
+    </div>
+    ${c.un?`<div class="badge">${c.un}</div>`:''}
+  </div>
+`).join('');
+</script>
+
+<script>window.MC_ROUTES = [{"sel":".thread, .msg-thread, .conversation, .convo","href":"Messages.html","soft":true},{"sel":".contact, .person-card","href":"Staff.html","title":"View contact"}];</script>
+<script src="../scripts/router.js"></script>
+</body>
+</html>
