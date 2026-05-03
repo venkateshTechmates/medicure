@@ -1,0 +1,281 @@
+/* ===================================================================
+   Medcure Responsive Styles
+   Placed after each page's inline <style> block so these rules
+   win the cascade at the same specificity (no !important needed).
+   Breakpoints: 1280 / 1024 / 768 / 640 / 480
+   =================================================================== */
+
+/* ─────────────────────────────────────────────────────────────────
+   1280 px  —  large desktop → constrained desktop / tablet landscape
+   ───────────────────────────────────────────────────────────────── */
+@media (max-width:1280px) {
+  .page { padding: 0 16px 48px; }
+
+  /* KPI rows: many columns → 4 */
+  .kpis { grid-template-columns: repeat(4,1fr); }
+
+  /* Dashboard main 3-col → left + main only */
+  .grid { grid-template-columns: 1fr; }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   1024 px  —  tablet landscape
+   ───────────────────────────────────────────────────────────────── */
+@media (max-width:1024px) {
+  .page  { margin: 14px auto; }
+  .frame { padding: 16px; }
+
+  /* All multi-column main layouts → single column */
+  .layout { grid-template-columns: 1fr; }
+  .grid   { grid-template-columns: 1fr; height: auto; min-height: 0; }
+  .ws     { grid-template-columns: 1fr; height: auto; } /* Radiology workspace */
+
+  /* KPI / stat rows */
+  .kpis     { grid-template-columns: repeat(4,1fr); }
+  .stat-row { grid-template-columns: repeat(3,1fr); }
+  .stats    { grid-template-columns: repeat(3,1fr); }
+
+  /* Bed grid: 8-col → 6 */
+  .bed-grid { grid-template-columns: repeat(6,1fr); }
+
+  /* Auth pages: hide brand panel */
+  .auth-shell  { grid-template-columns: 1fr; padding: 16px; }
+  .brand-panel { display: none; }
+
+  /* Side navigation rails: unstick + wrap horizontally */
+  .side-tabs { position: static; display: flex; flex-wrap: wrap; gap: 4px; padding: 8px; }
+  .side-tabs a { padding: 6px 10px; }
+  .note-rail     { position: static; display: flex; flex-wrap: wrap; gap: 4px; padding: 8px; }
+  .settings-side { position: static; }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   768 px  —  tablet portrait / large phone
+   ───────────────────────────────────────────────────────────────── */
+@media (max-width:768px) {
+
+  /* ── Page chrome ── */
+  .page  { padding: 0 10px 40px; margin: 10px auto; }
+  .frame { padding: 12px; border-radius: 20px; }
+  .h1    { font-size: 32px; }
+
+  /* ── Navigation: 2-row layout ──
+     Row 1: logo (left)  |  nav-right (right)
+     Row 2: tabs (full width, horizontally scrollable)          */
+  .nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .nav .logo     { order: 1; }
+  .nav .nav-right { order: 2; margin-left: auto; }
+  .nav .tabs {
+    order: 3;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .nav .tabs::-webkit-scrollbar { display: none; }
+
+  /* Profile pill: avatar only */
+  .profile .name,
+  .profile .handle,
+  .profile .chev { display: none; }
+  .profile { padding: 4px 6px 4px 4px; }
+
+  /* Tenant switcher: icon only */
+  .tenant-meta,
+  .tenant-switch .chev { display: none; }
+
+  /* ── Cards: horizontal scroll for dense tables ── */
+  .card           { overflow-x: auto; }
+  .table          { min-width: 560px; }
+  .emar-grid      { min-width: 1100px; }
+  .charge-row     { min-width: 640px; }
+  .rx-row         { min-width: 600px; }
+  .deny-row       { min-width: 700px; }
+  .pmt-row        { min-width: 650px; }
+  .res-row,
+  .res-head       { min-width: 600px; }
+  .sl-row         { min-width: 580px; }
+  .t-head, .t-row { min-width: 620px; }
+  .or-row         { min-width: 560px; }
+  .gtrack         { min-width: 560px; }
+
+  /* ── All main layouts → 1-col ── */
+  .layout { grid-template-columns: 1fr; }
+  .grid   { grid-template-columns: 1fr; height: auto; min-height: 0; }
+  .ws     { grid-template-columns: 1fr; height: auto; }
+
+  /* ── Context / patient bars → 1-col ── */
+  .ctx     { grid-template-columns: 1fr; }
+  .ctx-bar { grid-template-columns: 1fr; }
+  .pt-strip { grid-template-columns: auto 1fr; }
+  .pt-strip .meta { flex-wrap: wrap; }
+
+  /* ── Sticky patient header → 2-col ── */
+  .pt-header { grid-template-columns: auto 1fr; position: static; }
+  .pt-header .alerts { grid-column: 1 / -1; }
+
+  /* ── KPI / stat grids → 2-col ── */
+  .kpis     { grid-template-columns: repeat(2,1fr); }
+  .stat-row { grid-template-columns: repeat(2,1fr); }
+  .stats    { grid-template-columns: repeat(2,1fr); }
+
+  /* ── Bed grids → 4-col ── */
+  .bed-grid { grid-template-columns: repeat(4,1fr); }
+
+  /* ── Triage board → 2-col ── */
+  .triage-grid { grid-template-columns: repeat(2,1fr); }
+
+  /* ── Document / staff / org grids ── */
+  .doc-grid { grid-template-columns: repeat(2,1fr); }
+  .docs     { grid-template-columns: repeat(2,1fr); }
+  .org-grid { grid-template-columns: 1fr; }
+
+  /* ── Vitals ── */
+  .v-grid        { grid-template-columns: repeat(2,1fr); }
+  .vitals        { grid-template-columns: 1fr 1fr; }
+  .vitals-strip  { grid-template-columns: repeat(3,1fr); }
+  .vstrip        { grid-template-columns: repeat(3,1fr); }
+  .vital-row     { grid-template-columns: repeat(2,1fr); }
+  .appointments  { grid-template-columns: 1fr; }
+  .stats-row     { grid-template-columns: 1fr 1fr; }
+
+  /* ── Summary / panels → 1-col ── */
+  .summary-grid { grid-template-columns: 1fr; }
+  .panels       { grid-template-columns: 1fr; }
+  .trend-grid   { grid-template-columns: 1fr; }
+
+  /* ── Form grids → 1-col ── */
+  .grid2          { grid-template-columns: 1fr; }
+  .grid3          { grid-template-columns: 1fr; }
+  .grid4          { grid-template-columns: repeat(2,1fr); }
+  .field-row.c2   { grid-template-columns: 1fr; }
+  .field-row.c3   { grid-template-columns: 1fr; }
+  .drip-info      { grid-template-columns: 1fr; }
+  .channel-grid   { grid-template-columns: 1fr; }
+  .addr-grid      { grid-template-columns: 1fr; }
+
+  /* ── Specialty option grids ── */
+  .spec-grid  { grid-template-columns: repeat(2,1fr); }
+  .urg-grid   { grid-template-columns: repeat(2,1fr); }
+  .esi-grid   { grid-template-columns: repeat(3,1fr); }
+  .all-grid   { grid-template-columns: repeat(2,1fr); }
+  .prob-meta  { grid-template-columns: repeat(2,1fr); }
+  .hpi-grid   { grid-template-columns: repeat(3,1fr); }
+
+  /* ── Settings: field label + input → stack ── */
+  .field { grid-template-columns: 1fr; }
+
+  /* ── Auth pages ── */
+  .auth-shell  { grid-template-columns: 1fr; padding: 12px; }
+  .brand-panel { display: none; }
+
+  /* ── Specialty layouts ── */
+  .timeline     { grid-template-columns: repeat(3,1fr); } /* ClaimDetail 7-step */
+  .machine      { grid-template-columns: repeat(2,1fr); } /* Dialysis */
+  .hero         { grid-template-columns: 1fr; }           /* Blood bank hero */
+  .move-vis     { grid-template-columns: 1fr; }           /* Transfer request */
+  .balance-band { grid-template-columns: 1fr; }           /* Patient statement */
+  .era-hero     { grid-template-columns: 1fr; }           /* Payment posting */
+  .twocheck     { grid-template-columns: 1fr; }           /* Blood bank 2-check */
+  .cycle-card   { grid-template-columns: 1fr; }           /* Code Blue */
+  .bucket-grid  { grid-template-columns: repeat(3,1fr); } /* Denial mgmt */
+  .pipe         { grid-template-columns: repeat(3,1fr); } /* Specimen tracking */
+  .service-grid { grid-template-columns: 1fr; }
+  .role-grid    { grid-template-columns: 1fr; }
+  .scoring-grid { grid-template-columns: repeat(2,1fr); }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   640 px  —  large phones
+   ───────────────────────────────────────────────────────────────── */
+@media (max-width:640px) {
+  .page  { padding: 0 8px 36px; margin: 8px auto; }
+  .frame { padding: 10px; border-radius: 16px; }
+  .h1    { font-size: 26px; }
+
+  /* stat-row → 1-col */
+  .stat-row { grid-template-columns: 1fr; }
+
+  /* Bed grids → 3-col */
+  .bed-grid { grid-template-columns: repeat(3,1fr); }
+
+  /* Triage → 1-col */
+  .triage-grid { grid-template-columns: 1fr; }
+
+  /* Docs */
+  .doc-grid { grid-template-columns: 1fr; }
+  .docs     { grid-template-columns: 1fr; }
+
+  /* Vitals */
+  .vitals-strip { grid-template-columns: repeat(2,1fr); }
+  .vstrip       { grid-template-columns: repeat(2,1fr); }
+  .vitals       { grid-template-columns: 1fr 1fr; }
+
+  /* HPI → 2-col */
+  .hpi-grid { grid-template-columns: repeat(2,1fr); }
+
+  /* Timeline → 2-col */
+  .timeline { grid-template-columns: repeat(2,1fr); }
+
+  /* Machine → 1-col */
+  .machine { grid-template-columns: 1fr; }
+
+  /* Drip hero → 1-col */
+  .drip-hero { grid-template-columns: 1fr; }
+
+  /* Specimen pipe → 2-col */
+  .pipe { grid-template-columns: repeat(2,1fr); }
+
+  /* Denial bucket → 2-col */
+  .bucket-grid { grid-template-columns: repeat(2,1fr); }
+
+  /* Form grids */
+  .grid4 { grid-template-columns: repeat(2,1fr); }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   480 px  —  small phones
+   ───────────────────────────────────────────────────────────────── */
+@media (max-width:480px) {
+  .page  { padding: 0 6px 28px; margin: 6px auto; }
+  .h1    { font-size: 22px; }
+  .h2    { font-size: 18px; }
+  .card  { padding: 12px; border-radius: 14px; }
+  .btn   { padding: 8px 12px; font-size: 12px; }
+
+  /* Nav icons smaller */
+  .icon-btn { width: 34px; height: 34px; }
+  .profile  { padding: 4px; }
+  .profile .avatar { width: 28px; height: 28px; }
+
+  /* KPIs → 2-col maintained */
+
+  /* Bed grid → 2-col */
+  .bed-grid { grid-template-columns: repeat(2,1fr); }
+
+  /* v-grid → 1-col */
+  .v-grid       { grid-template-columns: 1fr; }
+  .vitals-strip { grid-template-columns: 1fr 1fr; }
+  .vstrip       { grid-template-columns: 1fr 1fr; }
+
+  /* HPI → 2-col maintained */
+
+  /* Timeline → 1-col */
+  .timeline { grid-template-columns: 1fr; }
+
+  /* Pipe / bucket → 1-col */
+  .pipe        { grid-template-columns: 1fr; }
+  .bucket-grid { grid-template-columns: 1fr; }
+
+  /* Stats → 1-col */
+  .stats    { grid-template-columns: 1fr 1fr; }
+  .stat-row { grid-template-columns: 1fr; }
+
+  /* ESI grid → 3-col (keep compact) */
+  .esi-grid { grid-template-columns: repeat(3,1fr); }
+}
