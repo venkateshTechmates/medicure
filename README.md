@@ -2,6 +2,15 @@
 
 Multi-tenant hospital information system / EHR. Frontend in **Next.js 16 + TypeScript**, backend in **.NET 10 minimal-API + EF Core 9 + SQLite**, JWT auth, multi-tenancy, and ~60 screens ported from the static HTML mocks under [Mocks/](Mocks/).
 
+## Live mocks
+
+The static design mocks are auto-deployed to GitHub Pages on every push to `main` that touches `Mocks/`:
+
+- **Mocks site:** https://venkateshtechmates.github.io/medicure/
+- **Sitemap (master index of all screens):** https://venkateshtechmates.github.io/medicure/pages/Sitemap.html
+
+Workflow: [.github/workflows/pages.yml](.github/workflows/pages.yml). To enable Pages the first time, in the GitHub repo settings go to **Settings → Pages → Build and deployment** and set **Source = GitHub Actions**, then run the workflow once from the **Actions** tab.
+
 ## Quick start
 
 ### Prerequisites
