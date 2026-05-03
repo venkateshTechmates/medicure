@@ -55,7 +55,7 @@ export default function NavTabs() {
       const reserved = (logo?.offsetWidth ?? 0) + (right?.offsetWidth ?? 0) + 36 + 12;
       const available = Math.max(0, navW - reserved);
 
-      if (total <= available) { setVisibleCount(tabs.length); return; }
+      if (total <= available) { setVisibleCount(prev => prev === tabs.length ? prev : tabs.length); return; }
 
       const moreW = 96;
       const cap = available - moreW;
@@ -64,17 +64,16 @@ export default function NavTabs() {
         if (used + widths[i] <= cap) { used += widths[i]; count++; }
         else break;
       }
-      setVisibleCount(Math.max(1, count));
+      const next = Math.max(1, count);
+      setVisibleCount(prev => prev === next ? prev : next);
     }
 
     recompute();
     if (typeof document !== "undefined" && document.fonts && "ready" in document.fonts) {
       document.fonts.ready.then(recompute).catch(() => {});
     }
-    const ro = new ResizeObserver(recompute);
-    if (wrapRef.current?.parentElement) ro.observe(wrapRef.current.parentElement);
     window.addEventListener("resize", recompute);
-    return () => { ro.disconnect(); window.removeEventListener("resize", recompute); };
+    return () => { window.removeEventListener("resize", recompute); };
   }, []);
 
   useEffect(() => {
