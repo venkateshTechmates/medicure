@@ -13,7 +13,7 @@ setup("authenticate as demo user", async ({ page }) => {
   await page.getByRole("button", { name: /sign in to medcure/i }).click();
 
   await page.waitForURL("/", { timeout: 15_000 });
-  await expect(page.getByRole("navigation")).toBeVisible();
+  await expect(page.locator(".nav")).toBeVisible();
 
   await page.context().storageState({ path: AUTH_FILE });
 });

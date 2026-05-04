@@ -8,10 +8,12 @@ export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5050
 /** Sign in via the UI and wait for the dashboard to load. */
 export async function signIn(page: Page, email = DEMO_EMAIL, password = DEMO_PASSWORD) {
   await page.goto("/sign-in");
-  await page.getByLabel(/email/i).fill(email);
-  await page.getByLabel(/password/i).fill(password);
-  await page.getByRole("button", { name: /sign in/i }).click();
-  await page.waitForURL("/", { timeout: 10_000 });
+  await page.waitForLoadState("networkidle");
+  // Labels have no for/id association — select by input type
+  await page.locator('input[type="email"]').fill(email);
+  await page.locator('input[type="password"]').fill(password);
+  await page.getByRole("button", { name: /sign in to medcure/i }).click();
+  await page.waitForURL("/", { timeout: 15_000 });
 }
 
 /** Clear localStorage and navigate to sign-in. */

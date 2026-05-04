@@ -18,7 +18,7 @@ test.describe("authentication", () => {
     await page.locator('input[type="password"]').fill("demo123!");
     await page.getByRole("button", { name: /sign in to medcure/i }).click();
     await page.waitForURL("/", { timeout: 15_000 });
-    await expect(page.getByRole("navigation")).toBeVisible();
+    await expect(page.locator(".nav")).toBeVisible();
   });
 
   test("wrong credentials shows error message", async ({ page }) => {

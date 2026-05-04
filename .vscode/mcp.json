@@ -7,6 +7,11 @@
       "env": {
         "KG_API_URL": "http://localhost:8000"
       }
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "playwright-mcp",
+      "args": ["--browser", "chromium", "--base-url", "http://localhost:3000"]
     }
   }
 }
