@@ -1,10 +1,12 @@
-# .NET
+# ── .NET ──────────────────────────────────────────────────────────────────────
 bin/
 obj/
 *.user
 *.suo
 *.userprefs
+*.sln.docstates
 .vs/
+publish/
 
 # SQLite
 *.db
@@ -12,7 +14,7 @@ obj/
 *.db-shm
 *.db-wal
 
-# Node / Next
+# ── Node / Next.js ────────────────────────────────────────────────────────────
 node_modules/
 .next/
 out/
@@ -22,13 +24,42 @@ dist/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
 
-# OS
+# ── Python / Knowledge Graph ──────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+.Python
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+.env
+*.dist-info/
+
+# ── Playwright ────────────────────────────────────────────────────────────────
+test-results/
+playwright-report/
+e2e/.auth/
+blob-report/
+*.webm
+*.zip
+
+# ── OS ────────────────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# IDE
+# ── IDE ───────────────────────────────────────────────────────────────────────
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
+!.vscode/mcp.json
 .idea/
+*.swp
+*.swo

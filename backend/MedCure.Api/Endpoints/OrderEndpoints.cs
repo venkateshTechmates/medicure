@@ -1,6 +1,8 @@
 using MedCure.Api.Auth;
 using MedCure.Api.Data;
 using MedCure.Api.Domain.Entities;
+using MedCure.Api.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace MedCure.Api.Endpoints;
 
@@ -28,11 +30,15 @@ public static class OrderEndpoints
         return o is null ? Results.NotFound() : Results.Ok(o);
     }
 
-    private static async Task<IResult> Create(Order input, IUnitOfWork uow, ICurrentUser current)
+    private static async Task<IResult> Create(Order input, IUnitOfWork uow, ICurrentUser current, IKgIngestService kg)
     {
         input.OrderedByName = current.FullName ?? "Unknown";
         await uow.Orders.AddAsync(input);
         await uow.SaveAsync();
+        // Propagate order to knowledge graph so drug/patient edges are current
+        var patient = await uow.Patients.Query().Where(p => p.Id == input.PatientId).FirstOrDefaultAsync();
+        if (patient is not null)
+            _ = kg.IngestPatientAsync(patient, orders: [input]);
         return Results.Created($"/api/orders/{input.Id}", input);
     }
 

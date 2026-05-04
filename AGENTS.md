@@ -25,6 +25,15 @@ dotnet ef database update --project backend/MedCure.Api
 # Re-seed (wipe and restart)
 Remove-Item backend/MedCure.Api/medcure.db -ErrorAction SilentlyContinue
 dotnet run --project backend/MedCure.Api
+
+# E2E tests (requires both servers running or webServer config)
+cd frontend/medcure-web
+npm install
+npx playwright install --with-deps
+npm run test:e2e              # headless (CI)
+npm run test:e2e:ui           # interactive UI
+npm run test:e2e:headed       # visible browser
+npm run test:e2e:debug        # step-through debugger
 ```
 
 `.env.local` required: `NEXT_PUBLIC_API_URL=http://localhost:5050`
@@ -90,3 +99,23 @@ CDS alerts fire between `draft` and `signed`.
 - **No CSS framework** on the frontend — reuse the classes from `Mocks/styles/medcure.css`, do not add Tailwind or similar.
 - **`lib/types.ts` must mirror backend DTOs** — update both sides together when changing a DTO.
 - The [`Mocks/`](Mocks/) directory is deployed to GitHub Pages via [`.github/workflows/pages.yml`](.github/workflows/pages.yml) — it is **not** the application.
+
+---
+
+## E2E tests (Playwright)
+
+Tests live in `frontend/medcure-web/e2e/`. Config: [`frontend/medcure-web/playwright.config.ts`](frontend/medcure-web/playwright.config.ts).
+
+| File | What it covers |
+|------|---------------|
+| `auth.setup.ts` | Signs in as demo user, saves `storageState` so other specs skip login |
+| `auth.spec.ts` | Sign-in happy path, wrong credentials error, 401 redirect |
+| `pages.spec.ts` | Dashboard, patients list, patient chart tabs, CPOE order type cards, pharmacy queue |
+| `full-workflow.spec.ts` | Full clinical journey: sign-in → dashboard → patient chart → vitals/labs/meds tabs → CPOE Lab order → pharmacy queue → sign-out |
+
+**Selector strategy** (no data-testid attributes in the app):
+- Prefer `getByRole` / `getByLabel` / `getByPlaceholder` for resilience
+- `getByText` for card headings and nav labels
+- Fall back to CSS class selectors (`.pt-header`, `.pill`) only when semantic selectors are unavailable
+
+**Auth storage state** is saved to `e2e/.auth/session.json` by `auth.setup.ts` — add it to `.gitignore`.

@@ -1,0 +1,12 @@
+{
+  "servers": {
+    "medcure-knowledge-graph": {
+      "type": "stdio",
+      "command": "py",
+      "args": ["${workspaceFolder}/backend/knowledge-graph/mcp_server.py"],
+      "env": {
+        "KG_API_URL": "http://localhost:8000"
+      }
+    }
+  }
+}

@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using MedCure.Api.Auth;
 using MedCure.Api.Data;
 using MedCure.Api.Endpoints;
+using MedCure.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -47,6 +48,14 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, CurrentUserService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddSingleton<JwtService>();
+
+// Knowledge Graph ingest (fire-and-forget push to Python KG service)
+builder.Services.AddHttpClient<IKgIngestService, KgIngestService>(c =>
+{
+    var kgUrl = builder.Configuration["KnowledgeGraph:BaseUrl"] ?? "http://localhost:8000";
+    c.BaseAddress = new Uri(kgUrl);
+    c.Timeout = TimeSpan.FromSeconds(5);
+});
 
 // CORS for Next.js dev
 builder.Services.AddCors(o => o.AddDefaultPolicy(p =>

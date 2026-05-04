@@ -2,6 +2,7 @@ using MedCure.Api.Auth;
 using MedCure.Api.Data;
 using MedCure.Api.Domain.Entities;
 using MedCure.Api.Dtos.Mapping;
+using MedCure.Api.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace MedCure.Api.Endpoints;
@@ -104,7 +105,7 @@ public static class PatientEndpoints
         string Phone, string Address, string Insurance, string Ward, string Bed,
         string AttendingName, string CodeStatus, string Status);
 
-    private static async Task<IResult> Create(AdmitRequest req, IUnitOfWork uow)
+    private static async Task<IResult> Create(AdmitRequest req, IUnitOfWork uow, IKgIngestService kg)
     {
         var mrn = $"{Random.Shared.Next(1000, 9999)}-{Random.Shared.Next(10, 99)}";
         var p = new Patient
@@ -122,7 +123,9 @@ public static class PatientEndpoints
         };
         await uow.Patients.AddAsync(p);
         await uow.SaveAsync();
-        return Results.Created($"/api/patients/{mrn}", PatientMapper.ToDetail(p));
+        var detail = PatientMapper.ToDetail(p);
+        _ = kg.IngestPatientAsync(detail);   // fire-and-forget
+        return Results.Created($"/api/patients/{mrn}", detail);
     }
 
     public record UpdateStatusRequest(string? Status, string? Ward, string? Bed, string? CodeStatus, string? AttendingName);
