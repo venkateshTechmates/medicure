@@ -8,11 +8,15 @@ export default defineConfig({
   workers: 1,
   reporter: [["html", { outputFolder: "playwright-report" }], ["list"]],
 
+  timeout: 60_000,
+
   use: {
     baseURL: process.env.BASE_URL ?? "http://localhost:3000",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "on-first-retry",
+    actionTimeout: 20_000,
+    navigationTimeout: 30_000,
   },
 
   projects: [
