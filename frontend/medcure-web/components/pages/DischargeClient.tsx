@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import type { PatientSummary } from "@/lib/types";
+import PrintButton from "@/components/PrintButton";
 
 const STEPS = ["Med reconciliation", "Disposition", "Instructions", "Follow-up", "Sign"];
 const DISPOSITIONS = ["Home", "Home with home health", "SNF", "Acute rehab", "LTAC", "Hospice", "AMA"];
@@ -101,6 +102,13 @@ export default function DischargeClient() {
         </div>
         <div className="toolbar">
           {msg && <span style={{ fontSize: 12, color: msg.startsWith("✓") ? "var(--good)" : "var(--bad)", fontWeight: 700 }}>{msg}</span>}
+          {me && (
+            <PrintButton
+              label="Print discharge packet"
+              htmlUrl={`/api/labels/discharge/${me.id}`}
+              title="Print full discharge packet (summary, meds, follow-ups, allergies)"
+            />
+          )}
           <button className="btn" onClick={() => router.back()}>Cancel</button>
           <button className="btn">Save draft</button>
           <button

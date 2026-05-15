@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
+import CalculatorButton from "@/components/CalculatorButton";
 
 interface PSummary { id: number; mrn: string; fullName: string; age: number; ward: string; bed: string; }
 
@@ -251,7 +252,17 @@ export default function CPOEClient() {
             <div className="sub">Pediatric dosing applied. Renal function normal — no adjustment needed.</div>
 
             <div className="field-row">
-              <div className="cpoe-field"><label>Dose</label><input defaultValue="180 mcg (2 puffs)" /></div>
+              <div className="cpoe-field">
+                <label style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span>Dose</span>
+                  <CalculatorButton
+                    label="Calc"
+                    initial="dose"
+                    context={{ patientId: typeof patientId === "number" ? patientId : undefined, age: activePatient?.age }}
+                  />
+                </label>
+                <input defaultValue="180 mcg (2 puffs)" />
+              </div>
               <div className="cpoe-field"><label>Route</label><select><option>Inhaled</option><option>Nebulized</option></select></div>
               <div className="cpoe-field"><label>Frequency</label><select><option>q4–6h PRN wheezing</option><option>q4h scheduled</option><option>q6h scheduled</option></select></div>
             </div>

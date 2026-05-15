@@ -2,7 +2,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
-import type { PatientSummary } from "@/lib/types";
+import type { PatientSummary, PatientDetail } from "@/lib/types";
+import CalculatorButton from "@/components/CalculatorButton";
+import { bmi, bmiCategory, round } from "@/lib/calc";
+import StatusPill from "@/components/StatusPill";
 
 interface VTile { key: string; label: string; unit: string; range: [number, number]; }
 const VITALS: VTile[] = [
@@ -30,6 +33,7 @@ export default function VitalsEntryClient() {
   const router = useRouter();
   const [patients, setPatients] = useState<PatientSummary[]>([]);
   const [pat, setPat] = useState<number | null>(null);
+  const [detail, setDetail] = useState<PatientDetail | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [v, setV] = useState<Record<string, string>>({
@@ -43,6 +47,13 @@ export default function VitalsEntryClient() {
       if (rows.length) setPat(rows[0].id);
     }).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (!pat) return;
+    const p = patients.find(x => x.id === pat);
+    if (!p) return;
+    api<PatientDetail>(`/api/patients/${p.mrn}`).then(setDetail).catch(() => setDetail(null));
+  }, [pat, patients]);
 
   async function save() {
     if (!pat) { setMsg("Pick a patient"); return; }
@@ -76,6 +87,10 @@ export default function VitalsEntryClient() {
   }
 
   const flags = VITALS.filter(t => isFlagged(t, v[t.key])).map(t => t.label);
+  const wtKg = parseFloat(v.wt);
+  const htCm = detail?.heightCm ?? 0;
+  const liveBmi = wtKg > 0 && htCm > 0 ? bmi(htCm, wtKg) : 0;
+  const bmiCat = liveBmi > 0 ? bmiCategory(liveBmi) : null;
   const ioIn  = IO_TYPES.filter(x => ["iv", "po", "tube"].includes(x.k)).reduce((s, x) => s + x.v, 0);
   const ioOut = IO_TYPES.filter(x => ["urine", "stool", "emesis"].includes(x.k)).reduce((s, x) => s + x.v, 0);
 
@@ -108,8 +123,27 @@ export default function VitalsEntryClient() {
       <div className="vitals-layout">
         <div>
           <div className="card panel">
-            <h2>Vital signs</h2>
-            <div className="sub" style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 14 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <h2 style={{ margin: 0 }}>Vital signs</h2>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                {liveBmi > 0 && bmiCat && (
+                  <span style={{ fontSize: 12 }}>
+                    <b>BMI</b> {round(liveBmi, 1)} <StatusPill kind={bmiCat.kind}>{bmiCat.label}</StatusPill>
+                  </span>
+                )}
+                <CalculatorButton
+                  context={{
+                    weightKg: wtKg > 0 ? wtKg : detail?.weightKg,
+                    heightCm: detail?.heightCm,
+                    age: me?.age,
+                    sex: me?.sex,
+                    sbp: parseInt(v.sbp) || undefined,
+                    dbp: parseInt(v.dbp) || undefined,
+                  }}
+                />
+              </div>
+            </div>
+            <div className="sub" style={{ fontSize: 12, color: "var(--ink-soft)", margin: "6px 0 14px" }}>
               Tap to edit · auto-flag values out of range
             </div>
             <div className="vitals-grid">

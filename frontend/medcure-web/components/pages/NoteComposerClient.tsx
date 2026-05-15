@@ -42,8 +42,9 @@ export default function NoteComposerClient() {
         const patients = await api<{ id: number; mrn: string }[]>("/api/patients?take=1");
         if (!patients.length) { setErr("No patients available"); return; }
         const pid = patients[0].id;
+        const mrn = patients[0].mrn;
         const [pDetail, tList, pList] = await Promise.all([
-          api<PatientDetail>(`/api/patients/${pid}`),
+          api<PatientDetail>(`/api/patients/${encodeURIComponent(mrn)}`),
           api<NoteTemplate[]>("/api/note-templates"),
           api<SmartPhrase[]>("/api/smart-phrases"),
         ]);

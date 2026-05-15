@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
+import type { PaletteAction } from "@/lib/types";
 
 interface SearchResult {
   kind: "patient" | "order" | "lab" | "note";
@@ -10,11 +11,22 @@ interface SearchResult {
   url: string;
 }
 
+interface PaletteItem {
+  id: string;
+  label: string;
+  sub?: string;
+  kind: "nav" | "action" | "patient" | "order" | "lab" | "note";
+  url: string;
+  hint?: string;
+}
+
 const KIND_ICONS: Record<string, string> = {
-  patient: "👤",
-  order:   "💊",
-  lab:     "🧪",
-  note:    "📝",
+  nav:     ">",
+  action:  "*",
+  patient: "P",
+  order:   "O",
+  lab:     "L",
+  note:    "N",
 };
 
 export default function CommandPalette() {
@@ -22,6 +34,7 @@ export default function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
+  const [actions, setActions] = useState<PaletteAction[]>([]);
   const [active, setActive] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -39,31 +52,49 @@ export default function CommandPalette() {
   }, []);
 
   useEffect(() => {
-    if (open) setTimeout(() => inputRef.current?.focus(), 30);
-    else { setQ(""); setResults([]); setActive(0); }
-  }, [open]);
+    if (!open) { setQ(""); setResults([]); setActive(0); return; }
+    setTimeout(() => inputRef.current?.focus(), 30);
+    if (actions.length === 0) {
+      api<PaletteAction[]>("/api/palette/actions").then(setActions).catch(() => setActions([]));
+    }
+  }, [open, actions.length]);
 
   useEffect(() => {
     if (!q || q.length < 2) { setResults([]); return; }
     const t = setTimeout(async () => {
       try {
-        const r = await api<{ results: SearchResult[] }>(`/api/search?q=${encodeURIComponent(q)}&take=8`);
+        const r = await api<{ results: SearchResult[] }>(`/api/search?q=${encodeURIComponent(q)}&take=6`);
         setResults(r.results);
-        setActive(0);
       } catch { setResults([]); }
     }, 150);
     return () => clearTimeout(t);
   }, [q]);
 
-  function go(r: SearchResult) {
+  const items: PaletteItem[] = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    const acts: PaletteItem[] = actions
+      .filter(a => !needle || fuzzy(a.label.toLowerCase(), needle))
+      .map(a => ({
+        id: a.id, label: a.label, kind: a.kind, url: a.url ?? "#",
+        sub: a.kind === "nav" ? "Navigate" : "Action", hint: a.hint ?? undefined,
+      }));
+    const cross: PaletteItem[] = results.map(r => ({
+      id: r.url, label: r.title, sub: r.sub, kind: r.kind, url: r.url,
+    }));
+    return [...acts.slice(0, 12), ...cross];
+  }, [actions, results, q]);
+
+  useEffect(() => { setActive(0); }, [items.length]);
+
+  function go(item: PaletteItem) {
     setOpen(false);
-    router.push(r.url);
+    if (item.url && item.url !== "#") router.push(item.url);
   }
 
   function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "ArrowDown") { e.preventDefault(); setActive(a => Math.min(a + 1, results.length - 1)); }
+    if (e.key === "ArrowDown") { e.preventDefault(); setActive(a => Math.min(a + 1, items.length - 1)); }
     else if (e.key === "ArrowUp") { e.preventDefault(); setActive(a => Math.max(a - 1, 0)); }
-    else if (e.key === "Enter" && results[active]) { e.preventDefault(); go(results[active]); }
+    else if (e.key === "Enter" && items[active]) { e.preventDefault(); go(items[active]); }
   }
 
   if (!open) return null;
@@ -75,7 +106,7 @@ export default function CommandPalette() {
       <div
         onClick={e => e.stopPropagation()}
         className="card"
-        style={{ width: 600, maxWidth: "92vw", padding: 0, boxShadow: "0 30px 80px -20px rgba(14,17,22,0.5)", overflow: "hidden" }}
+        style={{ width: 620, maxWidth: "92vw", padding: 0, boxShadow: "0 30px 80px -20px rgba(14,17,22,0.5)", overflow: "hidden" }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 16px", borderBottom: "1px solid var(--line)" }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2}>
@@ -86,32 +117,39 @@ export default function CommandPalette() {
             value={q}
             onChange={e => setQ(e.target.value)}
             onKeyDown={onKeyDown}
-            placeholder="Search patients, orders, labs, notes…"
+            placeholder="Jump to a page, action, patient…"
             style={{ flex: 1, border: 0, outline: "none", fontSize: 15, fontFamily: "inherit", background: "transparent" }}
           />
           <kbd style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "#f4f6f9", border: "1px solid var(--line)" }}>ESC</kbd>
         </div>
 
-        <div style={{ maxHeight: 380, overflowY: "auto" }}>
-          {q.length < 2 && <div className="muted" style={{ padding: 24, fontSize: 12, textAlign: "center" }}>Type at least 2 characters to search…</div>}
-          {q.length >= 2 && results.length === 0 && <div className="muted" style={{ padding: 24, fontSize: 12, textAlign: "center" }}>No results for &ldquo;{q}&rdquo;</div>}
-          {results.map((r, i) => (
+        <div style={{ maxHeight: 420, overflowY: "auto" }}>
+          {items.length === 0 && (
+            <div className="muted" style={{ padding: 24, fontSize: 12, textAlign: "center" }}>
+              {q ? `No results for “${q}”` : "Type to filter actions, or 2+ chars to search."}
+            </div>
+          )}
+          {items.map((r, i) => (
             <button
-              key={`${r.url}-${i}`}
+              key={`${r.id}-${i}`}
               onClick={() => go(r)}
               onMouseEnter={() => setActive(i)}
               style={{
                 display: "flex", gap: 12, width: "100%", textAlign: "left",
-                padding: "12px 16px", border: 0, borderBottom: "1px solid var(--line)",
+                padding: "10px 16px", border: 0, borderBottom: "1px solid var(--line)",
                 background: i === active ? "#fafbfc" : "transparent",
                 cursor: "pointer", alignItems: "center"
               }}
             >
-              <span style={{ fontSize: 18 }}>{KIND_ICONS[r.kind] ?? "•"}</span>
+              <span style={{
+                width: 22, height: 22, borderRadius: 6, background: "#f4f6f9",
+                display: "grid", placeItems: "center", fontSize: 11, fontWeight: 700
+              }}>{KIND_ICONS[r.kind] ?? "•"}</span>
               <span style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: 13 }}>{r.title}</div>
-                <div className="muted" style={{ fontSize: 11, marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.sub}</div>
+                <div style={{ fontWeight: 600, fontSize: 13 }}>{r.label}</div>
+                {r.sub && <div className="muted" style={{ fontSize: 11, marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.sub}</div>}
               </span>
+              {r.hint && <kbd style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "#f4f6f9", border: "1px solid var(--line)" }}>{r.hint}</kbd>}
               <span className="muted" style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 0.05 }}>{r.kind}</span>
             </button>
           ))}
@@ -123,4 +161,14 @@ export default function CommandPalette() {
       </div>
     </div>
   );
+}
+
+// Subsequence fuzzy match: every character in needle appears in haystack in order.
+function fuzzy(haystack: string, needle: string): boolean {
+  let i = 0;
+  for (const c of haystack) {
+    if (c === needle[i]) i++;
+    if (i >= needle.length) return true;
+  }
+  return i >= needle.length;
 }

@@ -366,6 +366,72 @@ export interface Assessment {
   patient?: { id: number; mrn: string; firstName: string; lastName: string } | null;
 }
 
+export interface RecentPatient {
+  id: number;
+  mrn: string;
+  fullName: string;
+  status: string;
+  ward: string;
+  bed: string;
+  avatarUrl: string;
+  viewedAt: string;
+}
+
+export interface PinnedPatient {
+  id: number;
+  mrn: string;
+  fullName: string;
+  status: string;
+  ward: string;
+  bed: string;
+  avatarUrl: string;
+  pinnedAt: string;
+}
+
+export interface PaletteAction {
+  id: string;
+  label: string;
+  kind: "nav" | "action";
+  url?: string | null;
+  hint?: string | null;
+}
+
+// PRD §14.C — favorite orders & panels
+export interface FavoriteOrder {
+  id: number;
+  userId: number;
+  name: string;
+  orderType: string;
+  dose: string;
+  route: string;
+  frequency: string;
+  indication: string;
+  notes: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface FavoritePanelItem {
+  id: number;
+  panelId: number;
+  name: string;
+  orderType: string;
+  dose: string;
+  route: string;
+  frequency: string;
+  indication: string;
+}
+
+export interface FavoritePanel {
+  id: number;
+  userId: number;
+  name: string;
+  description: string;
+  items: FavoritePanelItem[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface DashboardData {
   totalPatients: number;
   critical: number;

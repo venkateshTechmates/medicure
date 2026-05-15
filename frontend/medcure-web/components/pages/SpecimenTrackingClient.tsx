@@ -63,7 +63,7 @@ export default function SpecimenTrackingClient() {
       <div className="card panel">
         <h2>Recent specimens</h2>
         <table className="table" style={{ marginTop: 10 }}>
-          <thead><tr><th>Accession</th><th>Patient</th><th>Test</th><th>Collected</th><th>Stage</th><th>ETA</th></tr></thead>
+          <thead><tr><th>Accession</th><th>Patient</th><th>Test</th><th>Collected</th><th>Stage</th><th>ETA</th><th></th></tr></thead>
           <tbody>
             {SPECIMENS.map(s => (
               <tr key={s.id}>
@@ -73,6 +73,16 @@ export default function SpecimenTrackingClient() {
                 <td className="muted">{s.coll}</td>
                 <td><span className={`pill ${s.cls}`}><span className="pdot" />{s.stage}</span></td>
                 <td className="muted">{s.eta}</td>
+                <td>
+                  {s.rawId > 0 && (
+                    <PrintButton
+                      label="Print label"
+                      htmlUrl={`/api/labels/specimen/${s.rawId}?fmt=html`}
+                      zplUrl={`/api/labels/specimen/${s.rawId}?fmt=zpl`}
+                      zplFilename={`specimen-${s.id}.zpl`}
+                    />
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>

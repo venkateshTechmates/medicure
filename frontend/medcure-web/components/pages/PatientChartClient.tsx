@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import { fmtDate, fmtTime } from "@/lib/fmt";
 import type { Assessment, LabResult, Note, Order, PatientDetail, Vital } from "@/lib/types";
 import BreakGlassModal from "@/components/BreakGlassModal";
+import CalculatorButton from "@/components/CalculatorButton";
 
 const TABS = [
   { id: "summary",     label: "Summary",     ct: "" },
@@ -108,6 +109,7 @@ export default function PatientChartClient() {
           {p.problems.slice(0, 1).map(pb => <span key={pb.id} className="ah-pill info">{pb.description}</span>)}
         </div>
         <div style={{ display: "flex", gap: 6 }}>
+          <CalculatorButton context={{ weightKg: p.weightKg, heightCm: p.heightCm, age: p.age, sex: p.sex }} />
           <Link href="/cpoe" className="btn">Quick actions ▾</Link>
           <Link href="/discharge" className="btn primary">Start discharge</Link>
         </div>
