@@ -2,6 +2,41 @@
 
 export type StatusKind = "good" | "warn" | "bad" | "info";
 
+export interface ChannelPref {
+  id: number;
+  userId: number;
+  category: string;
+  inApp: boolean;
+  email: boolean;
+  sms: boolean;
+  push: boolean;
+  quietFrom?: string | null;
+  quietUntil?: string | null;
+}
+
+export interface OnCallShift {
+  id: number;
+  service: string;
+  userId: number;
+  backupUserId?: number | null;
+  startsAt: string;
+  endsAt: string;
+  role: string;
+  pager?: string | null;
+}
+
+export interface AlertEscalation {
+  id: number;
+  alertNotificationId: number;
+  step: number;
+  toUserId: number;
+  scheduledAt: string;
+  firedAt?: string | null;
+  acknowledgedAt?: string | null;
+  reason: string;
+}
+
+
 export interface User {
   id: number;
   email: string;

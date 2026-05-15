@@ -329,7 +329,18 @@ export default function CPOEClient() {
           </div>
 
           <div className="card panel" style={{ marginTop: 14 }}>
-            <h2>Details · Albuterol HFA 90 mcg</h2>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+              <h2 style={{ margin: 0 }}>Details · {selectedDrug.nm}</h2>
+              {/* PRD §14.C — save the in-progress order as a clinician favorite */}
+              <button
+                className="btn"
+                style={{ fontSize: 11, padding: "6px 10px" }}
+                onClick={() => { setFavError(null); setShowSaveFav(true); }}
+                title="Save current order as favorite"
+              >
+                ⭐ Save as favorite
+              </button>
+            </div>
             <div className="sub">Pediatric dosing applied. Renal function normal — no adjustment needed.</div>
 
             <div className="field-row">
@@ -389,7 +400,17 @@ export default function CPOEClient() {
 
         {/* RIGHT — cart */}
         <div className="cart">
-          <div className="card panel">
+          {/* PRD §14.C — favorite orders & order panels for this clinician */}
+          <FavoritesPanel
+            orders={favOrders}
+            panels={favPanels}
+            onAddOrder={applyFavoriteToForm}
+            onApplyPanel={applyPanel}
+            onDeleteOrder={deleteFavorite}
+            onDeletePanel={deletePanel}
+            busyPanelId={applyingPanelId}
+          />
+          <div className="card panel" style={{ marginTop: 14 }}>
             <div className="cart-head">
               <div style={{ fontWeight: 700, fontSize: 15 }}>Order set <span style={{ color: "var(--ink-mute)", fontWeight: 500 }}>(1 item)</span></div>
               <button className="btn" style={{ fontSize: 11, padding: "6px 10px" }}>Clear</button>
@@ -508,6 +529,23 @@ export default function CPOEClient() {
           </div>
         </div>
       )}
+
+      <SaveAsFavoriteModal
+        open={showSaveFav}
+        initial={{
+          name: selectedDrug.nm,
+          orderType,
+          dose: "180 mcg (2 puffs)",
+          route: "Inhaled",
+          frequency: "q4–6h PRN",
+          indication: "Asthma exacerbation",
+          notes: "",
+        }}
+        busy={savingFav}
+        error={favError}
+        onClose={() => setShowSaveFav(false)}
+        onSave={saveFavorite}
+      />
     </>
   );
 }
