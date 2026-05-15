@@ -37,6 +37,8 @@ public class UnitOfWork(AppDbContext db, ICurrentUser current) : IUnitOfWork
     private IRepository<CdsOverride>?             _cdsOverrides;
     private IRepository<MedReconciliation>?       _medRecs;
     private IRepository<MedReconciliationLine>?   _medRecLines;
+    private IRepository<Assessment>?              _assessments;
+    private IRepository<InbasketItem>?            _inbasketDelegations;
 
     private IUserRepository?      _users;
     private IPatientRepository?   _patients;
@@ -72,6 +74,8 @@ public class UnitOfWork(AppDbContext db, ICurrentUser current) : IUnitOfWork
     public IRepository<CdsOverride>             CdsOverrides  => _cdsOverrides??= new Repository<CdsOverride>(db, current);
     public IRepository<MedReconciliation>       MedReconciliations => _medRecs ??= new Repository<MedReconciliation>(db, current);
     public IRepository<MedReconciliationLine>   MedReconciliationLines => _medRecLines ??= new Repository<MedReconciliationLine>(db, current);
+    public IRepository<Assessment>              Assessments   => _assessments ??= new Repository<Assessment>(db, current);
+    public IRepository<InbasketItem>            InbasketDelegations => _inbasketDelegations ??= new Repository<InbasketItem>(db, current);
 
     public IUserRepository      Users      => _users    ??= new UserRepository(db, current);
     public IPatientRepository   Patients   => _patients ??= new PatientRepository(db, current);

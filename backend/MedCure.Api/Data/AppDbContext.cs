@@ -39,6 +39,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> opts) : DbContext(opts)
     public DbSet<CdsOverride> CdsOverrides => Set<CdsOverride>();
     public DbSet<MedReconciliation> MedReconciliations => Set<MedReconciliation>();
     public DbSet<MedReconciliationLine> MedReconciliationLines => Set<MedReconciliationLine>();
+    public DbSet<Assessment> Assessments => Set<Assessment>();
+    public DbSet<InbasketItem> InbasketDelegations => Set<InbasketItem>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {

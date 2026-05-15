@@ -35,6 +35,8 @@ public interface IUnitOfWork : IAsyncDisposable
     IRepository<CdsOverride> CdsOverrides { get; }
     IRepository<MedReconciliation> MedReconciliations { get; }
     IRepository<MedReconciliationLine> MedReconciliationLines { get; }
+    IRepository<Assessment> Assessments { get; }
+    IRepository<InbasketItem> InbasketDelegations { get; }
 
     // Specialized
     IUserRepository Users { get; }

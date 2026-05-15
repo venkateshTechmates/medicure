@@ -3,10 +3,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { getActiveRole } from "../lib/auth";
+import { api } from "../lib/api";
 
 // Order matches Mocks/scripts/nav.js (Message singular, Stock for inventory)
 const tabs = [
   { id: "overview",     label: "Overview",     href: "/" },
+  { id: "inbox",        label: "Inbox",        href: "/inbasket" },
   { id: "documents",    label: "Documents",    href: "/documents" },
   { id: "message",      label: "Message",      href: "/messages" },
   { id: "labs",         label: "Labs",         href: "/labs" },
@@ -25,17 +27,17 @@ const tabs = [
 // Role -> allowed tab ids. Roles not listed fall through to a permissive default so a
 // freshly-seeded role string doesn't blank the nav while we iterate the matrix.
 const ROLE_TABS: Record<string, string[]> = {
-  MD:           ["overview","patients","appointments","labs","pharmacy","ed","telemetry","message","documents","settings"],
-  Resident:     ["overview","patients","appointments","labs","pharmacy","ed","telemetry","message","documents","settings"],
-  RN:           ["patients","ed","telemetry","message","documents","settings"],
-  RnEd:         ["patients","ed","telemetry","message","documents","settings"],
-  ChargeNurse:  ["patients","ed","telemetry","message","documents","settings"],
-  RPh:          ["pharmacy","stock","patients","message","settings"],
-  Tech:         ["labs","patients","message","settings"],
+  MD:           ["overview","inbox","patients","appointments","labs","pharmacy","ed","telemetry","message","documents","settings"],
+  Resident:     ["overview","inbox","patients","appointments","labs","pharmacy","ed","telemetry","message","documents","settings"],
+  RN:           ["inbox","patients","ed","telemetry","message","documents","settings"],
+  RnEd:         ["inbox","patients","ed","telemetry","message","documents","settings"],
+  ChargeNurse:  ["inbox","patients","ed","telemetry","message","documents","settings"],
+  RPh:          ["inbox","pharmacy","stock","patients","message","settings"],
+  Tech:         ["inbox","labs","patients","message","settings"],
   Reg:          ["patients","appointments","message","settings"],
   Bill:         ["billing","patients","message","settings"],
-  Admin:        ["overview","documents","message","labs","patients","appointments","pharmacy","billing","stock","staff","ed","settings","telemetry","sitemap"],
-  Privacy:      ["overview","documents","message","labs","patients","appointments","pharmacy","billing","stock","staff","ed","settings","telemetry","sitemap"],
+  Admin:        ["overview","inbox","documents","message","labs","patients","appointments","pharmacy","billing","stock","staff","ed","settings","telemetry","sitemap"],
+  Privacy:      ["overview","inbox","documents","message","labs","patients","appointments","pharmacy","billing","stock","staff","ed","settings","telemetry","sitemap"],
 };
 
 function tabsForRole(role: string | null) {
@@ -68,6 +70,21 @@ export default function NavTabs() {
     return () => window.removeEventListener("storage", onStorage);
   }, []);
   const visibleTabs = tabsForRole(role);
+
+  // Inbasket badge — total unread items across all folders for the current user.
+  const [inboxCount, setInboxCount] = useState(0);
+  useEffect(() => {
+    let alive = true;
+    async function load() {
+      try {
+        const c = await api<{ total: number }>("/api/inbasket/counts");
+        if (alive) setInboxCount(c.total ?? 0);
+      } catch { /* ignore — pre-auth fetch */ }
+    }
+    load();
+    const t = setInterval(load, 60_000);
+    return () => { alive = false; clearInterval(t); };
+  }, []);
 
   useEffect(() => {
     function recompute() {
@@ -136,6 +153,13 @@ export default function NavTabs() {
         {visible.map(t => (
           <Link key={t.id} className={`tab ${isActive(t.href) ? "active" : ""}`} href={t.href}>
             {t.label}
+            {t.id === "inbox" && inboxCount > 0 && (
+              <span style={{
+                marginLeft: 6, minWidth: 18, height: 16, padding: "0 5px",
+                background: "#b3263d", color: "#fff", borderRadius: 8,
+                fontSize: 10, fontWeight: 700, display: "inline-grid", placeItems: "center",
+              }}>{inboxCount > 99 ? "99+" : inboxCount}</span>
+            )}
           </Link>
         ))}
         {overflow.length > 0 && (
@@ -158,6 +182,13 @@ export default function NavTabs() {
                 {overflow.map(t => (
                   <Link key={t.id} className={isActive(t.href) ? "active" : ""} href={t.href} onClick={() => setOpen(false)}>
                     {t.label}
+                    {t.id === "inbox" && inboxCount > 0 && (
+                      <span style={{
+                        marginLeft: 6, minWidth: 18, height: 16, padding: "0 5px",
+                        background: "#b3263d", color: "#fff", borderRadius: 8,
+                        fontSize: 10, fontWeight: 700, display: "inline-grid", placeItems: "center",
+                      }}>{inboxCount > 99 ? "99+" : inboxCount}</span>
+                    )}
                   </Link>
                 ))}
               </div>

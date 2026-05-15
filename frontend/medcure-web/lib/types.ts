@@ -102,6 +102,12 @@ export interface Order {
   startAt?: string | null;
   duration?: string | null;
   notes: string;
+  revision?: number;
+  discontinuedAt?: string | null;
+  discontinuedReason?: string;
+  orderingMdId?: number | null;
+  enteredByUserId?: number | null;
+  verbalCosignDue?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }
