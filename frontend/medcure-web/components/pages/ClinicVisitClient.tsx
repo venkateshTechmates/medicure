@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import type { PatientSummary, Appointment } from "@/lib/types";
+import VideoCall from "@/components/VideoCall";
 
 export default function ClinicVisitClient() {
   const router = useRouter();
@@ -11,6 +12,7 @@ export default function ClinicVisitClient() {
   const [appts, setAppts] = useState<Appointment[]>([]);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [videoOn, setVideoOn] = useState(false);
 
   useEffect(() => {
     api<PatientSummary[]>("/api/patients?take=20").then(rows => {
@@ -59,10 +61,20 @@ export default function ClinicVisitClient() {
         </div>
         <div className="toolbar">
           {msg && <span style={{ fontSize: 12, color: msg.startsWith("✓") ? "var(--good)" : "var(--bad)", fontWeight: 700 }}>{msg}</span>}
+          <button className="btn" onClick={() => setVideoOn(v => !v)} disabled={!myAppt && !pat}>
+            {videoOn ? "End video visit" : "Start video visit"}
+          </button>
           <button className="btn" onClick={() => router.back()}>Cancel</button>
           <button className="btn primary" onClick={complete} disabled={busy}>{busy ? "Signing…" : "Complete & sign →"}</button>
         </div>
       </div>
+
+      {videoOn && (myAppt || pat) && (
+        <VideoCall
+          roomId={`appt-${myAppt?.id ?? `pat-${pat}`}`}
+          onEnd={() => setVideoOn(false)}
+        />
+      )}
 
       <div className="emar-ctx">
         <div className="pic" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=160&h=160&fit=crop&crop=faces)" }} />

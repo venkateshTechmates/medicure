@@ -14,5 +14,6 @@ public class User : Entity
     public string Dea { get; set; } = "";
     public string AvatarUrl { get; set; } = "";
     public bool TwoFactorEnabled { get; set; }
+    public bool TotpEnabled { get; set; }
     public List<UserTenant> Tenants { get; set; } = new();
 }

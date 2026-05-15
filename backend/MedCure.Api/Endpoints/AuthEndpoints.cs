@@ -2,6 +2,7 @@ using MedCure.Api.Auth;
 using MedCure.Api.Data;
 using MedCure.Api.Domain.Entities;
 using MedCure.Api.Dtos;
+using Microsoft.EntityFrameworkCore;
 
 namespace MedCure.Api.Endpoints;
 
@@ -21,11 +22,23 @@ public static class AuthEndpoints
         return app;
     }
 
-    private static async Task<IResult> Login(LoginRequest req, IUnitOfWork uow, JwtService jwt)
+    private static async Task<IResult> Login(LoginRequest req, IUnitOfWork uow, JwtService jwt, TotpService totp)
     {
         var user = await uow.Users.GetByEmailAsync(req.Email);
         if (user is null || !PasswordHasher.Verify(req.Password, user.PasswordHash))
             return Results.Unauthorized();
+
+        if (user.TotpEnabled)
+        {
+            if (string.IsNullOrWhiteSpace(req.TotpCode))
+                return Results.Ok(new { requires2fa = true });
+
+            var secret = await uow.TwoFactorSecrets.QueryAll()
+                .FirstOrDefaultAsync(x => x.UserId == user.Id && x.Enabled);
+            if (secret is null) return Results.Unauthorized();
+            if (!totp.Verify(secret.EncryptedSecret, req.TotpCode))
+                return Results.Unauthorized();
+        }
 
         var tenants = await uow.Users.GetTenantsForUserAsync(user.Id);
         if (tenants.Count == 0) return Results.Forbid();

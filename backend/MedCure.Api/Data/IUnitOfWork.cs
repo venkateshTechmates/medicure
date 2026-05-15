@@ -37,6 +37,7 @@ public interface IUnitOfWork : IAsyncDisposable
     IRepository<MedReconciliationLine> MedReconciliationLines { get; }
     IRepository<Assessment> Assessments { get; }
     IRepository<InbasketItem> InbasketDelegations { get; }
+    IRepository<TwoFactorSecret> TwoFactorSecrets { get; }
 
     // Specialized
     IUserRepository Users { get; }

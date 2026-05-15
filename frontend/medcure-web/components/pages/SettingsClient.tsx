@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { getUser, getActiveTenant } from "@/lib/auth";
 import { api } from "@/lib/api";
+import { getPreferredTheme, setTheme, type Theme } from "@/lib/theme";
 import type { Tenant, User } from "@/lib/types";
 
 const SECTIONS = [
@@ -40,8 +41,24 @@ export default function SettingsClient() {
         licenseState: "OH"
       });
     }
+    const t = (typeof document !== "undefined" && (document.documentElement.dataset.theme as Theme)) || getPreferredTheme();
+    setToggles(s => ({ ...s, darkMode: t === "dark" }));
+    function onChange(e: Event) {
+      const detail = (e as CustomEvent<Theme>).detail;
+      if (detail === "light" || detail === "dark") {
+        setToggles(s => ({ ...s, darkMode: detail === "dark" }));
+      }
+    }
+    window.addEventListener("medcure-theme-change", onChange as EventListener);
+    return () => window.removeEventListener("medcure-theme-change", onChange as EventListener);
   }, []);
-  const toggle = (k: string) => setToggles(s => ({ ...s, [k]: !s[k] }));
+  const toggle = (k: string) => setToggles(s => {
+    const next = { ...s, [k]: !s[k] };
+    if (k === "darkMode") {
+      setTheme(next.darkMode ? "dark" : "light");
+    }
+    return next;
+  });
 
   async function save() {
     setBusy(true); setMsg(null);

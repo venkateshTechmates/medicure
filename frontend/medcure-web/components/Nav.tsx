@@ -5,6 +5,7 @@ import TenantSwitcher from "./TenantSwitcher";
 import ProfileMenu from "./ProfileMenu";
 import NotificationBell from "./NotificationBell";
 import CommandPalette from "./CommandPalette";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Nav() {
   return (
@@ -14,6 +15,7 @@ export default function Nav() {
         <NavTabs />
         <div className="nav-right">
           <SearchTrigger />
+          <ThemeToggle />
           <NotificationBell />
           <TenantSwitcher />
           <ProfileMenu />

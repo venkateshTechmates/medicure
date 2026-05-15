@@ -41,12 +41,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> opts) : DbContext(opts)
     public DbSet<MedReconciliationLine> MedReconciliationLines => Set<MedReconciliationLine>();
     public DbSet<Assessment> Assessments => Set<Assessment>();
     public DbSet<InbasketItem> InbasketDelegations => Set<InbasketItem>();
+    public DbSet<TwoFactorSecret> TwoFactorSecrets => Set<TwoFactorSecret>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
         b.Entity<User>().HasIndex(u => u.Email).IsUnique();
         b.Entity<Patient>().HasIndex(p => p.Mrn).IsUnique();
         b.Entity<UserTenant>().HasIndex(x => new { x.UserId, x.TenantId }).IsUnique();
+        b.Entity<TwoFactorSecret>().HasIndex(x => x.UserId).IsUnique();
         b.Entity<Order>().Property(o => o.Status).HasMaxLength(40);
         b.Entity<Claim>().Property(c => c.Amount).HasColumnType("decimal(18,2)");
         b.Entity<InventoryItem>().Property(c => c.UnitCost).HasColumnType("decimal(18,2)");
