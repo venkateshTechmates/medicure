@@ -47,6 +47,8 @@ export default function PatientChartClient() {
     api<PatientDetail>(`/api/patients/${mrn}`).then(pd => {
       setP(pd);
       api<Assessment[]>(`/api/assessments?patientId=${pd.id}&take=50`).then(setAssessments).catch(() => {});
+      // PRD §14.B — record this view in the user's recent patients list.
+      api(`/api/recents/${encodeURIComponent(mrn)}`, { method: "POST" }).catch(() => {});
     }).catch(() => {});
     api<Vital[]>(`/api/patients/${mrn}/vitals`).then(setVitals).catch(() => {});
     api<Order[]>(`/api/patients/${mrn}/meds`).then(setMeds).catch(() => {});

@@ -2,7 +2,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
-import type { Appointment } from "@/lib/types";
+import ConsentModal from "@/components/ConsentModal";
+import type { Appointment, Consent } from "@/lib/types";
 
 const TIMELINE = [
   { t: "07:42", lbl: "Patient in pre-op",        cls: "good" },
@@ -19,6 +20,8 @@ export default function OrCaseClient() {
   const [cases, setCases] = useState<Appointment[]>([]);
   const [sel, setSel] = useState<Appointment | null>(null);
   const [busy, setBusy] = useState(false);
+  const [procedureConsent, setProcedureConsent] = useState<Consent | null>(null);
+  const [openConsent, setOpenConsent] = useState<Consent | null>(null);
 
   useEffect(() => {
     api<Appointment[]>("/api/appointments?type=Procedure&take=20").then(rows => {
@@ -26,6 +29,39 @@ export default function OrCaseClient() {
       if (rows.length) setSel(rows[0]);
     }).catch(() => {});
   }, []);
+
+  async function loadConsent() {
+    const pid = sel?.patient?.id;
+    if (!pid) { setProcedureConsent(null); return; }
+    const list = await api<Consent[]>(`/api/consents?patientId=${pid}&kind=procedure`).catch(() => [] as Consent[]);
+    const active = list.find(c => c.status === "signed") ?? list[0] ?? null;
+    setProcedureConsent(active);
+  }
+
+  useEffect(() => { loadConsent(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [sel?.patient?.id]);
+
+  async function captureConsent() {
+    if (!sel?.patient) return;
+    const procedureName = sel.type || "Procedure";
+    let target = procedureConsent;
+    if (!target || target.status !== "draft") {
+      target = await api<Consent>("/api/consents", {
+        method: "POST",
+        body: JSON.stringify({
+          patientId: sel.patient.id,
+          encounterId: sel.id,
+          kind: "procedure",
+          title: `Informed consent for ${procedureName}`,
+          bodyText:
+            `I consent to the following procedure: ${procedureName}. The nature, purpose, benefits, risks, and reasonable alternatives have been explained to me. Recognized risks include bleeding, infection, adverse reaction to anesthesia, and injury to adjacent structures. I authorize my physician and assistants to perform additional procedures deemed necessary in their professional judgment.`,
+          requiredWitness: true,
+        }),
+      });
+    }
+    setOpenConsent(target);
+  }
+
+  const consentSigned = procedureConsent?.status === "signed";
 
   async function close() {
     if (!sel) return;
@@ -52,9 +88,30 @@ export default function OrCaseClient() {
         </div>
         <div className="toolbar">
           <button className="btn">Print case sheet</button>
+          <button
+            className="btn primary"
+            onClick={async () => {
+              if (!sel) return;
+              if (!consentSigned) return;
+              await api(`/api/appointments/${sel.id}/status`, { method: "PATCH", body: JSON.stringify({ status: "in-progress" }) }).catch(() => {});
+              router.refresh?.();
+            }}
+            disabled={busy || !sel || !consentSigned}
+            title={!consentSigned ? "Procedure consent must be signed first" : undefined}
+          >Start case</button>
           <button className="btn primary" onClick={close} disabled={busy || !sel}>{busy ? "Closing…" : "Close case →"}</button>
         </div>
       </div>
+
+      {sel && !consentSigned && (
+        <div className="cds warn" style={{ marginBottom: 14 }}>
+          <div className="t">⚠ Procedure consent not signed</div>
+          A signed informed consent for {sel.type || "this procedure"} is required before the case can start.
+          <div style={{ marginTop: 8 }}>
+            <button className="btn primary" onClick={captureConsent}>Capture consent</button>
+          </div>
+        </div>
+      )}
 
       <div className="stat-row">
         <div className="stat-card"><div className="lbl"><span className="si b">●</span>Wheels-in to incision</div><div className="num">50<span style={{ fontSize: 14, color: "var(--ink-mute)" }}>m</span></div><div className="delta">target ≤ 60m</div></div>
@@ -108,8 +165,29 @@ export default function OrCaseClient() {
             <div className="bill-row"><span className="k">Instruments</span><span className="v" style={{ color: "var(--good)" }}>✓ Correct</span></div>
             <div className="bill-row"><span className="k">Specimen sent</span><span className="v">Pathology</span></div>
           </div>
+
+          <div className="card panel" style={{ marginTop: 14 }}>
+            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12 }}>Consent</div>
+            <div className="bill-row">
+              <span className="k">Procedure consent</span>
+              <span className="v" style={{ color: consentSigned ? "var(--good)" : "var(--bad)" }}>
+                {consentSigned ? "✓ Signed" : "✗ Not signed"}
+              </span>
+            </div>
+            {!consentSigned && (
+              <button className="btn primary" style={{ marginTop: 8, width: "100%" }} onClick={captureConsent}>Capture consent</button>
+            )}
+          </div>
         </div>
       </div>
+
+      {openConsent && (
+        <ConsentModal
+          consent={openConsent}
+          onClose={() => setOpenConsent(null)}
+          onSigned={() => loadConsent()}
+        />
+      )}
     </>
   );
 }

@@ -47,6 +47,8 @@ public interface IUnitOfWork : IAsyncDisposable
     IRepository<FavoritePanelItem> FavoritePanelItems { get; }
     IRepository<RecentPatient> RecentPatients { get; }
     IRepository<PinnedPatient> PinnedPatients { get; }
+    IRepository<NotificationChannelPref> NotificationChannelPrefs { get; }
+    IRepository<AlertEscalation> AlertEscalations { get; }
 
     // Specialized
     IUserRepository Users { get; }
@@ -54,6 +56,7 @@ public interface IUnitOfWork : IAsyncDisposable
     IOrderRepository Orders { get; }
     ILabResultRepository LabResults { get; }
     IConsentRepository Consents { get; }
+    IOnCallShiftRepository OnCallShifts { get; }
 
     Task<int> SaveAsync(CancellationToken ct = default);
 }

@@ -3,6 +3,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import CalculatorButton from "@/components/CalculatorButton";
+import type { FavoriteOrder, FavoritePanel } from "@/lib/types";
+import FavoritesPanel from "@/components/orders/FavoritesPanel";
+import SaveAsFavoriteModal, { type SaveFavoriteInput } from "@/components/orders/SaveAsFavoriteModal";
 
 interface PSummary { id: number; mrn: string; fullName: string; age: number; ward: string; bed: string; }
 
@@ -62,12 +65,90 @@ export default function CPOEClient() {
   const [overrideReason, setOverrideReason] = useState(OVERRIDE_REASONS[0].code);
   const [overrideText, setOverrideText] = useState("");
 
+  // PRD §14.C — favorite orders + panels for the current clinician.
+  const [favOrders, setFavOrders] = useState<FavoriteOrder[]>([]);
+  const [favPanels, setFavPanels] = useState<FavoritePanel[]>([]);
+  const [showSaveFav, setShowSaveFav] = useState(false);
+  const [savingFav, setSavingFav] = useState(false);
+  const [favError, setFavError] = useState<string | null>(null);
+  const [applyingPanelId, setApplyingPanelId] = useState<number | null>(null);
+
   useEffect(() => {
     api<PSummary[]>("/api/patients?take=40").then(rows => {
       setPatients(rows);
       if (rows.length) setPatientId(rows[0].id);
     }).catch(() => {});
+    api<FavoriteOrder[]>("/api/favorites/orders").then(setFavOrders).catch(() => {});
+    api<FavoritePanel[]>("/api/favorites/panels").then(setFavPanels).catch(() => {});
   }, []);
+
+  function applyFavoriteToForm(fav: FavoriteOrder) {
+    // Drop the favorite into the local form by adopting its order-type and surfacing the name.
+    setOrderType(fav.orderType);
+    setSelectedDrug({
+      ic: fav.name.slice(0, 2),
+      nm: fav.name,
+      sub: [fav.dose, fav.route, fav.frequency].filter(Boolean).join(" · "),
+      added: true,
+    });
+    setSubmitted(`Loaded favorite: ${fav.name}`);
+    setTimeout(() => setSubmitted(null), 1500);
+  }
+
+  async function applyPanel(panel: FavoritePanel) {
+    if (!patientId) { setErr("Select a patient before applying a panel."); return; }
+    setApplyingPanelId(panel.id);
+    setErr(null);
+    try {
+      const res = await api<{ createdOrderIds: number[] }>(`/api/favorites/panels/${panel.id}/apply`, {
+        method: "POST",
+        body: JSON.stringify({ patientId }),
+      });
+      setSubmitted(`Applied panel "${panel.name}" — ${res.createdOrderIds.length} order${res.createdOrderIds.length === 1 ? "" : "s"} created`);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Failed to apply panel");
+    } finally {
+      setApplyingPanelId(null);
+    }
+  }
+
+  async function saveFavorite(input: SaveFavoriteInput) {
+    setSavingFav(true); setFavError(null);
+    try {
+      const saved = await api<FavoriteOrder>("/api/favorites/orders", {
+        method: "POST",
+        body: JSON.stringify(input),
+      });
+      setFavOrders(prev => {
+        const existing = prev.findIndex(f => f.id === saved.id);
+        if (existing >= 0) {
+          const next = prev.slice();
+          next[existing] = saved;
+          return next;
+        }
+        return [saved, ...prev];
+      });
+      setShowSaveFav(false);
+    } catch (e) {
+      setFavError(e instanceof Error ? e.message : "Failed to save favorite");
+    } finally {
+      setSavingFav(false);
+    }
+  }
+
+  async function deleteFavorite(id: number) {
+    try {
+      await api(`/api/favorites/orders/${id}`, { method: "DELETE" });
+      setFavOrders(prev => prev.filter(f => f.id !== id));
+    } catch { /* surface via err if desired */ }
+  }
+
+  async function deletePanel(id: number) {
+    try {
+      await api(`/api/favorites/panels/${id}`, { method: "DELETE" });
+      setFavPanels(prev => prev.filter(p => p.id !== id));
+    } catch { /* noop */ }
+  }
 
   function buildOrderBody() {
     return {

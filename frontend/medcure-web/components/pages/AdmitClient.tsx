@@ -1,9 +1,35 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import PrintButton from "@/components/PrintButton";
-import type { PatientDetail } from "@/lib/types";
+import ConsentModal from "@/components/ConsentModal";
+import StatusPill from "@/components/StatusPill";
+import type { Consent, PatientDetail, StatusKind } from "@/lib/types";
+
+function consentStatusKind(s: string): StatusKind {
+  if (s === "signed") return "good";
+  if (s === "revoked" || s === "expired") return "bad";
+  if (s === "draft") return "warn";
+  return "info";
+}
+
+const REQUIRED_KINDS: Array<{ kind: "treatment" | "hipaa"; title: string; body: string; requiredWitness: boolean }> = [
+  {
+    kind: "treatment",
+    title: "Consent for medical evaluation and treatment",
+    body:
+      "I voluntarily consent to medical evaluation, diagnostic tests, and treatment as deemed appropriate by the medical staff of this facility. I authorize release of medical information necessary to process insurance claims and for continuity of care. I acknowledge financial responsibility for charges not covered by my insurance.",
+    requiredWitness: false,
+  },
+  {
+    kind: "hipaa",
+    title: "Acknowledgement of Notice of Privacy Practices (HIPAA)",
+    body:
+      "I acknowledge that I have been offered a copy of this facility's Notice of Privacy Practices, which describes how my protected health information (PHI) may be used and disclosed and how I can obtain access to this information. I authorize the use and disclosure of my PHI for treatment, payment, and healthcare operations.",
+    requiredWitness: false,
+  },
+];
 
 export default function AdmitClient() {
   const router = useRouter();
@@ -11,6 +37,8 @@ export default function AdmitClient() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [admitted, setAdmitted] = useState<PatientDetail | null>(null);
+  const [consents, setConsents] = useState<Consent[]>([]);
+  const [openConsent, setOpenConsent] = useState<Consent | null>(null);
   const [data, setData] = useState({
     firstName: "Aria", lastName: "Chen",
     dateOfBirth: "1985-07-20", sex: "F",
@@ -40,6 +68,34 @@ export default function AdmitClient() {
       setMsg(e instanceof Error ? e.message : "Admit failed");
     } finally { setBusy(false); }
   }
+
+  async function refreshConsents(pid: number) {
+    const list = await api<Consent[]>(`/api/consents?patientId=${pid}`).catch(() => [] as Consent[]);
+    setConsents(list);
+  }
+
+  useEffect(() => {
+    if (!admitted) return;
+    (async () => {
+      const list = await api<Consent[]>(`/api/consents?patientId=${admitted.id}`).catch(() => [] as Consent[]);
+      const existingKinds = new Set(list.map(c => c.kind));
+      for (const t of REQUIRED_KINDS) {
+        if (!existingKinds.has(t.kind)) {
+          await api<Consent>("/api/consents", {
+            method: "POST",
+            body: JSON.stringify({
+              patientId: admitted.id,
+              kind: t.kind,
+              title: t.title,
+              bodyText: t.body,
+              requiredWitness: t.requiredWitness,
+            }),
+          }).catch(() => null);
+        }
+      }
+      refreshConsents(admitted.id);
+    })();
+  }, [admitted]);
 
   return (
     <>
@@ -159,33 +215,32 @@ export default function AdmitClient() {
 
           {step === 3 && (
             <div className="wiz-panel">
-              <h3>Consent &amp; e-sign</h3>
-              <div className="info-block" style={{ marginBottom: 12 }}>
-                <h4>Consent for admission &amp; treatment</h4>
-                <p style={{ fontSize: 12, lineHeight: 1.6, color: "var(--ink-soft)" }}>
-                  I consent to medical evaluation, diagnostic procedures, and treatment as deemed appropriate by the medical staff. I authorize release of medical information for billing and continuity of care. I acknowledge financial responsibility for amounts not covered by insurance.
-                </p>
-              </div>
-              <div className="info-block" style={{ marginBottom: 12 }}>
-                <h4>HIPAA notice of privacy practices</h4>
-                <p style={{ fontSize: 12, lineHeight: 1.6, color: "var(--ink-soft)" }}>
-                  I have received a copy of the Notice of Privacy Practices. I authorize use and disclosure of PHI for treatment, payment, and operations.
-                </p>
-              </div>
-              {[
-                "I consent to admission and treatment",
-                "I have received and reviewed the Notice of Privacy Practices",
-                "I acknowledge financial responsibility",
-                "I consent to release of records for billing",
-              ].map((c, i) => (
-                <label key={i} style={{ display: "flex", gap: 8, padding: "8px 0", fontSize: 12, borderTop: i ? "1px solid var(--line)" : "none" }}>
-                  <input type="checkbox" defaultChecked={i < 2} /> {c}
-                </label>
+              <h3>Consents</h3>
+              {!admitted && (
+                <div className="cds info" style={{ marginBottom: 12 }}>
+                  <div className="t">Submit admission to enable consent capture</div>
+                  After admission, the required treatment and HIPAA consents will appear here for e-signature on this device.
+                </div>
+              )}
+              {admitted && consents.length === 0 && (
+                <div className="meta" style={{ padding: 12, color: "var(--ink-mute)" }}>Preparing required consents…</div>
+              )}
+              {admitted && consents.map((c, i) => (
+                <div key={c.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 0", borderTop: i ? "1px solid var(--line)" : "none" }}>
+                  <div>
+                    <div style={{ fontWeight: 600 }}>{c.title}</div>
+                    <div style={{ fontSize: 12, color: "var(--ink-mute)", textTransform: "capitalize" }}>
+                      {c.kind} · {c.requiredWitness ? "witness required" : "no witness"}
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    <StatusPill kind={consentStatusKind(c.status)}>{c.status}</StatusPill>
+                    {c.status === "draft" && (
+                      <button className="btn primary" onClick={() => setOpenConsent(c)}>Sign now</button>
+                    )}
+                  </div>
+                </div>
               ))}
-              <div className="esign" style={{ marginTop: 14 }}>
-                <div className="lbl">Patient e-signature</div>
-                <input placeholder="Type full name to sign" />
-              </div>
             </div>
           )}
 
@@ -211,12 +266,29 @@ export default function AdmitClient() {
           </div>
           <div className="card panel" style={{ marginTop: 14 }}>
             <div style={{ fontWeight: 700, marginBottom: 8 }}>Auto checks</div>
-            {[["Insurance eligibility", "good"], ["Bed availability", "good"], ["Consent collected", "warn"], ["MRN assigned", "good"]].map(([k, c], i) => (
-              <div key={i} className="bill-row"><span className="k">{k}</span><span className={`pill ${c}`}><span className="pdot" />{c === "good" ? "OK" : "Pending"}</span></div>
-            ))}
+            {(() => {
+              const consentDone = consents.length > 0 && consents.every(c => c.status === "signed");
+              const rows: [string, string][] = [
+                ["Insurance eligibility", "good"],
+                ["Bed availability", "good"],
+                ["Consent collected", consentDone ? "good" : "warn"],
+                ["MRN assigned", admitted ? "good" : "warn"],
+              ];
+              return rows.map(([k, c], i) => (
+                <div key={i} className="bill-row"><span className="k">{k}</span><span className={`pill ${c}`}><span className="pdot" />{c === "good" ? "OK" : "Pending"}</span></div>
+              ));
+            })()}
           </div>
         </div>
       </div>
+
+      {openConsent && (
+        <ConsentModal
+          consent={openConsent}
+          onClose={() => setOpenConsent(null)}
+          onSigned={() => admitted && refreshConsents(admitted.id)}
+        />
+      )}
     </>
   );
 }

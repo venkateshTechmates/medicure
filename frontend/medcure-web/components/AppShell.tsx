@@ -3,6 +3,7 @@ import Nav from "./Nav";
 import AuthGate from "./AuthGate";
 import AIAssistant from "./AIAssistant";
 import ErrorBoundary from "./ErrorBoundary";
+import GlobalShortcuts from "./GlobalShortcuts";
 
 export default function AppShell({ children }: { children: ReactNode }) {
   return (
@@ -13,6 +14,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
           {/* PRD §14.P — never show a blank screen. ErrorBoundary is a client component. */}
           <ErrorBoundary>{children}</ErrorBoundary>
           <AIAssistant />
+          <GlobalShortcuts />
         </AuthGate>
       </div>
     </div>
