@@ -1,36 +1,204 @@
 "use client";
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
+import { resolveTokens, type TokenContext } from "@/lib/noteTokens";
+import TemplatePicker from "@/components/notes/TemplatePicker";
+import SmartPhraseAutocomplete from "@/components/notes/SmartPhraseAutocomplete";
+import type {
+  NoteTemplate, SmartPhrase, NoteDraft, NoteAddendum, Note,
+  PatientDetail, Vital, Order, Allergy, Problem,
+} from "@/lib/types";
 
-const NOTE_TYPES = ["SOAP progress", "H&P (admission)", "Discharge summary", "Procedure note", "Operative", "Consult", "Nursing", "Telephone", "Critical care", "Death note"];
-const SPECIALTY = ["Asthma exac (Peds)", "Sepsis admit", "Chest pain r/o", "Diabetic admit", "Stroke alert"];
+const NOTE_TYPES = ["Progress", "SOAP", "H&P", "Procedure", "Discharge", "Consult", "Nursing"];
 
 export default function NoteComposerClient() {
   const router = useRouter();
-  const [type, setType] = useState("SOAP progress");
+  const taRef = useRef<HTMLTextAreaElement>(null);
+  const [type, setType] = useState("Progress");
+  const [body, setBody] = useState("");
+  const [templates, setTemplates] = useState<NoteTemplate[]>([]);
+  const [templateId, setTemplateId] = useState<number | null>(null);
+  const [phrases, setPhrases] = useState<SmartPhrase[]>([]);
+  const [patient, setPatient] = useState<PatientDetail | null>(null);
+  const [vitals, setVitals] = useState<Vital | null>(null);
+  const [meds, setMeds] = useState<Order[]>([]);
+  const [allergies, setAllergies] = useState<Allergy[]>([]);
+  const [problems, setProblems] = useState<Problem[]>([]);
+  const [author, setAuthor] = useState<string>("");
+  const [draftId, setDraftId] = useState<number | null>(null);
+  const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [busy, setBusy] = useState(false);
-  const [saved, setSaved] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [signedNote, setSignedNote] = useState<Note | null>(null);
+  const [addendumOpen, setAddendumOpen] = useState(false);
+  const [addendumBody, setAddendumBody] = useState("");
+  const [addenda, setAddenda] = useState<NoteAddendum[]>([]);
 
-  async function save(sign: boolean) {
+  // Bootstrap: pick a patient (first available), load context, templates, phrases, draft.
+  useEffect(() => {
+    (async () => {
+      try {
+        const patients = await api<{ id: number; mrn: string }[]>("/api/patients?take=1");
+        if (!patients.length) { setErr("No patients available"); return; }
+        const pid = patients[0].id;
+        const [pDetail, tList, pList] = await Promise.all([
+          api<PatientDetail>(`/api/patients/${pid}`),
+          api<NoteTemplate[]>("/api/note-templates"),
+          api<SmartPhrase[]>("/api/smart-phrases"),
+        ]);
+        setPatient(pDetail);
+        setAllergies(pDetail.allergies as Allergy[]);
+        setProblems(pDetail.problems as Problem[]);
+        setTemplates(tList);
+        setPhrases(pList);
+
+        const user = typeof window !== "undefined" ? localStorage.getItem("medcure_user") : null;
+        if (user) {
+          try { setAuthor((JSON.parse(user) as { fullName?: string }).fullName ?? ""); } catch {}
+        }
+
+        const [vList, oList] = await Promise.all([
+          api<Vital[]>(`/api/vitals?patientId=${pid}&take=1`).catch(() => []),
+          api<Order[]>(`/api/orders?patientId=${pid}&take=50`).catch(() => []),
+        ]);
+        setVitals(vList[0] ?? null);
+        setMeds(oList.filter(o => o.orderType === "Medication" && !o.discontinuedAt && o.status !== "cancelled"));
+
+        // Why: pre-fill body from any existing draft.
+        try {
+          const draft = await api<NoteDraft | null>(`/api/notes/draft?patientId=${pid}&type=${encodeURIComponent(type)}`);
+          if (draft && draft.body) {
+            setBody(draft.body);
+            setDraftId(draft.id);
+          }
+        } catch {}
+      } catch (e) {
+        setErr(e instanceof Error ? e.message : "Failed to load context");
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // When user switches type, fetch draft for that type.
+  useEffect(() => {
+    if (!patient) return;
+    (async () => {
+      try {
+        const draft = await api<NoteDraft | null>(`/api/notes/draft?patientId=${patient.id}&type=${encodeURIComponent(type)}`);
+        if (draft) { setBody(draft.body || ""); setDraftId(draft.id); }
+        else { setDraftId(null); }
+      } catch {}
+    })();
+  }, [type, patient]);
+
+  const tokenCtx: TokenContext = useMemo(() => ({
+    patient: patient ? {
+      firstName: (patient as PatientDetail & { firstName?: string }).firstName,
+      lastName: (patient as PatientDetail & { lastName?: string }).lastName,
+      fullName: patient.fullName,
+      mrn: patient.mrn,
+      sex: patient.sex,
+      age: patient.age,
+    } : null,
+    vitals: vitals ? { hr: vitals.hr, sbp: vitals.sbp, dbp: vitals.dbp, spo2: vitals.spo2, rr: vitals.rr, tempC: vitals.tempC, recordedAt: vitals.recordedAt } : null,
+    meds: meds.map(m => ({ name: m.name, dose: m.dose, route: m.route, frequency: m.frequency })),
+    allergies: allergies.map(a => ({ substance: a.substance, reaction: a.reaction, severity: a.severity })),
+    problems: problems.map(p => ({ description: p.description, icdCode: p.icdCode })),
+    author,
+    today: new Date().toISOString().slice(0, 10),
+  }), [patient, vitals, meds, allergies, problems, author]);
+
+  const preview = useMemo(() => resolveTokens(body, tokenCtx), [body, tokenCtx]);
+
+  // Autosave: every 10s while body changes, and explicit on blur.
+  const saveDraft = useCallback(async () => {
+    if (!patient) return;
+    if (signedNote) return; // Why: once signed, no more drafts on the same body.
+    try {
+      const saved = await api<NoteDraft>("/api/notes/draft", {
+        method: "POST",
+        body: JSON.stringify({ noteId: null, patientId: patient.id, type, body }),
+      });
+      setDraftId(saved.id);
+      setSavedAt(new Date());
+    } catch (e) {
+      // Why: autosave failures are non-fatal; user can still sign.
+    }
+  }, [patient, type, body, signedNote]);
+
+  useEffect(() => {
+    if (!patient) return;
+    const id = setInterval(() => { saveDraft(); }, 10000);
+    return () => clearInterval(id);
+  }, [patient, saveDraft]);
+
+  const savedLabel = useMemo(() => {
+    if (!savedAt) return "";
+    const s = Math.max(0, Math.floor((Date.now() - savedAt.getTime()) / 1000));
+    if (s < 60) return `Saved ${s}s ago`;
+    return `Saved ${Math.floor(s / 60)}m ago`;
+  }, [savedAt]);
+
+  // Why: tick every 5s to update savedLabel staleness display.
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick(t => t + 1), 5000);
+    return () => clearInterval(id);
+  }, []);
+
+  function applyTemplate(t: NoteTemplate) {
+    setTemplateId(t.id);
+    setBody(prev => (prev && prev.trim().length > 0 ? prev + "\n\n" : "") + t.body);
+  }
+
+  async function onSign() {
+    if (!patient) return;
     setBusy(true); setErr(null);
     try {
-      const patients = await api<{ id: number }[]>("/api/patients?take=1");
-      if (!patients.length) throw new Error("No patients available");
-      await api("/api/notes", {
+      // Why: ask server to render tokens canonically before signing.
+      const rendered = await api<{ body: string }>("/api/notes/render", {
+        method: "POST",
+        body: JSON.stringify({ patientId: patient.id, body }),
+      });
+      const note = await api<Note>("/api/notes", {
         method: "POST",
         body: JSON.stringify({
-          patientId: patients[0].id,
-          type: type.split(" ")[0] || "Progress",
-          content: "Day 3 progress note · auto-saved from composer",
-          signed: sign,
+          patientId: patient.id,
+          type,
+          content: rendered.body,
+          signed: true,
         }),
       });
-      setSaved(sign ? "Note signed and filed" : "Draft saved");
-      if (sign) setTimeout(() => router.push("/patients"), 1200);
+      setSignedNote(note);
+      setDraftId(null);
+      const list = await api<NoteAddendum[]>(`/api/notes/${note.id}/addenda`).catch(() => []);
+      setAddenda(list);
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Save failed");
+      setErr(e instanceof Error ? e.message : "Sign failed");
+    } finally { setBusy(false); }
+  }
+
+  async function onSaveDraftClick() {
+    setBusy(true); setErr(null);
+    try { await saveDraft(); }
+    finally { setBusy(false); }
+  }
+
+  async function submitAddendum() {
+    if (!signedNote) return;
+    if (!addendumBody.trim()) { setAddendumOpen(false); return; }
+    setBusy(true); setErr(null);
+    try {
+      const a = await api<NoteAddendum>(`/api/notes/${signedNote.id}/addendum`, {
+        method: "POST",
+        body: JSON.stringify({ body: addendumBody }),
+      });
+      setAddenda(prev => [...prev, a]);
+      setAddendumBody("");
+      setAddendumOpen(false);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Addendum failed");
     } finally { setBusy(false); }
   }
 
@@ -39,141 +207,123 @@ export default function NoteComposerClient() {
       <div className="head">
         <div>
           <h1 className="h1">Compose note</h1>
-          <div className="meta">Day 3 progress · Pediatrics · Asthma exacerbation</div>
+          <div className="meta">{patient ? `${patient.fullName} · MRN ${patient.mrn}` : "Loading…"}</div>
         </div>
         <div className="toolbar">
-          <span className="save-status">Auto-saved 8 sec ago</span>
-          {saved && <span className="save-status">{saved}</span>}
+          {savedLabel && <span className="save-status">{savedLabel}</span>}
           {err && <span style={{ color: "var(--bad)", fontSize: 12 }}>{err}</span>}
-          <button className="btn" onClick={() => save(false)} disabled={busy}>Save draft</button>
-          <button className="btn">Cosign &amp; route</button>
-          <button className="btn primary" onClick={() => save(true)} disabled={busy}>{busy ? "Saving…" : "Sign & file"} <span className="arrow">→</span></button>
+          <button className="btn" onClick={onSaveDraftClick} disabled={busy || !!signedNote}>Save draft</button>
+          <button className="btn primary" onClick={onSign} disabled={busy || !!signedNote || !patient}>
+            {signedNote ? "Signed" : busy ? "Saving…" : "Sign & file"}
+          </button>
         </div>
       </div>
 
       <div className="emar-ctx">
-        <div className="pic" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=160&h=160&fit=crop&crop=faces)" }} />
         <div>
-          <div className="nm">Albert Smith · MRN 4421-08 · 9 yo M</div>
+          <div className="nm">{patient ? `${patient.fullName} · MRN ${patient.mrn} · ${patient.age} yo ${patient.sex}` : ""}</div>
           <div className="meta">
-            <span><b>Encounter</b> Inpt-2024-08841 · Day 3</span>
-            <span><b>Author</b> Dr. M. Achebe, Pediatrics</span>
-            <span><b>Cosign</b> Required (Resident → Attending)</span>
+            <span><b>Author</b> {author || "—"}</span>
+            <span><b>Type</b> {type}</span>
+            {signedNote && <span><b>Signed</b> {new Date(signedNote.signedAt || "").toLocaleString()}</span>}
           </div>
         </div>
         <div style={{ display: "flex", gap: 6 }}>
-          <span className="pill warn"><span className="pdot" />Draft</span>
+          <span className={`pill ${signedNote ? "good" : "warn"}`}><span className="pdot" />{signedNote ? "Signed" : "Draft"}</span>
         </div>
       </div>
 
-      <div className="note-layout">
-        <div className="note-rail">
-          <h3>Note type</h3>
-          {NOTE_TYPES.map(t => (
-            <button key={t} className={`rail-item ${type === t ? "act" : ""}`} onClick={() => setType(t)}>
-              {t} {type === t && <span className="ct">Active</span>}
-            </button>
-          ))}
-          <h3 style={{ marginTop: 14 }}>Specialty templates</h3>
-          {SPECIALTY.map(t => (
-            <button key={t} className="rail-item">{t}{t.includes("Asthma") && <span className="ct">★</span>}</button>
-          ))}
-          <h3 style={{ marginTop: 14 }}>My favorites</h3>
-          <button className="rail-item">Asthma exac (Peds)</button>
-          <button className="rail-item">Quick re-assessment</button>
-        </div>
+      <div style={{ display: "flex", gap: 12, margin: "12px 0", alignItems: "center", flexWrap: "wrap" }}>
+        <label style={{ fontSize: 12 }}>
+          Note type:&nbsp;
+          <select value={type} onChange={e => setType(e.target.value)} disabled={!!signedNote}>
+            {NOTE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </label>
+        <TemplatePicker
+          templates={templates}
+          type={type}
+          value={templateId}
+          onSelect={applyTemplate}
+        />
+        <span style={{ fontSize: 11, color: "var(--ink-mute, #666)" }}>
+          Tip: type <code>.</code> to insert a smart phrase. Tokens like <code>@name@</code>, <code>@meds@</code>, <code>@allergies@</code> are resolved on save.
+        </span>
+      </div>
 
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         <div className="editor-card">
-          <div className="ed-tools">
-            <button className="act"><b>B</b></button>
-            <button><i>I</i></button>
-            <button><u>U</u></button>
-            <div className="div" />
-            <button>H1</button><button>H2</button>
-            <button>•</button><button>1.</button>
-            <div className="div" />
-            <button title="Link">🔗</button>
-            <button title="Smart phrase">⚡</button>
-            <button className="auto" title="Vitals">+ Vitals</button>
-            <button className="auto" title="Meds">+ Meds</button>
-            <button className="auto" title="Labs">+ Labs</button>
-            <button className="auto" title="Macro">.dot</button>
-            <div className="voice"><i /> Recording 0:14</div>
-          </div>
-          <div className="ed-meta">
-            <div className="f"><label>Encounter</label><input defaultValue="Inpatient · Peds-2 / 14" readOnly /></div>
-            <div className="f"><label>Service</label><input defaultValue="Pediatrics — Hospitalist" /></div>
-            <div className="f"><label>Visit type</label><select><option>Progress</option><option>Admission H&amp;P</option><option>Discharge</option></select></div>
-            <div className="f"><label>Date / time</label><input defaultValue="2026-05-03 · 08:14" readOnly /></div>
-          </div>
-          <div className="ed-body">
-            <h2>Subjective</h2>
-            <p>Patient is a 9-year-old male with a known history of <span className="smart">asthma</span> and <span className="smart">allergic rhinitis</span> admitted 3 days ago for acute exacerbation. Mother reports overnight he slept well, used <span className="smart">2 puffs of albuterol</span> at bedtime. This morning he denies shortness of breath at rest, mild cough productive of clear sputum.</p>
-            <h2>Objective</h2>
-            <p><b>Vitals (last 4 hrs):</b> <span className="vital-chip">HR 96</span> <span className="vital-chip">BP 118/76</span> <span className="vital-chip">SpO₂ 97% RA</span> <span className="vital-chip">RR 18</span> <span className="vital-chip">T 36.9°C</span> · trending toward baseline.</p>
-            <p><b>General:</b> Alert, well-appearing. <b>Lungs:</b> mild expiratory wheeze bilaterally, improved air entry, no retractions. <b>Cardiac:</b> RRR, no m/r/g.</p>
-            <div className="meds-block">
-              • CBC: WBC 11.2 (↑ from 10.8), Hgb 13.4, Plt 280<br />
-              • CRP: 14 mg/L (↓ from 28)<br />
-              • Peak flow AM: 82% predicted (↑ from 60% on admission)<br />
-              • CXR (Day 1): hyperinflation, no infiltrate
-            </div>
-            <h2>Assessment</h2>
-            <p><b>1. Acute asthma exacerbation, moderate</b> (<span className="smart">J45.901</span>) — Day 3, responding well to bronchodilators and systemic corticosteroids. Discharge anticipated tomorrow.</p>
-            <p><b>2. Allergic rhinitis</b> (<span className="smart">J30.9</span>) — chronic, controlled.</p>
-            <h2>Plan</h2>
-            <div className="meds-block">
-              • Continue albuterol PRN, wean as tolerated<br />
-              • Switch methylprednisolone IV → prednisolone PO 30 mg daily × 4d, then taper<br />
-              • Start ICS — Fluticasone 110 mcg HFA 1 puff BID<br />
-              • Peak flow monitoring AM/PM until d/c
-            </div>
-            <p><b>Disposition:</b> Plan d/c tomorrow if overnight stable. Asthma action plan reviewed with mother.</p>
-          </div>
-          <div className="ed-foot">
-            <div style={{ display: "flex", gap: 14, fontSize: 11, color: "var(--ink-mute)" }}>
-              <span><b>Words</b> 384</span>
-              <span><b>Reading time</b> 2 min</span>
-              <span><b>Auto-billed</b> 99232</span>
-            </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button className="btn">Preview</button>
-              <button className="btn">Spell check</button>
-              <button className="btn primary">Sign &amp; file <span className="arrow">→</span></button>
-            </div>
-          </div>
+          <textarea
+            ref={taRef}
+            className="note-body"
+            value={body}
+            disabled={!!signedNote}
+            onChange={e => setBody(e.target.value)}
+            onBlur={() => saveDraft()}
+            placeholder="Begin typing your note…"
+            style={{
+              width: "100%",
+              minHeight: 420,
+              padding: 12,
+              fontFamily: "var(--mono, ui-monospace, monospace)",
+              fontSize: 13,
+              border: "1px solid var(--line, #ddd)",
+              borderRadius: 6,
+              resize: "vertical",
+              whiteSpace: "pre-wrap",
+            }}
+          />
+          <SmartPhraseAutocomplete
+            textareaRef={taRef}
+            phrases={phrases}
+            value={body}
+            onChange={setBody}
+          />
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <div className="side-card-sm">
-            <h4>Smart phrases · .dot</h4>
-            {[
-              [".asthma-pe",   "Mild expiratory wheeze, no retractions..."],
-              [".normalcv",    "RRR, no m/r/g, S1/S2 normal..."],
-              [".normalresp",  "CTAB, no wheezing/rales/rhonchi..."],
-              [".normalabd",   "Soft, non-tender, +BS, no HSM..."],
-              [".dispo-home",  "D/c home in stable condition with..."],
-              [".asthma-ap",   "Asthma action plan: green/yellow/red..."],
-            ].map(([k, v]) => (
-              <div className="snippet" key={k}><b>{k}</b><span>{v}</span></div>
-            ))}
-          </div>
-          <div className="side-card-sm">
-            <h4>Problem list · pull to A/P</h4>
-            {[["Asthma exacerbation", "J45.901"], ["Allergic rhinitis", "J30.9"], ["Penicillin allergy", "Z88.0"], ["URI · resolving", "J06.9"]].map(([n, c]) => (
-              <div className="problem-pill" key={n}><div><div className="nm">{n}</div></div><span className="code">{c}</span></div>
-            ))}
-            <div className="problem-pill" style={{ borderStyle: "dashed", color: "var(--ink-mute)" }}><div>+ Add to problem list</div><span /></div>
-          </div>
-          <div className="side-card-sm">
-            <h4>Billing · CPT suggested</h4>
-            <div style={{ fontSize: 12 }}>
-              <div className="bill-row"><span className="k"><b>99232</b><br /><span style={{ fontSize: 10, color: "var(--ink-mute)" }}>Subseq inpt · Level 2</span></span><span className="v" style={{ color: "var(--good)" }}>$148</span></div>
-              <div className="bill-row"><span className="k"><b>99358</b><br /><span style={{ fontSize: 10, color: "var(--ink-mute)" }}>Prolonged service add-on</span></span><span className="v" style={{ color: "var(--good)" }}>$68</span></div>
-            </div>
-          </div>
+        <div className="editor-card" style={{ padding: 12, background: "var(--surface, #fafafa)", border: "1px solid var(--line, #eee)", borderRadius: 6 }}>
+          <h3 style={{ marginTop: 0 }}>Live preview</h3>
+          <pre style={{ whiteSpace: "pre-wrap", fontFamily: "var(--mono, ui-monospace, monospace)", fontSize: 13, margin: 0 }}>
+            {preview || <span style={{ color: "var(--ink-mute, #999)" }}>Preview will appear here…</span>}
+          </pre>
         </div>
       </div>
+
+      {signedNote && (
+        <div style={{ marginTop: 16 }}>
+          <div className="head" style={{ marginBottom: 8 }}>
+            <h3 style={{ margin: 0 }}>Addenda</h3>
+            <button className="btn" onClick={() => setAddendumOpen(v => !v)}>
+              {addendumOpen ? "Cancel" : "Add addendum"}
+            </button>
+          </div>
+
+          {addendumOpen && (
+            <div style={{ marginBottom: 12 }}>
+              <textarea
+                value={addendumBody}
+                onChange={e => setAddendumBody(e.target.value)}
+                placeholder="Addendum text…"
+                style={{ width: "100%", minHeight: 100, padding: 8, border: "1px solid var(--line, #ddd)", borderRadius: 6, fontSize: 13 }}
+              />
+              <div style={{ marginTop: 6, display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                <button className="btn primary" onClick={submitAddendum} disabled={busy || !addendumBody.trim()}>Sign addendum</button>
+              </div>
+            </div>
+          )}
+
+          {addenda.length === 0
+            ? <div style={{ color: "var(--ink-mute, #888)", fontSize: 12 }}>No addenda.</div>
+            : addenda.map(a => (
+                <div key={a.id} className="card" style={{ padding: 10, marginBottom: 8 }}>
+                  <div style={{ fontSize: 11, color: "var(--ink-mute, #666)" }}>
+                    <b>{a.authorName}</b> · {new Date(a.signedAt).toLocaleString()}
+                  </div>
+                  <pre style={{ whiteSpace: "pre-wrap", margin: "6px 0 0", fontSize: 13 }}>{a.body}</pre>
+                </div>
+              ))}
+        </div>
+      )}
     </>
   );
 }

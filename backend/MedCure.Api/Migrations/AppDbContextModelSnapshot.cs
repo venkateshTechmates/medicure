@@ -362,7 +362,7 @@ namespace MedCure.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TenantId");
+                    b.HasIndex("TenantId", "RuleKey", "CreatedAt");
 
                     b.ToTable("CdsOverrides");
                 });
@@ -414,7 +414,8 @@ namespace MedCure.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TenantId");
+                    b.HasIndex("TenantId", "RuleKey")
+                        .IsUnique();
 
                     b.ToTable("CdsRules");
                 });
@@ -1814,6 +1815,54 @@ namespace MedCure.Api.Migrations
                     b.ToTable("TransferRequests");
                 });
 
+            modelBuilder.Entity("MedCure.Api.Domain.Entities.TwoFactorSecret", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("BackupCodes")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("Enabled")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("EncryptedSecret")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("EnrolledAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("LastUsedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("TwoFactorSecrets");
+                });
+
             modelBuilder.Entity("MedCure.Api.Domain.Entities.User", b =>
                 {
                     b.Property<int>("Id")
@@ -1861,6 +1910,9 @@ namespace MedCure.Api.Migrations
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("TotpEnabled")
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("INTEGER");
@@ -2526,6 +2578,17 @@ namespace MedCure.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Patient");
+
+                    b.Navigation("Tenant");
+                });
+
+            modelBuilder.Entity("MedCure.Api.Domain.Entities.TwoFactorSecret", b =>
+                {
+                    b.HasOne("MedCure.Api.Domain.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Tenant");
                 });

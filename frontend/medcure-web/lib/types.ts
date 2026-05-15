@@ -286,6 +286,71 @@ export interface Note {
   createdAt: string;
 }
 
+export interface NoteTemplate {
+  id: number;
+  code: string;
+  title: string;
+  specialty: string;
+  type: string;
+  body: string;
+  scope: "system" | "tenant" | "user";
+  ownerUserId?: number | null;
+}
+
+export interface SmartPhrase {
+  id: number;
+  code: string;
+  title: string;
+  body: string;
+  scope: "system" | "tenant" | "user";
+  ownerUserId?: number | null;
+}
+
+export interface NoteAddendum {
+  id: number;
+  noteId: number;
+  authorName: string;
+  authorUserId?: number | null;
+  body: string;
+  signedAt: string;
+  createdAt: string;
+}
+
+export interface NoteDraft {
+  id: number;
+  noteId?: number | null;
+  authorUserId: number;
+  patientId: number;
+  type: string;
+  body: string;
+  updatedAt: string;
+  createdAt: string;
+}
+
+export type ConsentKind = "treatment" | "procedure" | "photo" | "research" | "hipaa";
+export type ConsentStatus = "draft" | "signed" | "revoked" | "expired";
+
+export interface Consent {
+  id: number;
+  patientId: number;
+  encounterId?: number | null;
+  kind: ConsentKind | string;
+  title: string;
+  bodyText: string;
+  requiredWitness: boolean;
+  status: ConsentStatus | string;
+  signedByPatientName: string;
+  signatureBlobKey?: string | null;
+  witnessName?: string | null;
+  witnessSignatureBlobKey?: string | null;
+  signedAt?: string | null;
+  revokedAt?: string | null;
+  expiresAt?: string | null;
+  revocationReason?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface Assessment {
   id: number;
   patientId: number;

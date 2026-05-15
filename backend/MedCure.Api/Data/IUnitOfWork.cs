@@ -38,12 +38,22 @@ public interface IUnitOfWork : IAsyncDisposable
     IRepository<Assessment> Assessments { get; }
     IRepository<InbasketItem> InbasketDelegations { get; }
     IRepository<TwoFactorSecret> TwoFactorSecrets { get; }
+    IRepository<NoteTemplate> NoteTemplates { get; }
+    IRepository<SmartPhrase> SmartPhrases { get; }
+    IRepository<NoteAddendum> NoteAddenda { get; }
+    IRepository<NoteDraft> NoteDrafts { get; }
+    IRepository<FavoriteOrder> FavoriteOrders { get; }
+    IRepository<FavoritePanel> FavoritePanels { get; }
+    IRepository<FavoritePanelItem> FavoritePanelItems { get; }
+    IRepository<RecentPatient> RecentPatients { get; }
+    IRepository<PinnedPatient> PinnedPatients { get; }
 
     // Specialized
     IUserRepository Users { get; }
     IPatientRepository Patients { get; }
     IOrderRepository Orders { get; }
     ILabResultRepository LabResults { get; }
+    IConsentRepository Consents { get; }
 
     Task<int> SaveAsync(CancellationToken ct = default);
 }

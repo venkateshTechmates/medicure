@@ -2,12 +2,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
+import PrintButton from "@/components/PrintButton";
+import type { PatientDetail } from "@/lib/types";
 
 export default function AdmitClient() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [admitted, setAdmitted] = useState<PatientDetail | null>(null);
   const [data, setData] = useState({
     firstName: "Aria", lastName: "Chen",
     dateOfBirth: "1985-07-20", sex: "F",
@@ -27,12 +30,12 @@ export default function AdmitClient() {
   async function handleSubmit() {
     setBusy(true); setMsg(null);
     try {
-      await api("/api/patients", { method: "POST", body: JSON.stringify({
+      const p = await api<PatientDetail>("/api/patients", { method: "POST", body: JSON.stringify({
         ...data,
         dateOfBirth: new Date(data.dateOfBirth).toISOString()
       }) });
-      setMsg("✓ Patient admitted");
-      setTimeout(() => router.push("/patients"), 700);
+      setAdmitted(p);
+      setMsg("✓ Patient admitted — print wristband or continue");
     } catch (e) {
       setMsg(e instanceof Error ? e.message : "Admit failed");
     } finally { setBusy(false); }
@@ -53,11 +56,24 @@ export default function AdmitClient() {
         </div>
         <div className="toolbar">
           {msg && <span style={{ fontSize: 12, color: msg.startsWith("✓") ? "var(--good)" : "var(--bad)", fontWeight: 700 }}>{msg}</span>}
+          {admitted && (
+            <PrintButton
+              label="Print wristband"
+              htmlUrl={`/api/labels/wristband/${admitted.id}?fmt=html`}
+              zplUrl={`/api/labels/wristband/${admitted.id}?fmt=zpl`}
+              zplFilename={`wristband-${admitted.mrn}.zpl`}
+              variant="primary"
+            />
+          )}
           <button className="btn" onClick={() => router.back()}>Cancel</button>
           <button className="btn">Save draft</button>
-          <button className="btn primary" onClick={() => step === STEPS.length - 1 ? handleSubmit() : setStep(s => s + 1)} disabled={busy}>
-            {busy ? "Admitting…" : step === STEPS.length - 1 ? "Submit admission" : "Next →"}
-          </button>
+          {admitted ? (
+            <button className="btn primary" onClick={() => router.push("/patients")}>Done →</button>
+          ) : (
+            <button className="btn primary" onClick={() => step === STEPS.length - 1 ? handleSubmit() : setStep(s => s + 1)} disabled={busy}>
+              {busy ? "Admitting…" : step === STEPS.length - 1 ? "Submit admission" : "Next →"}
+            </button>
+          )}
         </div>
       </div>
 

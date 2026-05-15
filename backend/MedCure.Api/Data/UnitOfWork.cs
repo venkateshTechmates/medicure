@@ -40,11 +40,21 @@ public class UnitOfWork(AppDbContext db, ICurrentUser current) : IUnitOfWork
     private IRepository<Assessment>?              _assessments;
     private IRepository<InbasketItem>?            _inbasketDelegations;
     private IRepository<TwoFactorSecret>?         _twoFactorSecrets;
+    private IRepository<NoteTemplate>?            _noteTemplates;
+    private IRepository<SmartPhrase>?             _smartPhrases;
+    private IRepository<NoteAddendum>?            _noteAddenda;
+    private IRepository<NoteDraft>?               _noteDrafts;
+    private IRepository<FavoriteOrder>?           _favOrders;
+    private IRepository<FavoritePanel>?           _favPanels;
+    private IRepository<FavoritePanelItem>?       _favPanelItems;
+    private IRepository<RecentPatient>?           _recentPatients;
+    private IRepository<PinnedPatient>?           _pinnedPatients;
 
     private IUserRepository?      _users;
     private IPatientRepository?   _patients;
     private IOrderRepository?     _orders;
     private ILabResultRepository? _labs;
+    private IConsentRepository?   _consents;
 
     public IRepository<Tenant>                  Tenants       => _tenants     ??= new Repository<Tenant>(db, current);
     public IRepository<UserTenant>              UserTenants   => _userTenants ??= new Repository<UserTenant>(db, current);
@@ -78,11 +88,21 @@ public class UnitOfWork(AppDbContext db, ICurrentUser current) : IUnitOfWork
     public IRepository<Assessment>              Assessments   => _assessments ??= new Repository<Assessment>(db, current);
     public IRepository<InbasketItem>            InbasketDelegations => _inbasketDelegations ??= new Repository<InbasketItem>(db, current);
     public IRepository<TwoFactorSecret>         TwoFactorSecrets => _twoFactorSecrets ??= new Repository<TwoFactorSecret>(db, current);
+    public IRepository<NoteTemplate>            NoteTemplates => _noteTemplates ??= new NoteTemplateRepository(db, current);
+    public IRepository<SmartPhrase>             SmartPhrases  => _smartPhrases  ??= new SmartPhraseRepository(db, current);
+    public IRepository<NoteAddendum>            NoteAddenda   => _noteAddenda   ??= new NoteAddendumRepository(db, current);
+    public IRepository<NoteDraft>               NoteDrafts    => _noteDrafts    ??= new NoteDraftRepository(db, current);
+    public IRepository<FavoriteOrder>           FavoriteOrders => _favOrders     ??= new FavoriteOrderRepository(db, current);
+    public IRepository<FavoritePanel>           FavoritePanels => _favPanels     ??= new FavoritePanelRepository(db, current);
+    public IRepository<FavoritePanelItem>       FavoritePanelItems => _favPanelItems ??= new FavoritePanelItemRepository(db, current);
+    public IRepository<RecentPatient>           RecentPatients => _recentPatients ??= new RecentPatientRepository(db, current);
+    public IRepository<PinnedPatient>           PinnedPatients => _pinnedPatients ??= new PinnedPatientRepository(db, current);
 
     public IUserRepository      Users      => _users    ??= new UserRepository(db, current);
     public IPatientRepository   Patients   => _patients ??= new PatientRepository(db, current);
     public IOrderRepository     Orders     => _orders   ??= new OrderRepository(db, current);
     public ILabResultRepository LabResults => _labs     ??= new LabResultRepository(db, current);
+    public IConsentRepository   Consents   => _consents ??= new ConsentRepository(db, current);
 
     public Task<int> SaveAsync(CancellationToken ct = default) => _db.SaveChangesAsync(ct);
 

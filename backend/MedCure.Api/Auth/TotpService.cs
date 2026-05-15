@@ -24,7 +24,7 @@ public class TotpService
     /// <summary>Builds an otpauth:// URI usable by Google Authenticator etc.</summary>
     public string GenerateUri(string secret, string account, string issuer)
     {
-        var enc = Uri.EscapeDataString;
+        static string enc(string s) => Uri.EscapeDataString(s);
         var label = $"{enc(issuer)}:{enc(account)}";
         return $"otpauth://totp/{label}?secret={secret}&issuer={enc(issuer)}&algorithm=SHA1&digits={Digits}&period={StepSeconds}";
     }

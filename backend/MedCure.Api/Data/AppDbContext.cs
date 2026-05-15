@@ -53,6 +53,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> opts) : DbContext(opts)
         b.Entity<Claim>().Property(c => c.Amount).HasColumnType("decimal(18,2)");
         b.Entity<InventoryItem>().Property(c => c.UnitCost).HasColumnType("decimal(18,2)");
         b.Entity<Notification>().HasIndex(n => new { n.TenantId, n.UserId, n.ReadAt });
+        b.Entity<CdsRule>().HasIndex(r => new { r.TenantId, r.RuleKey }).IsUnique();
+        b.Entity<CdsOverride>().HasIndex(o => new { o.TenantId, o.RuleKey, o.CreatedAt });
 
         // Soft delete — exclude rows with DeletedAt set from default queries.
         foreach (var et in b.Model.GetEntityTypes())

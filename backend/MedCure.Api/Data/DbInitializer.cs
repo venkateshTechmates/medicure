@@ -90,6 +90,94 @@ public static class DbInitializer
         );
         await db.SaveChangesAsync();
 
+        // ── Role-coverage users (one per role for demo/QA) ────────
+        var roleAvatar = "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=120&h=120&fit=crop&crop=faces";
+        var roleUsers = new (string Email, string Name, string Title, string Role)[]
+        {
+            ("md@medcure.health",          "Mason Drobo",   "MD",    "MD"),
+            ("resident@medcure.health",    "Riya Shah",     "MD",    "Resident"),
+            ("rn@medcure.health",          "Nora Bennett",  "RN",    "RN"),
+            ("rnEd@medcure.health",        "Ed Lopez",      "RN",    "RnEd"),
+            ("rph@medcure.health",         "Priya Kale",    "RPh",   "RPh"),
+            ("tech@medcure.health",        "Tom Becker",    "Tech",  "Tech"),
+            ("reg@medcure.health",         "Reggie Holt",   "Reg",   "Reg"),
+            ("bill@medcure.health",        "Billie Park",   "Bill",  "Bill"),
+            ("admin@medcure.health",       "Adina Cole",    "Admin", "Admin"),
+            ("chargeNurse@medcure.health", "Carla Nguyen",  "RN",    "ChargeNurse"),
+            ("cm@medcure.health",          "Casey Mendez",  "CM",    "CaseMgr"),
+            ("privacy@medcure.health",     "Priya Vasquez", "JD",    "Privacy"),
+        };
+        var seededRoleUsers = new List<(User u, string Role)>();
+        foreach (var ru in roleUsers)
+        {
+            var u = new User
+            {
+                Email = ru.Email,
+                PasswordHash = PasswordHasher.Hash("demo123!"),
+                FullName = ru.Name,
+                Title = ru.Title,
+                Specialty = "",
+                Npi = "",
+                LicenseState = "OH",
+                Dea = "",
+                AvatarUrl = roleAvatar,
+                TwoFactorEnabled = false
+            };
+            db.Users.Add(u);
+            seededRoleUsers.Add((u, ru.Role));
+        }
+        await db.SaveChangesAsync();
+        foreach (var (u, role) in seededRoleUsers)
+        {
+            db.UserTenants.Add(new UserTenant { UserId = u.Id, TenantId = mercy.Id, Role = role, PatientsCount = 0, InboxCount = 0, OnCallHours = 0 });
+        }
+        await db.SaveChangesAsync();
+
+        // ── CDS rule seed (PRD §11.L) ─────────────────────────────
+        db.CdsRules.AddRange(
+            new CdsRule {
+                TenantId = mercy.Id,
+                RuleKey  = "drug-allergy-nsaid",
+                Name     = "NSAID ordered with NSAID allergy on file",
+                Family   = "drug-allergy",
+                Severity = "hard-stop",
+                Enabled  = true,
+                Threshold = """{"drugs":["ibuprofen","aspirin","naproxen"],"allergens":["NSAID","ibuprofen","aspirin"]}""",
+                Message  = "Patient has a documented NSAID-class allergy — do not administer."
+            },
+            new CdsRule {
+                TenantId = mercy.Id,
+                RuleKey  = "duplicate-active-med",
+                Name     = "Duplicate active medication order",
+                Family   = "duplicate",
+                Severity = "warn",
+                Enabled  = true,
+                Threshold = """{"statuses":["signed","verified"]}""",
+                Message  = "An active order for this drug already exists for this patient."
+            },
+            new CdsRule {
+                TenantId = mercy.Id,
+                RuleKey  = "renal-dose",
+                Name     = "Renal dosing required (CKD / renal failure)",
+                Family   = "dose-range",
+                Severity = "warn",
+                Enabled  = true,
+                Threshold = """{"problems":["CKD","renal failure"],"drugs":["metformin","enoxaparin","gabapentin"]}""",
+                Message  = "Adjust for renal function — consider pharmacy consult."
+            },
+            new CdsRule {
+                TenantId = mercy.Id,
+                RuleKey  = "pregnancy-teratogen",
+                Name     = "Teratogenic drug in woman of child-bearing age",
+                Family   = "pregnancy",
+                Severity = "warn",
+                Enabled  = true,
+                Threshold = """{"ageMin":18,"ageMax":50,"sex":"F","drugs":["warfarin","isotretinoin","ace inhibitor","lisinopril"]}""",
+                Message  = "Teratogenic — verify pregnancy status before signing."
+            }
+        );
+        await db.SaveChangesAsync();
+
         // ── Wards & beds (Mercy) ──────────────────────────────────
         var wards = new[] {
             new Ward { TenantId = mercy.Id, Name = "Med-Surg",    Code = "MS",  BedCount = 32, AvgLos = 4.2, NurseRatio = "1:5" },

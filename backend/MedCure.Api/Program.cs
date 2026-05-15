@@ -5,6 +5,7 @@ using MedCure.Api.Auth;
 using MedCure.Api.Data;
 using MedCure.Api.Endpoints;
 using MedCure.Api.Hubs;
+using MedCure.Api.Observability;
 using MedCure.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
@@ -75,7 +76,7 @@ builder.Services
             }
         };
     });
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(o => o.AddMedCureAuthPolicies());
 
 // Repository / UoW + clinical services
 builder.Services.AddHttpContextAccessor();
@@ -141,6 +142,9 @@ builder.Services.AddHealthChecks();
 
 builder.Services.AddOpenApi();
 
+// OpenTelemetry tracing + metrics
+builder.AddMedCureObservability();
+
 var app = builder.Build();
 
 app.UseCors();
@@ -169,6 +173,7 @@ app.MapGet("/api/health/live",  () => Results.Ok(new { status = "alive" })).Allo
 
 // Hubs
 app.MapHub<NotificationHub>("/hubs/notifications").RequireAuthorization();
+app.MapHub<TelehealthHub>("/hubs/telehealth").RequireAuthorization();
 
 // Endpoints
 app.MapAuthEndpoints();
@@ -201,6 +206,10 @@ app.MapSearchEndpoints();
 app.MapExportEndpoints();
 app.MapCdsEndpoints();
 app.MapMedReconciliationEndpoints();
+app.MapAssessmentEndpoints();
+app.MapBreakGlassEndpoints();
+app.MapFhirEndpoints();
+app.MapTwoFactorEndpoints();
 
 app.Run();
 

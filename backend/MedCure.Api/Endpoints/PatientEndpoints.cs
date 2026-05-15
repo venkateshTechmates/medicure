@@ -25,9 +25,20 @@ public static class PatientEndpoints
         return app;
     }
 
-    private static async Task<IResult> List(IUnitOfWork uow, string? q, string? status, string? ward, int? take)
+    private static async Task<IResult> List(IUnitOfWork uow, ICurrentUser current, string? q, string? status, string? ward, int? take, string? scope)
     {
         var patients = await uow.Patients.SearchAsync(q, status, ward, take ?? 200, default);
+        if (string.Equals(scope, "mine", StringComparison.OrdinalIgnoreCase) && current.UserId is int uid)
+        {
+            var mineIds = await uow.Orders.Query()
+                .Where(o => o.OrderingMdId == uid || o.EnteredByUserId == uid)
+                .Select(o => o.PatientId).Distinct().ToListAsync();
+            var noteIds = await uow.Notes.Query()
+                .Where(n => n.AuthorName == (current.FullName ?? ""))
+                .Select(n => n.PatientId).Distinct().ToListAsync();
+            var set = new HashSet<int>(mineIds.Concat(noteIds));
+            patients = patients.Where(p => set.Contains(p.Id)).ToList();
+        }
         var ids = patients.Select(p => p.Id).ToList();
         var latestVitals = await uow.Vitals.Query()
             .Where(v => ids.Contains(v.PatientId))

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import PrintButton from "@/components/PrintButton";
 
 interface ServerSpecimen { id: number; type: string; status: string; collectedAt?: string | null; collectedBy: string; location: string; priority: string; patientId: number; }
 
@@ -20,6 +21,7 @@ export default function SpecimenTrackingClient() {
   const SPECIMENS = live.length
     ? live.map(s => ({
         id: `S-${s.id.toString().padStart(7, "0")}`,
+        rawId: s.id,
         pat: `Patient #${s.patientId}`,
         typ: s.type,
         coll: s.collectedAt ? `${new Date(s.collectedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} ${s.collectedBy}` : "—",
@@ -27,7 +29,7 @@ export default function SpecimenTrackingClient() {
         eta: s.priority,
         cls: s.status === "resulted" ? "good" : s.status === "processing" || s.status === "received" ? "info" : "warn",
       }))
-    : DEMO_SPECIMENS;
+    : DEMO_SPECIMENS.map(s => ({ ...s, rawId: 0 as number }));
 
   return (
     <>
