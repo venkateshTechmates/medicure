@@ -12,4 +12,8 @@ public class Document : TenantEntity
     public long SizeBytes { get; set; }
     public string AuthorName { get; set; } = "";
     public string Status { get; set; } = "signed"; // signed, draft, unsigned
+    public string BlobPath { get; set; } = "";      // relative path in IFileStore
+    public string MimeType { get; set; } = "";
+    public string OriginalFilename { get; set; } = "";
+    public DateTime? SignedAt { get; set; }
 }

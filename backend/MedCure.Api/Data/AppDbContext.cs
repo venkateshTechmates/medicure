@@ -34,6 +34,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> opts) : DbContext(opts)
     public DbSet<ConsultRequest> ConsultRequests => Set<ConsultRequest>();
     public DbSet<TransferRequest> TransferRequests => Set<TransferRequest>();
     public DbSet<CodeEvent> CodeEvents => Set<CodeEvent>();
+    public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<CdsRule> CdsRules => Set<CdsRule>();
+    public DbSet<CdsOverride> CdsOverrides => Set<CdsOverride>();
+    public DbSet<MedReconciliation> MedReconciliations => Set<MedReconciliation>();
+    public DbSet<MedReconciliationLine> MedReconciliationLines => Set<MedReconciliationLine>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -43,6 +48,22 @@ public class AppDbContext(DbContextOptions<AppDbContext> opts) : DbContext(opts)
         b.Entity<Order>().Property(o => o.Status).HasMaxLength(40);
         b.Entity<Claim>().Property(c => c.Amount).HasColumnType("decimal(18,2)");
         b.Entity<InventoryItem>().Property(c => c.UnitCost).HasColumnType("decimal(18,2)");
+        b.Entity<Notification>().HasIndex(n => new { n.TenantId, n.UserId, n.ReadAt });
+
+        // Soft delete — exclude rows with DeletedAt set from default queries.
+        foreach (var et in b.Model.GetEntityTypes())
+        {
+            if (typeof(Entity).IsAssignableFrom(et.ClrType))
+            {
+                var param = System.Linq.Expressions.Expression.Parameter(et.ClrType, "e");
+                var prop  = System.Linq.Expressions.Expression.Property(param, nameof(Entity.DeletedAt));
+                var isNull = System.Linq.Expressions.Expression.Equal(
+                    prop,
+                    System.Linq.Expressions.Expression.Constant(null, typeof(DateTime?)));
+                var lambda = System.Linq.Expressions.Expression.Lambda(isNull, param);
+                b.Entity(et.ClrType).HasQueryFilter(lambda);
+            }
+        }
     }
 
     public override int SaveChanges()

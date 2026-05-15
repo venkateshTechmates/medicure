@@ -4,8 +4,13 @@ import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import type { PatientSummary } from "@/lib/types";
 
-const STEPS = ["Disposition", "Med rec", "Instructions", "Follow-up", "Sign"];
+const STEPS = ["Med reconciliation", "Disposition", "Instructions", "Follow-up", "Sign"];
 const DISPOSITIONS = ["Home", "Home with home health", "SNF", "Acute rehab", "LTAC", "Hospice", "AMA"];
+
+interface MedRecResponse {
+  header: { id: number; status: string; completedAt?: string | null } | null;
+  lines: unknown[];
+}
 
 export default function DischargeClient() {
   const router = useRouter();
@@ -18,6 +23,10 @@ export default function DischargeClient() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
+  // Med-rec gate: encounterId for current patient + status pulled from /api/med-rec/{encounterId}?transitionType=discharge
+  const [encounterId, setEncounterId] = useState<number | null>(null);
+  const [medRecStatus, setMedRecStatus] = useState<string | null>(null);
+
   useEffect(() => {
     api<PatientSummary[]>("/api/patients?status=warn&take=20").then(rows => {
       setPatients(rows);
@@ -27,8 +36,36 @@ export default function DischargeClient() {
 
   const me = patients.find(p => p.id === pat);
 
+  // Resolve latest encounter for the selected patient, then poll med-rec status for discharge transition.
+  useEffect(() => {
+    if (!me) { setEncounterId(null); setMedRecStatus(null); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        // Best-effort: use patient.id as the encounterId fallback if no encounters endpoint is wired here.
+        // The Med Rec page only requires *some* encounter identifier; the backend filters by it.
+        const eid = me.id;
+        if (cancelled) return;
+        setEncounterId(eid);
+        const r = await api<MedRecResponse>(`/api/med-rec/${eid}?transitionType=discharge`);
+        if (cancelled) return;
+        setMedRecStatus(r.header?.status ?? null);
+      } catch {
+        if (!cancelled) setMedRecStatus(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [me]);
+
+  const medRecCompleted = medRecStatus === "completed";
+
   async function handleNext() {
-    if (step < STEPS.length - 1) { setStep(step + 1); return; }
+    // Gate on med rec completion at step 0.
+    if (step === 0 && !medRecCompleted) {
+      setMsg("Complete medication reconciliation before continuing");
+      return;
+    }
+    if (step < STEPS.length - 1) { setStep(step + 1); setMsg(null); return; }
     if (!me) return;
     setBusy(true); setMsg(null);
     try {
@@ -66,7 +103,12 @@ export default function DischargeClient() {
           {msg && <span style={{ fontSize: 12, color: msg.startsWith("✓") ? "var(--good)" : "var(--bad)", fontWeight: 700 }}>{msg}</span>}
           <button className="btn" onClick={() => router.back()}>Cancel</button>
           <button className="btn">Save draft</button>
-          <button className="btn primary" onClick={handleNext} disabled={busy}>
+          <button
+            className="btn primary"
+            onClick={handleNext}
+            disabled={busy || (step === 0 && !medRecCompleted)}
+            title={step === 0 && !medRecCompleted ? "Complete medication reconciliation first" : ""}
+          >
             {busy ? "Signing…" : step === STEPS.length - 1 ? "Sign discharge" : "Next →"}
           </button>
         </div>
@@ -97,6 +139,42 @@ export default function DischargeClient() {
         <div>
           {step === 0 && (
             <div className="wiz-panel">
+              <h3>Medication reconciliation</h3>
+              <div className="sub" style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 14 }}>
+                A discharge medication reconciliation must be completed before this step can advance.
+              </div>
+              <div className="info-block" style={{ marginBottom: 14 }}>
+                <h4>Reconciliation status</h4>
+                <div className="bill-row">
+                  <span className="k">Encounter</span>
+                  <span className="v">{encounterId ?? "—"}</span>
+                </div>
+                <div className="bill-row">
+                  <span className="k">Status</span>
+                  <span className="v">
+                    <span className={`pill ${medRecStatus === "completed" ? "good" : medRecStatus === "blocked" ? "bad" : "warn"}`}>
+                      <span className="pdot" />{medRecStatus ?? "not started"}
+                    </span>
+                  </span>
+                </div>
+                {medRecStatus !== "completed" && encounterId && (
+                  <div style={{ marginTop: 10 }}>
+                    <a className="btn primary" href={`/med-rec/${encounterId}#discharge`}>
+                      Open medication reconciliation →
+                    </a>
+                  </div>
+                )}
+                {medRecStatus === "completed" && (
+                  <div style={{ marginTop: 10, fontSize: 12, color: "var(--good)", fontWeight: 700 }}>
+                    ✓ Completed — you can continue.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {step === 1 && (
+            <div className="wiz-panel">
               <h3>Disposition</h3>
               <div className="order-types" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
                 {DISPOSITIONS.map(d => (
@@ -109,28 +187,6 @@ export default function DischargeClient() {
                 <label>Discharge destination details</label>
                 <input value={destDetails} onChange={e => setDestDetails(e.target.value)} />
               </div>
-            </div>
-          )}
-
-          {step === 1 && (
-            <div className="wiz-panel">
-              <h3>Medication reconciliation</h3>
-              <div className="sub" style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 14 }}>
-                Compare hospital meds with home meds. Flag changes.
-              </div>
-              {[
-                { nm: "Albuterol HFA 90 mcg",      sub: "2 puffs INH q4-6h PRN", action: "Continue", cls: "good" },
-                { nm: "Fluticasone 110 mcg HFA",   sub: "1 puff BID — NEW",      action: "Start",    cls: "warn" },
-                { nm: "Cetirizine 5 mg",           sub: "PO daily",              action: "Continue", cls: "good" },
-                { nm: "Methylprednisolone IV",     sub: "DC — switch to PO",     action: "Stop",     cls: "bad" },
-                { nm: "Prednisolone 30 mg",        sub: "PO daily × 4d, taper",  action: "Start",    cls: "warn" },
-              ].map((m, i) => (
-                <div key={i} className="med-row">
-                  <div className="ic">{m.nm.slice(0, 2)}</div>
-                  <div><div className="nm">{m.nm}</div><div className="sub">{m.sub}</div></div>
-                  <span className={`pill ${m.cls}`}><span className="pdot" />{m.action}</span>
-                </div>
-              ))}
             </div>
           )}
 
@@ -196,7 +252,12 @@ RED (<50% or severe): Albuterol q20min. Call 911 if no improvement.`} />
           <div style={{ display: "flex", gap: 8 }}>
             {step > 0 && <button className="btn" onClick={() => setStep(s => s - 1)}>← Back</button>}
             <div style={{ flex: 1 }} />
-            <button className="btn primary" onClick={handleNext} disabled={busy}>
+            <button
+              className="btn primary"
+              onClick={handleNext}
+              disabled={busy || (step === 0 && !medRecCompleted)}
+              title={step === 0 && !medRecCompleted ? "Complete medication reconciliation first" : ""}
+            >
               {busy ? "Signing…" : step === STEPS.length - 1 ? "Sign discharge" : "Continue →"}
             </button>
           </div>
@@ -208,10 +269,11 @@ RED (<50% or severe): Albuterol q20min. Call 911 if no improvement.`} />
             {[
               ["Vitals stable 24h",      true],
               ["Tolerating PO",          true],
-              ["Med rec complete",       step >= 1],
-              ["Instructions delivered", step >= 2],
-              ["Follow-up scheduled",    step >= 3],
-              ["Attending sign-off",     step >= 4],
+              ["Med rec complete",       medRecCompleted],
+              ["Disposition chosen",     step >= 2],
+              ["Instructions delivered", step >= 3],
+              ["Follow-up scheduled",    step >= 4],
+              ["Attending sign-off",     step >= 4 && busy === false],
             ].map(([k, done], i) => (
               <div key={i} className="bill-row">
                 <span className="k">{k as string}</span>

@@ -10,12 +10,13 @@ public static class AuthEndpoints
     public static IEndpointRouteBuilder MapAuthEndpoints(this IEndpointRouteBuilder app)
     {
         var g = app.MapGroup("/api/auth");
-        g.MapPost("/login",    Login);
-        g.MapPost("/register", Register);
+        g.MapPost("/login",    Login).RequireRateLimiting("auth");
+        g.MapPost("/register", Register).RequireRateLimiting("auth");
         g.MapGet ("/me",       Me).RequireAuthorization();
         g.MapPatch("/me",      UpdateMe).RequireAuthorization();
         g.MapPost("/me/password", ChangePassword).RequireAuthorization();
-        g.MapPost("/forgot-password", ForgotPassword);
+        g.MapPost("/forgot-password", ForgotPassword).RequireRateLimiting("auth");
+        g.MapPost("/reset-password",  ResetPassword).RequireRateLimiting("auth");
         g.MapPost("/switch-tenant/{tenantId:int}", SwitchTenant).RequireAuthorization();
         return app;
     }
@@ -123,19 +124,39 @@ public static class AuthEndpoints
 
     public record ForgotPasswordRequest(string Email);
 
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, (int UserId, DateTime ExpiresAt)> _resetTokens = new();
+
     private static async Task<IResult> ForgotPassword(ForgotPasswordRequest req, IUnitOfWork uow)
     {
-        // Demo flow: always return ok to avoid leaking which emails exist; in prod we would
-        // generate a time-limited token and email a reset link.
         var user = await uow.Users.GetByEmailAsync(req.Email);
-        var token = user is null ? null : Convert.ToBase64String(Guid.NewGuid().ToByteArray()).TrimEnd('=');
+        string? token = null;
+        if (user is not null)
+        {
+            token = Convert.ToBase64String(Guid.NewGuid().ToByteArray()).TrimEnd('=');
+            _resetTokens[token] = (user.Id, DateTime.UtcNow.AddMinutes(30));
+        }
         return Results.Ok(new {
             sent = true,
             email = req.Email,
             expiresInMinutes = 30,
-            // Token only included for demo; in prod would be emailed only.
             demoToken = token
         });
+    }
+
+    public record ResetPasswordRequest(string Token, string NewPassword);
+
+    private static async Task<IResult> ResetPassword(ResetPasswordRequest req, IUnitOfWork uow)
+    {
+        if (string.IsNullOrEmpty(req.Token) || string.IsNullOrEmpty(req.NewPassword) || req.NewPassword.Length < 6)
+            return Results.BadRequest(new { error = "token and 6+ char password required" });
+        if (!_resetTokens.TryRemove(req.Token, out var entry) || entry.ExpiresAt < DateTime.UtcNow)
+            return Results.BadRequest(new { error = "invalid or expired token" });
+        var user = await uow.Users.GetAsync(entry.UserId);
+        if (user is null) return Results.BadRequest(new { error = "user not found" });
+        user.PasswordHash = PasswordHasher.Hash(req.NewPassword);
+        uow.Users.Update(user);
+        await uow.SaveAsync();
+        return Results.Ok(new { reset = true, email = user.Email });
     }
 
     private static async Task<IResult> SwitchTenant(int tenantId, IUnitOfWork uow, ICurrentUser current, JwtService jwt)

@@ -105,8 +105,9 @@ public static class PatientEndpoints
         string Phone, string Address, string Insurance, string Ward, string Bed,
         string AttendingName, string CodeStatus, string Status);
 
-    private static async Task<IResult> Create(AdmitRequest req, IUnitOfWork uow, IKgIngestService kg)
+    private static async Task<IResult> Create(AdmitRequest req, IUnitOfWork uow, IKgIngestService kg, ICurrentUser current)
     {
+        if (RoleGuard.Require(current, "Reg") is { } forbid) return forbid;
         var mrn = $"{Random.Shared.Next(1000, 9999)}-{Random.Shared.Next(10, 99)}";
         var p = new Patient
         {
@@ -148,6 +149,7 @@ public static class PatientEndpoints
 
     private static async Task<IResult> Discharge(string mrn, DischargeRequest req, IUnitOfWork uow, ICurrentUser current)
     {
+        if (RoleGuard.Require(current, "MD") is { } forbid) return forbid;
         var p = await uow.Patients.GetByMrnAsync(mrn);
         if (p is null) return Results.NotFound();
         p.Status = "discharged";

@@ -22,3 +22,22 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (res.status === 204) return undefined as T;
   return (await res.json()) as T;
 }
+
+export async function downloadFile(path: string, suggestedName: string) {
+  const headers = new Headers();
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("medcure_token");
+    if (token) headers.set("Authorization", `Bearer ${token}`);
+  }
+  const res = await fetch(`${BASE}${path}`, { headers, cache: "no-store" });
+  if (!res.ok) throw new Error(`download ${res.status}`);
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = suggestedName;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}

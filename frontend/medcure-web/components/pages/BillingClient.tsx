@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
+import { api, downloadFile } from "@/lib/api";
 import { fmtDate, fmtMoney } from "@/lib/fmt";
 import type { Claim } from "@/lib/types";
 
@@ -28,6 +28,7 @@ export default function BillingClient() {
           <div className="meta">{claims.length} claims · {fmtMoney(totalAR)} A/R · {denied} denied · {paid} paid</div>
         </div>
         <div className="toolbar">
+          <button className="btn" onClick={() => downloadFile("/api/exports/claims.csv", "claims.csv")}>Export CSV</button>
           <button className="btn">Run AR report</button>
           <button className="btn primary">New claim <span className="arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></span></button>
         </div>

@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { getActiveRole } from "../lib/auth";
 
 // Order matches Mocks/scripts/nav.js (Message singular, Stock for inventory)
 const tabs = [
@@ -21,6 +22,29 @@ const tabs = [
   { id: "sitemap",      label: "Map",          href: "/sitemap" },
 ];
 
+// Role -> allowed tab ids. Roles not listed fall through to a permissive default so a
+// freshly-seeded role string doesn't blank the nav while we iterate the matrix.
+const ROLE_TABS: Record<string, string[]> = {
+  MD:           ["overview","patients","appointments","labs","pharmacy","ed","telemetry","message","documents","settings"],
+  Resident:     ["overview","patients","appointments","labs","pharmacy","ed","telemetry","message","documents","settings"],
+  RN:           ["patients","ed","telemetry","message","documents","settings"],
+  RnEd:         ["patients","ed","telemetry","message","documents","settings"],
+  ChargeNurse:  ["patients","ed","telemetry","message","documents","settings"],
+  RPh:          ["pharmacy","stock","patients","message","settings"],
+  Tech:         ["labs","patients","message","settings"],
+  Reg:          ["patients","appointments","message","settings"],
+  Bill:         ["billing","patients","message","settings"],
+  Admin:        ["overview","documents","message","labs","patients","appointments","pharmacy","billing","stock","staff","ed","settings","telemetry","sitemap"],
+  Privacy:      ["overview","documents","message","labs","patients","appointments","pharmacy","billing","stock","staff","ed","settings","telemetry","sitemap"],
+};
+
+function tabsForRole(role: string | null) {
+  if (!role) return tabs;
+  const allowed = ROLE_TABS[role];
+  if (!allowed) return tabs; // unknown role — show everything rather than nothing
+  return tabs.filter(t => allowed.includes(t.id));
+}
+
 export default function NavTabs() {
   const path = usePathname() || "/";
   const isActive = (href: string) => href === "/" ? path === "/" : path.startsWith(href);
@@ -31,6 +55,19 @@ export default function NavTabs() {
   // Default to 7 visible (Overview…ED) so first paint matches the mock instead of "All in More".
   const [visibleCount, setVisibleCount] = useState(7);
   const [open, setOpen] = useState(false);
+
+  // Role-filtered tabs. Resolve on mount (SSR-safe) and react to tenant changes via a
+  // storage listener so a tenant switch in another tab updates the nav too.
+  const [role, setRole] = useState<string | null>(null);
+  useEffect(() => {
+    setRole(getActiveRole());
+    function onStorage(e: StorageEvent) {
+      if (e.key === "activeTenant" || e.key === "medcure_tenant") setRole(getActiveRole());
+    }
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+  const visibleTabs = tabsForRole(role);
 
   useEffect(() => {
     function recompute() {
@@ -55,7 +92,7 @@ export default function NavTabs() {
       const reserved = (logo?.offsetWidth ?? 0) + (right?.offsetWidth ?? 0) + 36 + 12;
       const available = Math.max(0, navW - reserved);
 
-      if (total <= available) { setVisibleCount(prev => prev === tabs.length ? prev : tabs.length); return; }
+      if (total <= available) { setVisibleCount(prev => prev === visibleTabs.length ? prev : visibleTabs.length); return; }
 
       const moreW = 96;
       const cap = available - moreW;
@@ -74,7 +111,7 @@ export default function NavTabs() {
     }
     window.addEventListener("resize", recompute);
     return () => { window.removeEventListener("resize", recompute); };
-  }, []);
+  }, [visibleTabs.length]);
 
   useEffect(() => {
     function onDoc(e: MouseEvent) {
@@ -84,13 +121,13 @@ export default function NavTabs() {
     return () => document.removeEventListener("click", onDoc);
   }, []);
 
-  const visible  = tabs.slice(0, visibleCount);
-  const overflow = tabs.slice(visibleCount);
+  const visible  = visibleTabs.slice(0, visibleCount);
+  const overflow = visibleTabs.slice(visibleCount);
 
   return (
     <>
       <div ref={measureRef} aria-hidden style={{ position: "absolute", visibility: "hidden", pointerEvents: "none", display: "flex", gap: 6, top: -9999, left: -9999 }}>
-        {tabs.map(t => (
+        {visibleTabs.map(t => (
           <span key={t.id} className="tab">{t.label}</span>
         ))}
       </div>

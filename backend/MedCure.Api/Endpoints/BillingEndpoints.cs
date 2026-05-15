@@ -1,3 +1,4 @@
+using MedCure.Api.Auth;
 using MedCure.Api.Data;
 using MedCure.Api.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -49,8 +50,9 @@ public static class BillingEndpoints
         return Results.Created($"/api/billing/claims/{input.Id}", input);
     }
 
-    private static async Task<IResult> Submit(int id, IUnitOfWork uow)
+    private static async Task<IResult> Submit(int id, IUnitOfWork uow, ICurrentUser current)
     {
+        if (RoleGuard.Require(current, "Bill") is { } forbid) return forbid;
         var c = await uow.Claims.GetAsync(id);
         if (c is null) return Results.NotFound();
         c.Status = "submitted";
@@ -59,8 +61,9 @@ public static class BillingEndpoints
         return Results.NoContent();
     }
 
-    private static async Task<IResult> Pay(int id, IUnitOfWork uow)
+    private static async Task<IResult> Pay(int id, IUnitOfWork uow, ICurrentUser current)
     {
+        if (RoleGuard.Require(current, "Bill") is { } forbid) return forbid;
         var c = await uow.Claims.GetAsync(id);
         if (c is null) return Results.NotFound();
         c.Status = "paid";
@@ -71,8 +74,9 @@ public static class BillingEndpoints
 
     public record DenyRequest(string Reason);
 
-    private static async Task<IResult> Deny(int id, DenyRequest req, IUnitOfWork uow)
+    private static async Task<IResult> Deny(int id, DenyRequest req, IUnitOfWork uow, ICurrentUser current)
     {
+        if (RoleGuard.Require(current, "Bill") is { } forbid) return forbid;
         var c = await uow.Claims.GetAsync(id);
         if (c is null) return Results.NotFound();
         c.Status = "denied";
@@ -82,8 +86,9 @@ public static class BillingEndpoints
         return Results.NoContent();
     }
 
-    private static async Task<IResult> Appeal(int id, IUnitOfWork uow)
+    private static async Task<IResult> Appeal(int id, IUnitOfWork uow, ICurrentUser current)
     {
+        if (RoleGuard.Require(current, "Bill") is { } forbid) return forbid;
         var c = await uow.Claims.GetAsync(id);
         if (c is null) return Results.NotFound();
         c.Status = "appealing";

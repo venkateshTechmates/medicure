@@ -5,6 +5,16 @@ import { api } from "@/lib/api";
 
 interface PSummary { id: number; mrn: string; fullName: string; age: number; ward: string; bed: string; }
 
+interface CdsCheckAlert { ruleKey: string; family: string; severity: string; message: string; }
+
+const OVERRIDE_REASONS = [
+  { code: "benefit-outweighs-risk",   label: "Clinical benefit outweighs risk" },
+  { code: "verified-not-current",     label: "Allergy/condition no longer current" },
+  { code: "alternative-unavailable",  label: "No appropriate alternative available" },
+  { code: "specialist-recommended",   label: "Per specialist recommendation" },
+  { code: "patient-tolerated-prior",  label: "Patient previously tolerated" },
+];
+
 interface OT { ic: string; bg: string; nm: string; sub: string; }
 const ORDER_TYPES: OT[] = [
   { ic: "Rx", bg: "#3a86ff", nm: "Medication", sub: "eRx, IV, scheduled" },
@@ -46,6 +56,10 @@ export default function CPOEClient() {
   const [busy, setBusy] = useState(false);
   const [submitted, setSubmitted] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [cdsAlerts, setCdsAlerts] = useState<CdsCheckAlert[]>([]);
+  const [overrideModal, setOverrideModal] = useState<CdsCheckAlert[] | null>(null);
+  const [overrideReason, setOverrideReason] = useState(OVERRIDE_REASONS[0].code);
+  const [overrideText, setOverrideText] = useState("");
 
   useEffect(() => {
     api<PSummary[]>("/api/patients?take=40").then(rows => {
@@ -54,28 +68,84 @@ export default function CPOEClient() {
     }).catch(() => {});
   }, []);
 
+  function buildOrderBody() {
+    return {
+      patientId,
+      orderType,
+      name: selectedDrug.nm,
+      dose: "180 mcg (2 puffs)",
+      route: "Inhaled",
+      frequency: "q4–6h PRN",
+      priority: priority === "stat" ? "Stat" : priority === "timed" ? "Urgent" : "Routine",
+      status: "signed",
+      indication: "Asthma exacerbation",
+    };
+  }
+
+  async function postOrder() {
+    await api("/api/orders", {
+      method: "POST",
+      body: JSON.stringify(buildOrderBody()),
+    });
+    setSubmitted("Order signed and routed to pharmacy queue");
+    setTimeout(() => router.push("/pharmacy"), 1200);
+  }
+
   async function submit() {
     if (!esign || !patientId) { setErr("Patient and signature required"); return; }
     setBusy(true); setErr(null);
     try {
-      await api("/api/orders", {
+      // 1. Real-time CDS check before signing.
+      const draft = buildOrderBody();
+      const alerts = await api<CdsCheckAlert[]>("/api/cds/check", {
         method: "POST",
         body: JSON.stringify({
           patientId,
-          orderType,
-          name: selectedDrug.nm,
-          dose: "180 mcg (2 puffs)",
-          route: "Inhaled",
-          frequency: "q4–6h PRN",
-          priority: priority === "stat" ? "Stat" : priority === "timed" ? "Urgent" : "Routine",
-          status: "signed",
-          indication: "Asthma exacerbation",
+          orderDraftJson: JSON.stringify(draft),
+          triggerPoint: "sign",
         }),
       });
-      setSubmitted("Order signed and routed to pharmacy queue");
-      setTimeout(() => router.push("/pharmacy"), 1200);
+      setCdsAlerts(alerts);
+
+      // 2. Any hard-stop blocks signing until the user records an override.
+      const hardStops = alerts.filter(a => a.severity === "hard-stop");
+      if (hardStops.length > 0) {
+        setOverrideModal(hardStops);
+        setOverrideText("");
+        setOverrideReason(OVERRIDE_REASONS[0].code);
+        return;
+      }
+
+      // 3. No hard stops → proceed.
+      await postOrder();
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Order submission failed");
+    } finally { setBusy(false); }
+  }
+
+  async function confirmOverride() {
+    if (!overrideModal || !patientId) return;
+    if (!overrideText.trim()) { setErr("Override justification required"); return; }
+    setBusy(true); setErr(null);
+    try {
+      // Record one override row per hard-stop alert.
+      for (const a of overrideModal) {
+        await api("/api/cds/override", {
+          method: "POST",
+          body: JSON.stringify({
+            ruleKey: a.ruleKey,
+            patientId,
+            orderId: null,
+            reasonCode: overrideReason,
+            reasonText: overrideText,
+            severity: a.severity,
+          }),
+        });
+      }
+      setOverrideModal(null);
+      await postOrder();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Override failed");
     } finally { setBusy(false); }
   }
 
@@ -205,22 +275,22 @@ export default function CPOEClient() {
 
             <div style={{ marginTop: 18 }}>
               <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 6 }}>Clinical decision support</div>
-              <div className="cds info">
-                <div className="t">ℹ Pediatric dose verified</div>
-                For 31 kg patient · 180 mcg/dose is within recommended pediatric range (90–180 mcg q4–6h). No adjustment needed.
-              </div>
-              <div className="cds warn">
-                <div className="t">⚠ Therapeutic duplication</div>
-                Patient already has active <b>Albuterol HFA</b> on med list (last refill Apr 18, 4 refills remaining). Consider canceling existing Rx before signing this order.
-                <div style={{ marginTop: 8, display: "flex", gap: 6 }}>
-                  <button className="btn" style={{ fontSize: 11, padding: "6px 10px" }}>Replace existing</button>
-                  <button className="btn" style={{ fontSize: 11, padding: "6px 10px" }}>Override with reason</button>
+              {cdsAlerts.length === 0 && (
+                <div className="cds info">
+                  <div className="t">ℹ No alerts yet</div>
+                  Real-time CDS will run when you sign. Drug-allergy, duplicate, renal-dose and pregnancy checks are active.
                 </div>
-              </div>
-              <div className="cds info">
-                <div className="t">ℹ Allergy check</div>
-                No interaction with patient&apos;s documented allergies (Penicillin, Peanuts). Albuterol is safe.
-              </div>
+              )}
+              {cdsAlerts.map((a, i) => {
+                const cls = a.severity === "hard-stop" ? "bad" : a.severity === "warn" ? "warn" : "info";
+                const icon = a.severity === "hard-stop" ? "⛔" : a.severity === "warn" ? "⚠" : "ℹ";
+                return (
+                  <div className={`cds ${cls}`} key={`${a.ruleKey}-${i}`}>
+                    <div className="t">{icon} {a.family} · {a.severity}</div>
+                    {a.message}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -244,7 +314,11 @@ export default function CPOEClient() {
 
             <div style={{ borderTop: "1px solid var(--line)", marginTop: 14, paddingTop: 14 }}>
               <div className="summary-line"><span className="k">Items</span><span className="v">1</span></div>
-              <div className="summary-line"><span className="k">CDS alerts</span><span className="v" style={{ color: "#a05a00" }}>1 warn · 0 critical</span></div>
+              <div className="summary-line"><span className="k">CDS alerts</span><span className="v" style={{ color: cdsAlerts.some(a => a.severity === "hard-stop") ? "#b3263d" : cdsAlerts.some(a => a.severity === "warn") ? "#a05a00" : "var(--ink-mute)" }}>
+                {cdsAlerts.length === 0
+                  ? "none yet"
+                  : `${cdsAlerts.filter(a => a.severity === "warn").length} warn · ${cdsAlerts.filter(a => a.severity === "hard-stop").length} hard-stop`}
+              </span></div>
               <div className="summary-line"><span className="k">Est. cost (patient)</span><span className="v">$8.40</span></div>
               <div className="summary-line"><span className="k">Insurance check</span><span className="v" style={{ color: "var(--good)" }}>✓ Aetna PPO covered</span></div>
             </div>
@@ -283,6 +357,65 @@ export default function CPOEClient() {
           </div>
         </div>
       </div>
+
+      {overrideModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          style={{
+            position: "fixed", inset: 0, background: "rgba(14,17,22,.55)",
+            display: "grid", placeItems: "center", zIndex: 1000, padding: 20,
+          }}
+          onClick={() => !busy && setOverrideModal(null)}
+        >
+          <div
+            className="card"
+            style={{ maxWidth: 560, width: "100%", padding: 24 }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ fontWeight: 800, fontSize: 18, marginBottom: 4, color: "#b3263d" }}>
+              ⛔ Hard-stop alert — override required
+            </div>
+            <div style={{ fontSize: 12, color: "var(--ink-mute)", marginBottom: 14 }}>
+              Signing is blocked until you record a clinical justification. The override is logged to the audit chain.
+            </div>
+            {overrideModal.map((a, i) => (
+              <div className="cds bad" key={`${a.ruleKey}-${i}`} style={{ marginBottom: 8 }}>
+                <div className="t">⛔ {a.family}</div>
+                {a.message}
+                <div style={{ fontSize: 10, color: "var(--ink-mute)", marginTop: 4 }}>rule: {a.ruleKey}</div>
+              </div>
+            ))}
+
+            <div className="cpoe-field" style={{ marginTop: 12 }}>
+              <label>Override reason</label>
+              <select value={overrideReason} onChange={e => setOverrideReason(e.target.value)}>
+                {OVERRIDE_REASONS.map(r => <option key={r.code} value={r.code}>{r.label}</option>)}
+              </select>
+            </div>
+            <div className="cpoe-field" style={{ marginTop: 8 }}>
+              <label>Justification (required)</label>
+              <textarea
+                rows={3}
+                value={overrideText}
+                onChange={e => setOverrideText(e.target.value)}
+                placeholder="Explain why proceeding is in the patient's best interest…"
+              />
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 14 }}>
+              <button className="btn" disabled={busy} onClick={() => setOverrideModal(null)}>Cancel</button>
+              <button
+                className="btn primary"
+                disabled={busy || !overrideText.trim()}
+                onClick={confirmOverride}
+              >
+                {busy ? "Recording…" : "Override & sign"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

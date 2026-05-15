@@ -46,3 +46,27 @@ export function getTenants(): Tenant[] {
 export function setActiveTenant(t: Tenant) {
   localStorage.setItem(TENANT_KEY, JSON.stringify(t));
 }
+
+/**
+ * Returns the role string for the currently active tenant, or null if absent.
+ * Reads from the "activeTenant" localStorage key per the role-gating spec, with a
+ * fallback to the historical "medcure_tenant" key used by saveAuth().
+ */
+export function getActiveRole(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const a = localStorage.getItem("activeTenant");
+    if (a) {
+      const parsed = JSON.parse(a) as { role?: string };
+      if (parsed?.role) return parsed.role;
+    }
+  } catch { /* fall through */ }
+  try {
+    const b = localStorage.getItem(TENANT_KEY);
+    if (b) {
+      const parsed = JSON.parse(b) as { role?: string };
+      if (parsed?.role) return parsed.role;
+    }
+  } catch { /* fall through */ }
+  return null;
+}

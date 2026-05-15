@@ -280,6 +280,21 @@ export interface Note {
   createdAt: string;
 }
 
+export interface Assessment {
+  id: number;
+  patientId: number;
+  encounterId?: number | null;
+  performedByUserId: number;
+  kind: string;
+  tool: string;
+  score: number;
+  risk: string;
+  detailsJson: string;
+  notes: string;
+  createdAt: string;
+  patient?: { id: number; mrn: string; firstName: string; lastName: string } | null;
+}
+
 export interface DashboardData {
   totalPatients: number;
   critical: number;

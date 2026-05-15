@@ -1,0 +1,10 @@
+bin/
+obj/
+*.user
+*.suo
+.vs/
+medcure.db
+medcure.db-journal
+wwwroot/uploads/
+Dockerfile
+.dockerignore

@@ -9,4 +9,7 @@ public class AuditEntry : TenantEntity
     public string Resource { get; set; } = "";
     public string Detail { get; set; } = "";
     public DateTime At { get; set; } = DateTime.UtcNow;
+    public string Kind { get; set; } = "";
+    public string Reason { get; set; } = "";
+    public int? TargetPatientId { get; set; }
 }

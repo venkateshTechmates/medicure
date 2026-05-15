@@ -4,12 +4,14 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { fmtDate, fmtTime } from "@/lib/fmt";
-import type { LabResult, Note, Order, PatientDetail, Vital } from "@/lib/types";
+import type { Assessment, LabResult, Note, Order, PatientDetail, Vital } from "@/lib/types";
+import BreakGlassModal from "@/components/BreakGlassModal";
 
 const TABS = [
-  { id: "summary",  label: "Summary",     ct: "" },
-  { id: "vitals",   label: "Vitals",      ct: "24h" },
-  { id: "notes",    label: "Notes",       ct: "" },
+  { id: "summary",     label: "Summary",     ct: "" },
+  { id: "vitals",      label: "Vitals",      ct: "24h" },
+  { id: "assessments", label: "Assessments", ct: "" },
+  { id: "notes",       label: "Notes",       ct: "" },
   { id: "orders",   label: "Orders",      ct: "" },
   { id: "meds",     label: "Medications", ct: "" },
   { id: "labs",     label: "Labs",        ct: "" },
@@ -29,11 +31,22 @@ export default function PatientChartClient() {
   const [meds, setMeds] = useState<Order[]>([]);
   const [labs, setLabs] = useState<LabResult[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
+  const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [tab, setTab] = useState("summary");
+  const [needsBreakGlass, setNeedsBreakGlass] = useState(false);
 
   useEffect(() => {
     if (!mrn) return;
-    api<PatientDetail>(`/api/patients/${mrn}`).then(setP).catch(() => {});
+    if (typeof window !== "undefined") {
+      // Mock care-team check: every patient is on team unless flag 'notCareTeam:<mrn>' is set.
+      const notOnTeam = localStorage.getItem(`notCareTeam:${mrn}`) === "1";
+      const acked = localStorage.getItem(`careTeam:${mrn}`) === "1";
+      if (notOnTeam && !acked) setNeedsBreakGlass(true);
+    }
+    api<PatientDetail>(`/api/patients/${mrn}`).then(pd => {
+      setP(pd);
+      api<Assessment[]>(`/api/assessments?patientId=${pd.id}&take=50`).then(setAssessments).catch(() => {});
+    }).catch(() => {});
     api<Vital[]>(`/api/patients/${mrn}/vitals`).then(setVitals).catch(() => {});
     api<Order[]>(`/api/patients/${mrn}/meds`).then(setMeds).catch(() => {});
     api<LabResult[]>(`/api/patients/${mrn}/labs`).then(setLabs).catch(() => {});
@@ -45,10 +58,24 @@ export default function PatientChartClient() {
   }, [mrn]);
 
   if (!p) return <div className="muted" style={{ padding: 40 }}>Loading…</div>;
+  if (needsBreakGlass) {
+    return (
+      <BreakGlassModal
+        patientId={p.id}
+        patientName={p.fullName}
+        mrn={p.mrn}
+        onAcknowledged={() => {
+          if (typeof window !== "undefined") localStorage.setItem(`careTeam:${mrn}`, "1");
+          setNeedsBreakGlass(false);
+        }}
+      />
+    );
+  }
   const v = vitals[0];
 
   const counts: Record<string, number> = {
     vitals: vitals.length,
+    assessments: assessments.length,
     notes: notes.length,
     orders: meds.length,
     meds: meds.length,
@@ -188,13 +215,14 @@ export default function PatientChartClient() {
           )}
 
           {tab === "vitals" && <VitalsTab vitals={vitals} />}
+          {tab === "assessments" && <AssessmentsTab assessments={assessments} patientId={p.id} />}
           {tab === "meds" && <MedsTab meds={meds} />}
           {tab === "orders" && <MedsTab meds={meds} />}
           {tab === "labs" && <LabsTab labs={labs} />}
           {tab === "notes" && <NotesTab notes={notes} />}
           {tab === "problems" && <ProblemsTab p={p} />}
           {tab === "allergies" && <AllergiesTab p={p} />}
-          {!["summary", "vitals", "meds", "orders", "labs", "notes", "problems", "allergies"].includes(tab) && (
+          {!["summary", "vitals", "assessments", "meds", "orders", "labs", "notes", "problems", "allergies"].includes(tab) && (
             <div className="card panel"><h2>{TABS.find(t => t.id === tab)?.label}</h2><div className="muted" style={{ fontSize: 13 }}>Coming soon — backend endpoint in development.</div></div>
           )}
         </div>
@@ -357,6 +385,33 @@ function ProblemsTab({ p }: { p: PatientDetail }) {
           <div className="code">{pb.icdCode}</div>
         </div>
       ))}
+    </div>
+  );
+}
+function AssessmentsTab({ assessments, patientId }: { assessments: Assessment[]; patientId: number }) {
+  const riskCls = (r: string) => r === "high" || r === "very-high" ? "bad" : r === "moderate" ? "warn" : "good";
+  return (
+    <div className="card panel">
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+        <h2 style={{ margin: 0 }}>Nursing assessments</h2>
+        <Link href={`/assessments/new?kind=admission&patientId=${patientId}`} className="btn primary">+ New assessment</Link>
+      </div>
+      {assessments.length === 0 && <div className="muted" style={{ fontSize: 13 }}>No assessments recorded yet.</div>}
+      {assessments.length > 0 && (
+        <table className="table" style={{ marginTop: 6 }}>
+          <thead><tr><th>When</th><th>Kind</th><th>Tool</th><th>Score</th><th>Risk</th><th>Notes</th></tr></thead>
+          <tbody>{assessments.map(a => (
+            <tr key={a.id}>
+              <td>{fmtDate(a.createdAt)} {fmtTime(a.createdAt)}</td>
+              <td><b>{a.kind}</b></td>
+              <td className="muted">{a.tool}</td>
+              <td><b>{a.score}</b></td>
+              <td><span className={`pill ${riskCls(a.risk)}`}><span className="pdot" />{a.risk}</span></td>
+              <td className="muted" style={{ maxWidth: 280, overflow: "hidden", textOverflow: "ellipsis" }}>{a.notes}</td>
+            </tr>
+          ))}</tbody>
+        </table>
+      )}
     </div>
   );
 }

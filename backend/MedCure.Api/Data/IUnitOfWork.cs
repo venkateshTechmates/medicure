@@ -30,6 +30,11 @@ public interface IUnitOfWork : IAsyncDisposable
     IRepository<ConsultRequest> ConsultRequests { get; }
     IRepository<TransferRequest> TransferRequests { get; }
     IRepository<CodeEvent> CodeEvents { get; }
+    IRepository<Notification> Notifications { get; }
+    IRepository<CdsRule> CdsRules { get; }
+    IRepository<CdsOverride> CdsOverrides { get; }
+    IRepository<MedReconciliation> MedReconciliations { get; }
+    IRepository<MedReconciliationLine> MedReconciliationLines { get; }
 
     // Specialized
     IUserRepository Users { get; }

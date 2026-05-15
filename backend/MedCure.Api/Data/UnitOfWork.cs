@@ -32,6 +32,11 @@ public class UnitOfWork(AppDbContext db, ICurrentUser current) : IUnitOfWork
     private IRepository<ConsultRequest>?          _consults;
     private IRepository<TransferRequest>?         _transfers;
     private IRepository<CodeEvent>?               _codes;
+    private IRepository<Notification>?            _notifs;
+    private IRepository<CdsRule>?                 _cdsRules;
+    private IRepository<CdsOverride>?             _cdsOverrides;
+    private IRepository<MedReconciliation>?       _medRecs;
+    private IRepository<MedReconciliationLine>?   _medRecLines;
 
     private IUserRepository?      _users;
     private IPatientRepository?   _patients;
@@ -62,6 +67,11 @@ public class UnitOfWork(AppDbContext db, ICurrentUser current) : IUnitOfWork
     public IRepository<ConsultRequest>          ConsultRequests => _consults  ??= new Repository<ConsultRequest>(db, current);
     public IRepository<TransferRequest>         TransferRequests => _transfers ??= new Repository<TransferRequest>(db, current);
     public IRepository<CodeEvent>               CodeEvents    => _codes       ??= new Repository<CodeEvent>(db, current);
+    public IRepository<Notification>            Notifications => _notifs      ??= new Repository<Notification>(db, current);
+    public IRepository<CdsRule>                 CdsRules      => _cdsRules    ??= new Repository<CdsRule>(db, current);
+    public IRepository<CdsOverride>             CdsOverrides  => _cdsOverrides??= new Repository<CdsOverride>(db, current);
+    public IRepository<MedReconciliation>       MedReconciliations => _medRecs ??= new Repository<MedReconciliation>(db, current);
+    public IRepository<MedReconciliationLine>   MedReconciliationLines => _medRecLines ??= new Repository<MedReconciliationLine>(db, current);
 
     public IUserRepository      Users      => _users    ??= new UserRepository(db, current);
     public IPatientRepository   Patients   => _patients ??= new PatientRepository(db, current);

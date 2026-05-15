@@ -15,4 +15,6 @@ public class Vital : TenantEntity
     public double TempC { get; set; }
     public int? Pain { get; set; }
     public string RecordedBy { get; set; } = "";
+    public int? News2Score { get; set; }
+    public string News2Risk { get; set; } = "";   // low, medium, high
 }

@@ -1,0 +1,120 @@
+name: Build, Test, E2E
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  backend:
+    name: Backend (.NET)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+          include-prerelease: true
+      - name: Restore
+        working-directory: backend
+        run: dotnet restore MedCure.slnx
+      - name: Build
+        working-directory: backend
+        run: dotnet build MedCure.slnx --no-restore -c Release
+      - name: Test
+        working-directory: backend
+        run: dotnet test MedCure.slnx --no-build -c Release --logger "trx;LogFileName=test.trx" --collect:"XPlat Code Coverage"
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-results
+          path: |
+            backend/**/TestResults/**
+
+  frontend:
+    name: Frontend (Next.js)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/medcure-web/package-lock.json
+      - name: Install
+        working-directory: frontend/medcure-web
+        run: npm ci
+      - name: Type check
+        working-directory: frontend/medcure-web
+        run: npx tsc --noEmit
+      - name: Lint
+        working-directory: frontend/medcure-web
+        run: npm run lint || true
+      - name: Build
+        working-directory: frontend/medcure-web
+        run: npm run build
+
+  e2e:
+    name: E2E (Playwright)
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+          include-prerelease: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/medcure-web/package-lock.json
+      - name: Install frontend deps
+        working-directory: frontend/medcure-web
+        run: npm ci
+      - name: Install Playwright browsers
+        working-directory: frontend/medcure-web
+        run: npx playwright install --with-deps chromium
+      - name: Start API
+        working-directory: backend/MedCure.Api
+        env:
+          MEDCURE_JWT_SECRET: test-secret-32chars-long-for-ci-build-only-do-not-use
+        run: |
+          dotnet run -c Release &
+          for i in {1..60}; do curl -sf http://localhost:5050/api/health && break; sleep 2; done
+      - name: Build + Start frontend
+        working-directory: frontend/medcure-web
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:5050
+        run: |
+          npm run build
+          npm run start &
+          for i in {1..30}; do curl -sf http://localhost:3000 && break; sleep 2; done
+      - name: Backend E2E
+        working-directory: backend
+        run: bash e2e.sh
+      - name: Playwright E2E
+        working-directory: frontend/medcure-web
+        run: npx playwright test
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/medcure-web/playwright-report/
+
+  docker:
+    name: Docker images
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build API image
+        run: docker build -t medcure-api:ci backend/MedCure.Api
+      - name: Build Web image
+        run: docker build -t medcure-web:ci frontend/medcure-web
+      - name: Build KG image
+        run: docker build -t medcure-kg:ci backend/knowledge-graph

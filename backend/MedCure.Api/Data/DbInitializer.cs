@@ -6,9 +6,9 @@ namespace MedCure.Api.Data;
 
 public static class DbInitializer
 {
-    public static async Task RunAsync(AppDbContext db)
+    public static async Task RunAsync(AppDbContext db, bool autoMigrate = true)
     {
-        await db.Database.MigrateAsync();
+        if (autoMigrate) await db.Database.MigrateAsync();
         if (await db.Tenants.AnyAsync()) return;
 
         var rng = new Random(42);

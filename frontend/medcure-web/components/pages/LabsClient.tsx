@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { api } from "@/lib/api";
+import { api, downloadFile } from "@/lib/api";
 import { fmtTime } from "@/lib/fmt";
 import type { LabResult } from "@/lib/types";
 
@@ -35,6 +35,7 @@ export default function LabsClient() {
             <input placeholder="Search by patient or test" />
           </div>
           <button className="btn">Last 24h <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path d="m6 9 6 6 6-6" /></svg></button>
+          <button className="btn" onClick={() => downloadFile("/api/exports/labs.csv", "labs.csv")}>Export CSV</button>
           <button className="btn primary">Order Lab <span className="arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.6} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg></span></button>
         </div>
       </div>

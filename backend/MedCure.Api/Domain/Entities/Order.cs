@@ -21,4 +21,10 @@ public class Order : TenantEntity
     public DateTime? StartAt { get; set; }
     public string? Duration { get; set; }
     public string Notes { get; set; } = "";
+    public int Revision { get; set; } = 0;
+    public DateTime? DiscontinuedAt { get; set; }
+    public string DiscontinuedReason { get; set; } = "";
+    public int? OrderingMdId { get; set; }
+    public int? EnteredByUserId { get; set; }
+    public DateTime? VerbalCosignDue { get; set; }
 }
